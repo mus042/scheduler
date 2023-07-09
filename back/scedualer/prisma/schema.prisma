@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum typeOfShift {
+  short
+  long
+}
+
+enum typeOfUser {
+  headOfLocation
+  headOfShift
+  veteren
+  mid
+  new
+}
+
+enum Role {
+  admin
+  user
+}
+
+enum shcheduleType {
+  userSchedule
+  systemSchedule
+}
+
+model shift {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  shiftDate       DateTime?
+  shiftType       Int
+  typeOfShift     typeOfShift? //short or long =  8 /12 
+  shifttStartHour DateTime?
+  shiftEndHour    DateTime?
+
+  userId         Int?
+  userRef        user?   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userPreference String?
+
+  scheduleId Int?
+  schedule   schedule? @relation(fields: [scheduleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@map("shift")
+}
+
+model schedule {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  scedualStart DateTime
+  scedualEnd   DateTime
+  sceduleType  shcheduleType
+  scedhuleDue  DateTime?
+
+  userId              Int?
+  shiftUserStatistics ShiftUserStatistic[]
+  user                user?                @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  shifts shift[]
+
+  @@map("schedule")
+}
+
+model user {
+  id                   Int               @id @default(autoincrement())
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @default(now())
+  userRole             Role              @default(user)
+  userLevel            Int?              @default(1)
+  typeOfUser           typeOfUser        @default(new)
+  email                String            @unique
+  hash                 String
+  firstName            String?
+  lastName             String?
+  shiftUserStatistics  ShiftUserStatistic[]
+  shifts               shift[]
+  schedual             schedule[]
+  userSentRequests     userRequest[]     @relation("SentRequests")
+  userAcceptedRequests userRequest[]     @relation("AcceptedRequests")
+  @@map("users")
+}
+
+
+
+model userRequest {
+  id                   Int               @id @default(autoincrement())
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @default(now())
+  senderId             Int
+  senderUserRef        user?             @relation(name:"SentRequests",fields: [senderId], references: [id])
+  destionationUserId   Int
+  acceptingUserRef     user?             @relation(name:"AcceptedRequests",fields: [destionationUserId], references: [id])
+  status               String
+  isAnswered           Boolean           @default(false)
+  requestAnswer        String?
+  requsetMsg           String?
+  shiftId              Int
+  @@unique([senderId, destionationUserId, shiftId])
+}
+
+model ShiftUserStatistic {
+  scheduleId   Int       @map("schedule_id")
+  userId       Int       @map("user_id")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now())
+  morningShifts Int
+  nightShifts   Int
+  user         user      @relation(fields: [userId], references: [id])
+  schedule     schedule  @relation(fields: [scheduleId], references: [id])
+
+  @@id([userId, scheduleId])
+  @@map("shift_statistic")
+}

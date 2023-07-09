@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "schedule" ALTER COLUMN "userId" DROP NOT NULL,
+ALTER COLUMN "userId" DROP DEFAULT,
+ALTER COLUMN "scedhuleDue" DROP NOT NULL;

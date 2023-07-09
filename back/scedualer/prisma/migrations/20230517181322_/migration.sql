@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "shift" ALTER COLUMN "userId" DROP DEFAULT,
+ALTER COLUMN "scheduleId" DROP DEFAULT;

@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "shift" ALTER COLUMN "userId" SET DEFAULT 0,
+ALTER COLUMN "userPreference" SET DATA TYPE TEXT,
+ALTER COLUMN "scheduleId" SET DEFAULT 0;
