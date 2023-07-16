@@ -13,8 +13,6 @@ export class RequestDto {
     @IsNumber()
     destionationUserId: number;
   
-    @IsString()
-    status: string;
   
     @IsBoolean()
     isAnswered: boolean;

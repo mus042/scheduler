@@ -9,37 +9,37 @@ import { Role } from '@prisma/client';
 
 
 
-@UseGuards(JwtGuard,RoleGuard)
+// @UseGuards(JwtGuard,RoleGuard)
 @Controller('user-request')
 export class UserRequestController {
     constructor(
         private requestService : UserRequestService,
     ){}
 
-    @Roles('admin','user')
+//     @Roles('admin','user')
     @Get('reqest')
     getRequest(@Param() requestId:number)
     {
          return this.requestService.getRequest(requestId); 
     }
-    @Roles('admin','user')
+//     @Roles('admin','user')
     @Get('getallUserSentrequest')
     getallUserSentrequest(@Param() requestId:number)
     {
          return this.requestService.getallUserSentrequest(requestId); 
     }
-    @Roles('admin','user')
+//     @Roles('admin','user')
     @Get('getallUserRecivedrequest')
     getallUserRecivedrequest(@Param() requestId:number)
     {
          return this.requestService.getallUserRecivedrequest(requestId); 
     }
-    @Roles('admin','user')
+//     @Roles('admin','user')@GetUser('id') userId:number,|| userId === requestDto.senderId
     @Post('setRequest')
-    setRequest(@GetUser('id') userId:number,@Body() requestDto:any)
+    setRequest(@Body() requestDto:any)
     {
         console.log('dto :  controler 41 ',{...requestDto}, typeof requestDto , requestDto.senderId)
-        if(userId === requestDto.senderId){
+        if(true ){
          return this.requestService.setRequest(requestDto); 
     }
     else{

@@ -33,6 +33,11 @@ enum shcheduleType {
   systemSchedule
 }
 
+enum requestStatus {
+  toSend
+  sent
+  recived
+}
 model shift {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
@@ -102,7 +107,7 @@ model userRequest {
   senderUserRef        user?             @relation(name:"SentRequests",fields: [senderId], references: [id])
   destionationUserId   Int
   acceptingUserRef     user?             @relation(name:"AcceptedRequests",fields: [destionationUserId], references: [id])
-  status               String
+  status               requestStatus      @default(toSend)
   isAnswered           Boolean           @default(false)
   requestAnswer        String?
   requsetMsg           String?

@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from './schedule/schedule.module';
 import { UserRequestModule } from './user-request/user-request.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -18,6 +19,8 @@ import { UserRequestModule } from './user-request/user-request.module';
     }),
     ScheduleModule,
     UserRequestModule,
+    EventsModule,
+    
   ],
   controllers: [],
   providers: [],
