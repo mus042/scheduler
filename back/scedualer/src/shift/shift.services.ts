@@ -2,8 +2,9 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EditShiftByDateDto, ShiftDto } from './dto';
 import { AuthDto } from '../auth/dto/';
-import { shcheduleType, shift, user } from '@prisma/client';
+import { ShiftUserStatistic, shcheduleType, shift, user } from '@prisma/client';
 import { EditShiftDto } from './dto/editShift.dto';
+import { UsershiftStats } from 'src/user-statistics/userShiftStats.dto';
 
 @Injectable()
 export class ShiftService {
@@ -25,6 +26,7 @@ export class ShiftService {
           scheduleId: dto.scheduleId,
         },
       });
+
       return shift;
     } catch (eror) {
       console.log(eror);
@@ -84,20 +86,66 @@ export class ShiftService {
   async replaceUser(shiftInfo){
     //update shift - Replace the user for existing shift, return new shift 
     try{
-      console.log({shiftInfo})
+      console.log({shiftInfo},shiftInfo.shift.id)
+      const formershfit = await this.prisma.shift.findUnique({
+        where: { id: shiftInfo.shift.id },
+        select: {
+          userId: true,
+        },
+      });
+      console.log({ formershfit});
+      const originalUserId = formershfit?.userId;
+      
+      // Update the userId of the shift record
       const userId = shiftInfo.newUser;
       const shiftId = shiftInfo.shift.id;
-      console.log(shiftId,{userId})
-      const shiftToEdit:shift = await this.prisma.shift.update({
-        where:{
-          id:shiftId
+      const updatedShift: shift = await this.prisma.shift.update({
+        where: {
+          id: shiftId,
         },
-        data:{
-          userId:userId
-        } 
+        data: {
+          userId: userId,
+        },
       });
-      console.log(shiftToEdit);
-      return shiftToEdit;
+      
+      //get usersshifts Stats and update them 
+      const originalUserShiftStats = await this.prisma.shiftUserStatistic.findUnique({where:{
+        userId_scheduleId:{
+          userId:originalUserId,
+          scheduleId:shiftInfo.schedualId
+        }
+      }})
+      //change count 
+      if(shiftInfo.shiftType === 'morning') {
+        originalUserShiftStats.morningShifts = originalUserShiftStats.morningShifts -1 
+      } else if(shiftInfo.shiftType === 'noon'){
+        originalUserShiftStats.noonShifts = originalUserShiftStats.noonShifts -1 ; 
+      }else if(shiftInfo.shiftType ==='night'){
+        originalUserShiftStats.nightShifts = originalUserShiftStats.nightShifts -1 ; 
+      }
+      const updateOriginalUserStat: UsershiftStats = {
+        ...originalUserShiftStats
+      }
+      const newUserShiftStats = await this.prisma.shiftUserStatistic.findUnique({where:{
+        userId_scheduleId:{
+          userId:shiftInfo.newUser,
+          scheduleId:shiftInfo.schedualId
+        }
+      }})
+      //change count 
+      if(shiftInfo.shiftType === 'morning') {
+        originalUserShiftStats.morningShifts = originalUserShiftStats.morningShifts -1 
+      } else if(shiftInfo.shiftType === 'noon'){
+        originalUserShiftStats.noonShifts = originalUserShiftStats.noonShifts -1 ; 
+      }else if(shiftInfo.shiftType ==='night'){
+        originalUserShiftStats.nightShifts = originalUserShiftStats.nightShifts -1 ; 
+      }
+      const updateNewUserStat: UsershiftStats = {
+        ...originalUserShiftStats
+      }
+      
+
+      return updatedShift;
     }catch(error){
       console.log(error.message);
       return {};
@@ -135,11 +183,11 @@ export class ShiftService {
           userRef: true, // Include the userRef relation
         },
       });
-      console.log({ shifts });
+      // console.log({ shifts });
       shifts.forEach((element) => {
         delete element.userRef?.hash;
       });
-      console.log({ shifts }, typeof shifts);
+      // console.log({ shifts }, typeof shifts);
       return shifts;
     } catch (eror) {
       console.log(eror);

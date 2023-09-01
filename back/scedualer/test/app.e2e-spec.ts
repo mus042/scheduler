@@ -401,34 +401,43 @@ const { e2e } = require('pactum');
   });
   describe('schedule',()=>{
         describe('CreateNewScheduleForUser',()=>{
-          console.log(`$S{userAt}`);
-        const scedualStart:Date = new Date(2023,6,20,6,0,0);
-            const  scedualEnd:Date = new Date(scedualStart.getDate()+7);
-            const dto:scheduleDto = {
-              scedualStart:scedualStart,
-              scedualEnd:scedualEnd,
-              userId :i, 
-            }
-            // console.log({dto});
+          console.log('userAt',`$S{userAt}`);
+        // const scedualStart:Date = new Date(2023,6,20,6,0,0);
+        //     const  scedualEnd:Date = new Date(scedualStart.getDate()+7);
+        //     const dto:scheduleDto = {
+        //       scedualStart:scedualStart,
+        //       scedualEnd:scedualEnd,
+        //       userId :i, 
+        //     }
+        //     // console.log({dto});
 
-          it('should create new schedule for user',async ()=>{
+        //   it('should create new schedule for user',async ()=>{
            
-            await case_user_one.step().spec().post('/schedule/cnScheduleFU/').
-            withHeaders({
-              Authorization: 'Bearer $S{userAt}',
-            }).withBody(dto).expectStatus(200).inspect();
-          });
+        //     await case_user_one.step().spec().post('/schedule/cnScheduleFU/').
+        //     withHeaders({
+        //       Authorization: 'Bearer $S{userAt}',
+        //     }).withBody(dto).expectStatus(200).inspect();
+        //   });
 
-
-        })
-    
-
-
+        it('should get user next schedule',async ()=>{
+          console.log(`$S{userAt}`);
+          const result = await case_user_one.step().spec().get('/schedule/getNextSchedule/').
+          withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          }).withBody({userId:i}).expectStatus(200).inspect();
+          console.log({result})
+        });
+  })
       it('should bulk edit user shift preference for futer schedule ',
        async ()=>{
           const scheduleId = i;  
-          const shiftsToEdit: EditShiftByDateDto[] = []
-           const start = new Date(2023,6,20,6,0,0);
+          const shiftsToEdit: EditShiftByDateDto[] = [] ;
+          const currentDate = new Date();
+           const start = new Date(
+            currentDate.getTime() +
+              (7 - currentDate.getDay()) * 24 * 60 * 60 * 1000,
+          );
+          start.setHours(9,0,0,0);
            for (let i = 0; i < 7; i++) {
             let startDate = new Date(start);
       
@@ -457,7 +466,7 @@ const { e2e } = require('pactum');
                   }
                 
                 shiftsToEdit.push(editShift);
-                console.log({shiftsToEdit});
+                // console.log({shiftsToEdit});
               }
             }
             
@@ -485,11 +494,20 @@ const { e2e } = require('pactum');
   // /////////////////
     describe('Fill Empty schedule', ()=>{
       it('should create new schedule ',async ()=>{
-
-        const start = new Date(2023,6,20,6,0,0);
+        const currentDate = new Date();
+        const startDate = new Date(
+          currentDate.getTime() +
+            (7 - currentDate.getDay()) * 24 * 60 * 60 * 1000,
+        );
+        startDate.setHours(9, 0, 0, 0);
+        const endDate = new Date(startDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+        endDate.setHours(9, 0, 0, 0);
+        // console.log({ userId });
+        const scedualDue:Date = new Date(startDate.getTime() - 4 );
         const dto:generateScheduleForDateDto={
          
-          scedualStart:start,
+          scedualStart:startDate,
+
         }
          return await pactom.spec().post('/schedule/createSchedule/').
         withHeaders({

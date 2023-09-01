@@ -14,12 +14,13 @@ export class AuthControler{
         @Post('signup')
         signup(@Body() dto:  AuthDto|devAuthDto){
             console.log({dto});
+            
             if(dto.email !== null){
             return this.authService.signup(dto)
             }
             else{
                 throw new ForbiddenException("email should not be empty")
-            } 
+            }
         }
         @HttpCode(HttpStatus.OK)
         @Post('signin')

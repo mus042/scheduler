@@ -1,11 +1,10 @@
-import { Module, UseGuards } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { EventsGateway } from './events.gateway';
-import { RoleGuard } from 'src/auth/role/role.guard';
-import { JwtGuard } from 'src/auth/Guard';
+import { PrismaClient } from '@prisma/client';
 
 
 @Module({
-  providers: [EventsGateway],
+  providers: [EventsGateway,PrismaClient],
   exports:[EventsGateway],
 })
 export class EventsModule {}

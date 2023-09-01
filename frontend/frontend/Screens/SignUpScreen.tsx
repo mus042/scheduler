@@ -1,17 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const RequestCompenent = () => {
-    //This compenent will handel all requests 
-    
-
+const Sign UP = () => {
   return (
     <View>
-      <Text>RequestCompenent</Text>
+      <Text>Sign UP</Text>
     </View>
   )
 }
 
-export default RequestCompenent
+export default Sign UP
 
 const styles = StyleSheet.create({})

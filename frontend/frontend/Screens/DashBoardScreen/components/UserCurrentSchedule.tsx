@@ -4,6 +4,7 @@ import { scheduleInfo } from "../../../App";
 import { scheduleData } from "../../../App";
 import { shift } from "../../../App";
 import WeeklyView from "./WeeklyView";
+import { mainStyle } from "../../../utils/mainStyles";
 
 const UserCurrentSchedule = ({
   scheudle,
@@ -55,16 +56,17 @@ if(scheudle){
 
   return (
     <View style={styles.container}>
-      <Text>UserCurrentScheduleComp</Text>
+      <View style={{flex:1}}>
+      <Text style={mainStyle.h4}>THIS WEEK: -- השבוע</Text>
+      </View>
       {scheduleData && (
-        <>
-          <Text>has sched</Text>
+        <View style={{flex:1}}>
+          
           <Text>{schedStart?.getTime()}</Text>
-          <Text>{scheduleData?.scedualStart}</Text>
-        </>
+        </View>
       )}
       {scheduleData && (
-        <View>
+        <View >
           {/* <Text>{schedule.scheduleShifts}</Text> */}
           {scheduleShifts && (
             <WeeklyView
@@ -76,9 +78,9 @@ if(scheudle){
         </View>
       )}
       {!scheduleData && (
-        <View>
+        <View style={{flex:1}}>
           <>
-            <Text> Looks like there is no schedule to show </Text>
+            <Text style={mainStyle.h4}> Looks like there is no schedule to show </Text>
           </>
         </View>
       )}
@@ -90,8 +92,10 @@ export default UserCurrentSchedule;
 
 const styles = StyleSheet.create({
   container: {
+    flex:1,
     borderWidth: 1,
     borderColor: "red",
+    marginTop:5,
   },
   item: {
     backgroundColor: "#f9c2ff",

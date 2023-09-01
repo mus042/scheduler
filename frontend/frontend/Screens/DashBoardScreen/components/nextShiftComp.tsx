@@ -3,36 +3,50 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../../../app/context/AuthContext";
 import ShiftComponent from "./ShiftComponent";
+import { shift } from "../../../App";
+import { normalizeShiftDate, normalizeShiftTime } from "../../../utils/utils";
+import { mainStyle } from "../../../utils/mainStyles";
 
-const NextShiftComp = () => {
+const NextShiftComp = ({nextShift}:{nextShift:shift | undefined}) => {
+
   //getNext Shift from server
-  const [nextShift, setnextShift] = useState<any>();
+  const [shift, setnextShift] = useState<shift>();
+
+
 
   useEffect(() => {
-    const loadNextShift = async () => {
-        
-      const result = await axios.get(`${API_URL}shifts/nextShift `);
-    
-      if (result) {
-        setnextShift(result.data.nextShift);
-      }
-      
-    };
-    loadNextShift();
-  }, []);
+    console.log("next shift component",{nextShift})
+    setnextShift(nextShift);
+  }, [nextShift]);
   
+
+  const date = new Date("2023-07-23T15:55:22.242Z");
+  const nextTestShift:shift = {
+    id: 1,
+    createdAt:date,
+    updatedAt:date,
+    shiftType: 'morning',
+    shiftDate:date,
+    typeOfShift: "short",
+    shifttStartHour:date,
+    shiftEndHour:date,
+    userId: 6,
+    userPreference: "1",
+    scheduleId: 2,
+    userRef:null ,
+  }
+
   return (
    
     <View style={styles.container}>
      { nextShift?(
-      <View>
-        <Text>
-            next shift
+      <View style={{flex:1}}>
+      <View style={{flex:1}}>
+        <Text style={mainStyle.h3}>
+            Next shift
         </Text>
-        <Text>{nextShift.id}</Text>
-        <Text>{nextShift.shifttStartHour}</Text>   
-        <Text>{nextShift.typeOfShift}</Text>
       { nextShift && <ShiftComponent shift={nextShift} isEdit={false} />} 
+     </View>
       </View>
       ):(
         <View>
@@ -50,6 +64,7 @@ export default NextShiftComp;
 const styles = StyleSheet.create({
 
     container:{
+      flex:1,
         borderWidth:1,
         borderColor:'red', 
     }

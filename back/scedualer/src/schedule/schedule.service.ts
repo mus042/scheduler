@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { shift, schedule, user, typeOfShift } from '@prisma/client';
+import { shift, schedule, user, typeOfShift, shiftType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   EditShiftByDateDto,
@@ -15,6 +15,7 @@ import { generateScheduleForDateDto } from './dto/GenerateScheduleForDate.Dto';
 import { UserService } from '../user/user.service';
 import { ScheduleUtil } from './schedule.utilsClass';
 import { error } from 'console';
+import { UserStatisticsService } from '../user-statistics/user-statistics.service';
 
 const dayToSubmit: number = 6; // the day number in wich userSched is not editable
 enum shcheduleType {
@@ -29,6 +30,7 @@ export class ScheduleService {
     private shiftSercvice: ShiftService,
     private userService: UserService,
     private scheduleUtil: ScheduleUtil,
+    private shiftStats: UserStatisticsService,
   ) {}
   scheduleDue: number = 2; // to change later - get from schedule object
 
@@ -41,8 +43,7 @@ export class ScheduleService {
       const scheduleArr: schedule[] = await this.prisma.schedule.findMany({
         where: {
           scedualStart: {
-            //     // Filter for shifts that have a startTime greater than the current date and time
-            gt: currentDate,
+            gt: currentDate ,
           },
           userId: userId,
         },
@@ -50,7 +51,7 @@ export class ScheduleService {
           scedualStart: 'asc',
         },
       });
-      console.log(scheduleArr);
+      console.log(scheduleArr[0]);
       const nextSchedule: schedule = scheduleArr[0];
       console.log({ nextSchedule });
       if (nextSchedule === null || !nextSchedule) {
@@ -59,15 +60,17 @@ export class ScheduleService {
             (7 - currentDate.getDay()) * 24 * 60 * 60 * 1000,
         );
         startDate.setHours(9, 0, 0, 0);
-        const endDate = new Date(currentDate.getTime() + 7);
+        const endDate = new Date(startDate.getTime() + (7 * 24 * 60 * 60 * 1000));
         endDate.setHours(9, 0, 0, 0);
-        console.log({ userId });
+        // console.log({ userId });
+        const scedualDue:Date = new Date(startDate.getTime() - 4 );
         const dto: scheduleDto = {
           scedualStart: startDate,
           scedualEnd: endDate,
+          scedualDue: scedualDue, 
           userId: userId,
         };
-        console.log({ dto });
+        // console.log({ dto });
         const newSchedule: any = await this.createSchedualeForUser(dto);
         // console.log(nextSchedule);
         const nextSchedule: schedule = { ...newSchedule?.newSchedule };
@@ -75,7 +78,6 @@ export class ScheduleService {
         console.log(
           'next schedule 67 sched servic ',
           { nextSchedule },
-          { scheduleShifts },
         );
         const tmpSchedule = {
           data: { ...nextSchedule },
@@ -130,10 +132,10 @@ export class ScheduleService {
       console.log(error);
     }
   }
-  async getCurrentSchedule() {
+  async getCurrentSchedule() { 
     const currentDate = new Date();
     try {
-      console.log('get current schedule ');
+      console.log('get current schedule ' , currentDate );
       const currentSchedule = await this.prisma.schedule.findFirst({
         where: {
           scedualStart: {
@@ -147,6 +149,7 @@ export class ScheduleService {
           scedualStart: 'asc',
         },
       });
+      console.log(currentSchedule?.scedualStart);
       const currentScheduleShifts: ShiftDto[] = currentSchedule
         ? await this.shiftSercvice.getAllShiftsByScheduleId(currentSchedule.id)
         : null;
@@ -219,12 +222,12 @@ export class ScheduleService {
       for (let j = 0; j < 3; j++) {
         const esEndTime = new Date(esStartDate); // Create a new Date object for the end time
         esEndTime.setHours(esStartDate.getHours() + 8);
-
+        const sType = j=== 0 ? shiftType.morning : j===1? shiftType.noon: shiftType.night
         const dto: ShiftDto = {
           userPreference: '0',
           shiftDate: new Date(esStartDate), // Create a new Date object for the shift date
-          shiftType: 2,
-
+          shiftType: sType,
+          typeOfShift:'short',
           shifttStartHour: esStartDate,
           shiftEndHour: esEndTime,
           scheduleId: esId,
@@ -431,7 +434,9 @@ export class ScheduleService {
           const schedShifts = await this.getAllUsersForSchedule(
             scheduleToCheck.scedualStart,
           );
-
+            if(scheduleToCheck.sceduleType !== 'systemSchedule'){
+              throw new ForbiddenException("Replace alowd only on system schedule")
+            }
           const avialbleUsersForShift: ShiftDto[] =
             this.scheduleUtil.searchPossibleUsersForShift(
               shiftToReplace.shifttStartHour,
@@ -541,6 +546,10 @@ export class ScheduleService {
     }
     const emptyShifts = secondFill['emptyShifts'];
     console.log('unassigned Shifts:', secondFill['emptyShifts']);
+    //save the shifts statistics . 
+
+    const stats = await this.shiftStats.createUsersStatsForScheduleShifts(ceratedSched);
+    console.log(stats )
 
     // return shifts;
     return { filled2Sched, emptyShifts };

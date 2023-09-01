@@ -6,12 +6,18 @@ import { Text } from "react-native"; // Import the Text component
 import * as storage from "./storage.native";
 import jwtDecode from "jwt-decode";
 import { user } from "../../App";
+import { Socket, io } from "socket.io-client";
+import { useWebSocket } from "./WebSocketContext";
 
 interface AuthProps {
   authState?: {
     token: string | null;
     authenticated: boolean | null;
     user: user | null;
+    socket: any | null;
+    receivedRequests: any[] ;
+    sentRequest: any[] ;
+    requestArchive: any | null ; 
   };
   onRegister?: (email: string, password: string) => Promise<any>;
   onLogin?: (email: string, password: string) => Promise<any>;
@@ -19,7 +25,7 @@ interface AuthProps {
 }
 
 const TOKEN_KEY = "my-jwt";
-export const API_URL = "http://172.30.240.1:3000/";
+export const API_URL = "http://172.18.0.1:3000/";
 const AuthContext = createContext<AuthProps>({});
 
 export const userAuth = () => {
@@ -38,7 +44,11 @@ export const AuthProvider = ({ children }: any) => {
     token: string | null;
     authenticated: boolean | null;
     user: object | null;
-  }>({ token: null, authenticated: null, user: null });
+    socket:Socket | null ;
+    // receivedRequests:any[] ;
+    // sentRequest: any[] ;
+    // requestArchive: any | null ; 
+  }>({ token: null, authenticated: null, user: null,socket:null });
 
   useEffect(() => {
     const loadToken = async () => {
@@ -54,14 +64,27 @@ export const AuthProvider = ({ children }: any) => {
             token: null,
             authenticated: false,
             user: null,
+            socket:null,
           });
         } else {
           const user = await getUser();
-          console.log(user, typeof user);
+          const socketInstance =  io(`${API_URL}events`, {
+          auth: (cb: any) => {
+           cb({ token: token });
+         }
+        });
+        socketInstance.on("newRequest",(request)=>{
+          console.log("new Message 75 ",{request});
+       
+     }
+      )
+      
+      console.log('log 71 authstate ',user, typeof user , {authState});
           setauthState({
             token: token,
             authenticated: true,
             user: user,
+           socket: socketInstance,
           });
 
           const expirationTime = jwtDecode<{ exp: number }>(token).exp;
@@ -76,6 +99,7 @@ export const AuthProvider = ({ children }: any) => {
     };
 
     loadToken();
+
   }, []);
 
   const register = async (email: string, password: string) => {
@@ -93,6 +117,7 @@ export const AuthProvider = ({ children }: any) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    
     try {
       const result = await axios.post(`${API_URL}auth/Signin `, {
         email,
@@ -106,17 +131,34 @@ export const AuthProvider = ({ children }: any) => {
         result,
         result.data.acsess_token
       );
+      console.log("signin")
       const user = await getUser();
+      const socketInstance =  io(`${API_URL}events`, {
+        auth: (cb: any) => {
+          cb({ token:  result.data.acsess_token });
+        }
+      });
+    
+      socketInstance.on("newRequest",(request)=>{
+        console.log("new Message",{request});
+        // store in context
+        // onNewRequest(request);
+        // console.log(authState.receivedRequests);
+        // show alert in request component 
+      });
+
       setauthState({
         token: result.data.acsess_token,
         authenticated: true,
         user: user,
+        socket:socketInstance,
       });
 
       await storage.setItem(TOKEN_KEY, result.data.acsess_token);
 
       return result;
     } catch (error: any) {
+      console.log(error);
       if (error && axios.isAxiosError(error)) {
         console.log(
           error.response?.data.message
@@ -131,17 +173,19 @@ export const AuthProvider = ({ children }: any) => {
       await storage.deleteItem(TOKEN_KEY);
 
       axios.defaults.headers.common["Authorization"] = "";
-
+      authState.socket?.disconnect();
       setauthState({
         token: "",
         authenticated: false,
         user: null,
+        socket:authState.socket,
       });
       console.log({ authState });
     } catch (error) {
       return { error: true, msg: (error as any).response.data.msg };
     }
   };
+
 
   const value = {
     onRegister: register,

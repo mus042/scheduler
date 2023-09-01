@@ -1,4 +1,4 @@
-import { typeOfShift, typeOfUser, user } from '@prisma/client';
+import { shift, shiftType, typeOfShift, typeOfUser, user } from '@prisma/client';
 import {
   IsEnum,
   IsNumber,
@@ -19,8 +19,8 @@ export class ShiftDto {
   @IsString()
   shiftDate: Date;
 
-  @IsNumber()
-  shiftType: number;
+  @IsEnum(shiftType)
+  shiftType: shiftType;
 
   @IsString()
   shifttStartHour: Date;

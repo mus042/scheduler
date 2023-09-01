@@ -5,6 +5,7 @@ import ShiftComponent from "./ShiftComponent";
 import DayViewComp from "./DayViewComp";
 import { scheduleData, scheduleInfo } from "../../../App";
 import { shift } from "../../../App";
+import { mainStyle } from "../../../utils/mainStyles";
 
 const WeeklyView = ({
   shifts,
@@ -15,9 +16,7 @@ const WeeklyView = ({
   update: any;
   scheduleInfo: scheduleInfo | undefined;
 }) => {
-  // console.log(shift)
-  // const localShift = shifts.item?shift.item:shift;
-  // console.log(localShift)
+  
 
   const [editShiftModal, setEditShiftModal] = useState(false);
   const [localShifts, setlocalShifts] = useState<shift[][]>();
@@ -33,6 +32,7 @@ const WeeklyView = ({
   }, [localShifts]);
 
   const hadelUpdate = (arr) => {
+    console.log("handel update ")
     update(arr);
   };
 
@@ -55,7 +55,7 @@ const WeeklyView = ({
   };
 
   const createWeeklyView = (shiftsData: shift[]) => {
-    console.log({ shiftsData }, Object.keys(shiftsData).length > 0);
+    // console.log({ shiftsData }, Object.keys(shiftsData).length > 0);
     if (Object.keys(shiftsData).length > 0) {
       const weekArr: shift[][] = [];
       shiftsData.sort(compareShifts);
@@ -65,10 +65,10 @@ const WeeklyView = ({
         const day = new Date(shiftsData[i].shifttStartHour);
         const dayShifts: shift[] = [];
         let dateToChek = new Date(shiftsData[i].shifttStartHour);
-        console.log(dateToChek.getDay() === day.getDay(), dateToChek,day)
+        // console.log(dateToChek.getDay() === day.getDay(), dateToChek,day)
         
         while (dateToChek.getDay() === day.getDay() && i < shiftsData.length) {
-          console.log('while loop ',{i},dateToChek.getDay() === day.getDay(), dateToChek,day.getDay())
+          // console.log('while loop ',{i},dateToChek.getDay() === day.getDay(), dateToChek,day.getDay())
           dayShifts.push({ ...shiftsData[i] });
           i += 1;
           if(i<shiftsData.length){
@@ -77,11 +77,11 @@ const WeeklyView = ({
             dateToChek = new Date (dateToChek.getTime() -1 );
             dateToChek.setHours(dateToChek.getHours()-3); 
           }
-          console.log(dateToChek,shiftsData[i].shifttStartHour);
+          // console.log(dateToChek,shiftsData[i].shifttStartHour);
           
         }
       }
-        console.log({ dayShifts }, { day });
+        // console.log({ dayShifts }, { day });
         weekArr.push(dayShifts);
         i-=1;
     }
@@ -102,13 +102,14 @@ const WeeklyView = ({
 
   return (
     <View {...panResponder.panHandlers}>
-      <Text>weekly veiw </Text>
+     
       <FlatList
         horizontal={true}
         data={localShifts}
         renderItem={(shifts) => (
           <DayViewComp
             shifts={shifts}
+            isEdit={true}
             update={hadelUpdate}
             viewType={scheduleInfo?.sceduleType}
           />

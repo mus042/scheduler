@@ -48,7 +48,10 @@ export class ShiftController{
     @Roles('user','admin')
     @HttpCode(HttpStatus.OK)
     @Get('getshiftById')
-    getShiftById(@Body() shift:any){
+    getShiftById(@Body() shift:shift|number){
+        if(typeof shift === 'number'){
+            return this.shiftService.getShiftById(shift);
+        }
         return this.shiftService.getShiftById(shift.id);
     }
     

@@ -1,0 +1,100 @@
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { userRequest,shift } from '../../../App';
+import { API_URL, userAuth } from '../../../app/context/AuthContext';
+import axios from 'axios';
+
+const FindReplacmentComp = ({ shift, handelFindReplace }) => {
+    const [possibleUsers, setpossibleUsers] = useState<shift[]>();
+    const {authState} = userAuth()
+    useEffect(() => {
+      const getPossibleuseres = async () => {
+        const result = await handelFindReplace(shift);
+        console.log(result);
+        setpossibleUsers(result);
+      };
+      getPossibleuseres();
+    }, [shift]);
+
+    const handelAskReplace = async (requstedUser: number | undefined) => {
+      console.log({ requstedUser }, { shift });
+      if(requstedUser){
+     if (authState?.authenticated){
+
+    
+      const requestDto :userRequest = {
+        senderId: shift.userId,
+        destionationUserId: requstedUser,
+        isAnswered: false,
+        requsetMsg: "",
+        shiftId: shift.id,
+        shiftStartTime:shift.shifttStartHour ,
+        shiftEndTime:shift.shiftEndHour,
+        senderName: authState?.user?.firstName,
+        senderLastName: authState?.user?.lastName,
+      };
+    
+      console.log({ requestDto });
+      // add emit to server
+      
+        // authState.socket.emit('message', { destionationUserId:requstedUser , shift});
+        //call api to send the msg ?
+        const respone = await axios.post(
+          `${API_URL}user-request/setRequest`,
+          requestDto
+        );
+        console.log("emit msg");
+      }
+      //add update state after emit
+    };
+  }
+    const replaceUserAsAdmin = async (newUser: number | undefined) => {
+      console.log({ newUser });
+      try {
+        const response = await axios.post(`${API_URL}shifts/replaceUser`, {
+          newUser,
+          shift,
+        });
+        console.log(response);
+      } catch (error) {
+        console.log({ error });
+      }
+    };
+    const replaceItem = (item: shift) => {
+      return (
+        <View>
+          <Text>
+            {item.userRef?.firstName},{item.userRef?.lastName} ,
+            {item.userRef?.id}
+          </Text>
+          <View>
+            <Pressable onPress={() => handelAskReplace(item.userRef?.id)}>
+              <Text>Ask to take replace.</Text>
+            </Pressable>
+            <Pressable onPress={() => replaceUserAsAdmin(item.userRef?.id)}>
+              <Text>replace users as admin</Text>
+            </Pressable>
+          </View>
+        </View>
+      );
+    };
+
+    if (possibleUsers) {
+      return (
+        <View>
+          <FlatList
+            data={possibleUsers}
+            renderItem={({ item }) => replaceItem(item)}
+          />
+        </View>
+      );
+    } else
+      return (
+        <View>
+          <Text>no replace</Text>
+        </View>
+      );
+  }
+export default FindReplacmentComp
+
+const styles = StyleSheet.create({})

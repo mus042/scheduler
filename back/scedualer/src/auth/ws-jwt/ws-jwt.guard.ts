@@ -35,19 +35,24 @@ export class WsJwtGuard implements CanActivate {
   }
 
   static validateToken(client: Socket) {
-    const { authorization } = client.handshake.headers;
+    // const { authorization } = client.handshake.headers;
+    // if(!authorization){
+      const authorization = client.handshake.auth ;
+    // }
+    console.log({authorization}, client.handshake)
+
     const jwt: JwtService = new JwtService();
     // console.log('38', { authorization });
-
-    const token: string = authorization.split(' ')[1];
+ 
+    // const token: string = authorization.split(' ')[1];
     try {
       // console.log('line 39 ', { token });
-      const payload = jwt.verify(token, { secret: 'secretKey' });
+      const payload = jwt.verify(authorization.token, { secret: 'secretKey' });
       // console.log('line 41  ', { payload });
       return payload;
     } catch (error) {
       console.log('error in validate Token ', { error });
-      throw new WsException('error ');
+      // throw new WsException('error ');
     }
   }
 }

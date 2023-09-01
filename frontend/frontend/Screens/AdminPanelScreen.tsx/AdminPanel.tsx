@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { FlatList, ScrollView, TextInput } from "react-native-gesture-handler";
 import axios from "axios";
 import { API_URL } from "../../app/context/AuthContext";
@@ -15,6 +15,7 @@ import UserNextScheduleComp from "../DashBoardScreen/components/UserNextSchedule
 import UserCurrentSchedule from "../DashBoardScreen/components/UserCurrentSchedule";
 import { shift, scheduleData } from "../../App";
 import SystemNextSchedule from "./SystemNextSchedule";
+import { mainStyle } from "../../utils/mainStyles";
 
 const AdminPanel = () => {
   // TODO
@@ -31,7 +32,7 @@ const AdminPanel = () => {
   const [nextSystemSchedule, setNextSystemSchedul] = useState<scheduleData>();
   const [emptyShifts , setEmptyShifts] = useState<shift[]>();
   const [createdSched, setcreatedSched] = useState();
-
+ 
   useEffect(() => {
     const allUsers = async () => await getAllUsers();
     const getCurrentSched = async () => {
@@ -250,7 +251,7 @@ console.log(tmpSched);
 
     return (
       <View style={styles.container}>
-        <Text>Add user</Text>
+        <Text style={mainStyle.h3}>Add user</Text>
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -317,16 +318,18 @@ console.log(tmpSched);
   }
 
   return (
+
     <ScrollView style={styles.mainContainer}>
-      <Text>AdminPanel</Text>
+      <Text style={mainStyle.h3}>AdminPanel</Text>
       <View {...panResponder.panHandlers}>
-        {/* <UserCurrentSchedule scheudle={currentSchedule} /> */}
-      </View>
+        <UserCurrentSchedule scheudle={currentSchedule} />
+      </View> 
       <SystemNextSchedule nextSchedule={nextSystemSchedule} />
       <CreateNewScheduleComp />
       {/* <View>{userDetailsComp(null, addUser, false)}</View> */}
       <View>{allUsersComp()}</View>
     </ScrollView>
+   
   );
 };
 

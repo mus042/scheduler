@@ -8,6 +8,8 @@ import { ScheduleModule } from './schedule/schedule.module';
 import { UserRequestModule } from './user-request/user-request.module';
 import { EventsModule } from './events/events.module';
 
+import { UserStatisticsModule } from './user-statistics/user-statistics.module';
+
 @Module({
   imports: [
     AuthModule,
@@ -20,7 +22,7 @@ import { EventsModule } from './events/events.module';
     ScheduleModule,
     UserRequestModule,
     EventsModule,
-    
+    UserStatisticsModule,
   ],
   controllers: [],
   providers: [],

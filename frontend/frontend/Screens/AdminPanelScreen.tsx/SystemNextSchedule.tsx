@@ -51,7 +51,7 @@ const SystemNextSchedule = ({
 
   return (
     <View style={styles.container}>
-      <Text>Ssytem NextScheduleComp</Text>
+      <Text>Sytem NextScheduleComp</Text>
         
       {localNextSched && (
         <View style={styles.scheduleContainer}>

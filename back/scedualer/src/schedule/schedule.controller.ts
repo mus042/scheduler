@@ -41,7 +41,7 @@ export class SchedulerController {
 
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
-  @Get('getNextSchedule')
+  @Get('getNextScheduleAsAdmin')
   getNextScheduleUserAsAdmin(@Param() userId: number) {
     console.log(userId);
     return this.ScheduleService.getNextScheduleForUser(userId);
@@ -71,6 +71,7 @@ export class SchedulerController {
     const schedDto: scheduleDto = {
       scedualStart: startDate,
       scedualEnd: endDate,
+      scedualDue:dto.scedualDue,
       userId: userId,
     };
     return this.ScheduleService.createSchedualeForUser(schedDto);

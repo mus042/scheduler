@@ -36,7 +36,7 @@ export class AuthService {
       if (eror.code === 'P2002') {
         throw new ForbiddenException('Email adress already in use ');
       }
-      throw eror;
+     
     }
   }
 

@@ -1,71 +1,117 @@
-import { SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
-import {Server, Socket} from "socket.io"
+import {
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+  WsException,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
 import { serverToClientEvents } from './types/events';
-import { userRequest } from '@prisma/client';
-import { Logger, OnModuleInit, UseGuards } from '@nestjs/common';
-import { SocketAuthMiddleWare } from 'src/auth/websocket.mw';
-import { JwtGuard } from '../auth/Guard';
-import { WsJwtGuard } from 'src/auth/ws-jwt/ws-jwt.guard';
-import { RequestDto } from 'src/user-request/dto/request.dto';
+import { PrismaClient, shift, user, userRequest } from '@prisma/client';
+import { Injectable, Logger, OnModuleInit, UseGuards } from '@nestjs/common';
+
+import { WsJwtGuard } from '../auth/ws-jwt/ws-jwt.guard';
+import { RequestDto } from '../user-request/dto/request.dto';
 
 
-@WebSocketGateway({namespace: 'events'})
+@Injectable()
+@WebSocketGateway({
+  namespace: 'events',
+  cors: 'http://localhost:19006/',
+  credentials: true,
+})
 @UseGuards(WsJwtGuard)
 export class EventsGateway implements OnModuleInit {
   private userSocketMap: { [userId: string]: Socket } = {};
-  private logger = new Logger('event  gatway')
+  private logger = new Logger('event  gatway');
+  constructor(private readonly prismaService: PrismaClient) {} // Constructor parameter declaration is enough
+
   @WebSocketServer()
-  server:Server<any , serverToClientEvents> 
-  onModuleInit(){
-    this.server.on('connection',(Socket)=>{
-      console.log("conected" , Socket.id);
-      console.log('client',{Socket});
+  server: Server<any, serverToClientEvents>;
+  onModuleInit() {
+    
+    this.server.on('connection', async (Socket) => {
+      console.log('conected', Socket.id);
+      console.log('client', { Socket });
       if (Socket?.handshake) {
         const result = WsJwtGuard.validateToken(Socket);
         const userId = result?.sub;
-        console.log("user id " , userId)
+        console.log('user id ', userId);
         if (userId) {
           this.userSocketMap[userId] = Socket;
-          console.log('websocketmap:',this.userSocketMap);
+          console.log('websocketmap:', this.userSocketMap);
+          //To Add load all the unsetRequest messages
+          console.log('websocket pending');
+          const allPendingReq: userRequest[] =
+            await this.prismaService.userRequest.findMany({
+              where: {
+                destionationUserId: userId,
+                status: 'pending',
+              },
+            });
+
+          console.log({ allPendingReq });
+          for (const req of allPendingReq) {
+            //get user and shift details
+            try {
+              const user: user = await this.prismaService.user.findUnique({
+                where: {
+                  id: req.senderId,
+                },
+              });
+              const shift:shift = await this.prismaService.shift.findUnique({where:{
+                id:req.shiftId,
+              }});
+              const request:RequestDto = {
+                ...req,
+                senderName:user.firstName,
+                senderLastName:user.lastName,
+                shiftStartTime:shift.shifttStartHour,
+                shiftEndTime:shift.shiftEndHour,
+              }     
+              this.sendRequest(request);
+            } catch (error) {
+              console.log({ error });
+            }
+       
+          }
         }
       }
-    })
+    });
   }
 
   afterInit(client: Socket) {
-    client.use(SocketAuthMiddleWare() as any);
-   
     this.logger.log('after init');
   }
-  
-  @SubscribeMessage('message')
-  handleMessage(client: any, payload: any): string {
-   const destinationId = payload.destination;
-    const destinationSocket = this.userSocketMap[destinationId];
 
+  @SubscribeMessage('message')
+  handleMessage(client: Socket, payload: any): string {
+    const destinationId = payload.destionationUserId;
+    const destinationSocket = this.userSocketMap[destinationId];
+    console.log('payload', { payload });
     if (destinationSocket) {
       destinationSocket.emit('newRequest', payload);
     } else {
       console.log('Destination socket not found');
+      //store msg and emit it later
     }
 
     return payload;
   }
-  
-  sendRequest(request: RequestDto){
+
+  sendRequest(request: RequestDto) {
     const destinationId = request.destionationUserId;
     const destinationSocket = this.userSocketMap[destinationId];
 
-    if(destinationSocket){
-    //Case user is conected socket emit new request 
-      destinationSocket.emit('newRequest',request );
+    if (destinationSocket) {
+      //Case user is conected socket emit new request
+      destinationSocket.emit('newRequest', request);
+      console.log('sent', request);
       return true;
-    // return 'Hello world!';
+      // return 'Hello world!';
+    } else {
+      //user not conected, //send on concting ?
+      console.log('Destination socket not found');
+      return false;
+    }
   }
-  else {
-    //user not conected, //send on concting ? 
-    console.log('Destination socket not found');
-    return false;
-  }
-}
 }

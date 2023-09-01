@@ -3,10 +3,20 @@ import { AppModule } from './app.module';
 import { ValidationPipe,  } from '@nestjs/common';
 import * as cors from 'cors';
 import { EventsGateway } from './events/events.gateway';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.use(cors());
+  const corsOptions = {
+    origin: '172.18.0.1:19000', // Replace with the origin where your React Native app is hosted
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 200,
+    credentials: true,
+  };
+
+  // Apply CORS middleware
+  app.enableCors();
   app.useGlobalPipes(new ValidationPipe({whitelist: true})) //This will add pipe globaly. Whitelist will strip out unknown fields. 
   // app.useGlobalPipes(new ValidationPipe({transform: true}));
   await app.listen(3000

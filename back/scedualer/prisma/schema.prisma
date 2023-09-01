@@ -15,6 +15,13 @@ enum typeOfShift {
   long
 }
 
+enum shiftType {
+  morning
+  noon
+  noonCanceled
+  night
+}
+
 enum typeOfUser {
   headOfLocation
   headOfShift
@@ -34,17 +41,19 @@ enum shcheduleType {
 }
 
 enum requestStatus {
-  toSend
+  pending
   sent
   recived
+  seen
 }
+
 model shift {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
   shiftDate       DateTime?
-  shiftType       Int
+  shiftType       shiftType
   typeOfShift     typeOfShift? //short or long =  8 /12 
   shifttStartHour DateTime?
   shiftEndHour    DateTime?
@@ -53,8 +62,9 @@ model shift {
   userRef        user?   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userPreference String?
 
-  scheduleId Int?
-  schedule   schedule? @relation(fields: [scheduleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  scheduleId   Int?
+  schedule     schedule?     @relation(fields: [scheduleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userRequests userRequest[]
 
   @@map("shift")
 }
@@ -79,51 +89,56 @@ model schedule {
 }
 
 model user {
-  id                   Int               @id @default(autoincrement())
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @default(now())
-  userRole             Role              @default(user)
-  userLevel            Int?              @default(1)
-  typeOfUser           typeOfUser        @default(new)
-  email                String            @unique
+  id                   Int                  @id @default(autoincrement())
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @default(now())
+  userRole             Role                 @default(user)
+  userLevel            Int?                 @default(1)
+  typeOfUser           typeOfUser           @default(new)
+  email                String               @unique
   hash                 String
   firstName            String?
   lastName             String?
   shiftUserStatistics  ShiftUserStatistic[]
   shifts               shift[]
   schedual             schedule[]
-  userSentRequests     userRequest[]     @relation("SentRequests")
-  userAcceptedRequests userRequest[]     @relation("AcceptedRequests")
+  userSentRequests     userRequest[]        @relation("SentRequests")
+  userAcceptedRequests userRequest[]        @relation("AcceptedRequests")
+
   @@map("users")
 }
 
-
-
 model userRequest {
-  id                   Int               @id @default(autoincrement())
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @default(now())
-  senderId             Int
-  senderUserRef        user?             @relation(name:"SentRequests",fields: [senderId], references: [id])
-  destionationUserId   Int
-  acceptingUserRef     user?             @relation(name:"AcceptedRequests",fields: [destionationUserId], references: [id])
-  status               requestStatus      @default(toSend)
-  isAnswered           Boolean           @default(false)
-  requestAnswer        String?
-  requsetMsg           String?
-  shiftId              Int
+  id                 Int           @id @default(autoincrement())
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @default(now())
+  senderId           Int
+  senderUserRef      user?         @relation(name: "SentRequests", fields: [senderId], references: [id])
+  destionationUserId Int
+  acceptingUserRef   user?         @relation(name: "AcceptedRequests", fields: [destionationUserId], references: [id])
+  status             requestStatus @default(pending)
+  isAnswered         Boolean       @default(false)
+  requestAnswer      String?
+  requsetMsg         String?
+  shiftId            Int
+  shift              shift?        @relation(fields: [shiftId], references: [id])
+
   @@unique([senderId, destionationUserId, shiftId])
 }
 
 model ShiftUserStatistic {
-  scheduleId   Int       @map("schedule_id")
-  userId       Int       @map("user_id")
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @default(now())
+  scheduleId    Int      @map("schedule_id")
+  userId        Int      @map("user_id")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
   morningShifts Int
+  noonShifts    Int
   nightShifts   Int
-  user         user      @relation(fields: [userId], references: [id])
-  schedule     schedule  @relation(fields: [scheduleId], references: [id])
+  overTimeStep1 Int
+  overTimeStep2 Int
+  restDayHours  Int
+  user          user     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  schedule      schedule @relation(fields: [scheduleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
   @@id([userId, scheduleId])
   @@map("shift_statistic")
