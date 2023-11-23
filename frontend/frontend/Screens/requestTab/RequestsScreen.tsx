@@ -1,4 +1,4 @@
-import { StyleSheet, } from "react-native";
+import { StyleSheet,View, Text } from "react-native";
 import React, { useEffect, useState } from "react";
 import { mainStyle } from "../../utils/mainStyles";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
@@ -8,7 +8,7 @@ import { useRequests } from "../../app/context/requestsContext";
 import RequestCompenent from "../DashBoardScreen/components/RequestMiniCompenent";
 import RequestComponent from "./components/requestComponent";
 import { userRequest } from "../../App";
-import {View, Text, Colors, Drawer, Badge} from 'react-native-ui-lib';
+
 
 import {gestureHandlerRootHOC} from 'react-native-gesture-handler';
 import DrawerScreen from "./components/DrawerScreen";
@@ -40,19 +40,19 @@ const RequestsScreen = () => {
 
   return (
     <View style={styles.mainContainer}>
-      <Text black text50 >Requests</Text>
+      <Text  >Requests</Text>
        {/* <DrawerScreen /> */}
 
       {requests?.recived && (
         <ScrollView>
           <Text>requests Scroll view </Text>
-          <Text text50BO blue50>In </Text>
+          <Text >In </Text>
           <FlatList
             data={requests.recived}
             renderItem={({ item }) => <RequestComponent req={item} />}
             keyExtractor={(item, index) => index.toString()}
           />
-           <Text text50BO blue50>In </Text>
+           <Text >In </Text>
           <FlatList
             data={requests.sent}
             renderItem={({item}) => <RequestComponent req={item} />}

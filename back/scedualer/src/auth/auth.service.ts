@@ -5,6 +5,7 @@ import { AuthDto, devAuthDto } from './dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { orgAuth } from './dto/orgAuth';
 
 @Injectable()
 export class AuthService {
@@ -14,8 +15,33 @@ export class AuthService {
     private config: ConfigService,
   ) {}
 
-  //sign a user to user db
+    //signUp as organiation , and facility 
+    async signUpOrg(dto:orgAuth){
+      try {
+        //Add new Org and  facility 
+        
+          const org = await this.Prisma.organization.create({
+            data:{
+              name:dto.name,
+            }
+          });
+          console.log({org})
+          const user : devAuthDto={ email:dto.email,password:dto.password,orgId:org.id,userRole:'admin'}
+        //Add new User to DB
+          const token = await this.signup(user);
+          // return org.id;
+           console.log({token});
+          return token;
+      }
+      catch (eror) {
+        console.log(eror);
+        if (eror.code === 'P2002') {
+          throw new ForbiddenException('Email adress already in use ');
+        }
+    }
+  }
 
+  //sign as new user to user db, with known facility and orgId
   async signup(dto: AuthDto | devAuthDto) {
     //Generate pass hash
     const hash = await argon.hash(dto.password); // create hash for password
@@ -39,7 +65,7 @@ export class AuthService {
      
     }
   }
-
+ //sign in to existing user 
   async signin(dto: AuthDto) {
     const user = await this.Prisma.user.findUnique({
       where: {

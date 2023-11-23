@@ -3,6 +3,7 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -19,4 +20,10 @@ export class AuthDto {
   @IsOptional()
   @IsEnum(Role)
   userRole?: Role;
+
+
+  @IsOptional()
+  @IsNumber()
+  orgId?: number
+
 }

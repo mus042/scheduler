@@ -1,73 +1,98 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   StyleSheet,
   SafeAreaView,
   Text,
-  View,
   Pressable,
+  View,
 } from "react-native";
-import { TextInput } from "react-native-paper";
+
 import { userAuth } from "../app/context/AuthContext";
 import {mainStyle} from '../utils/mainStyles';
+import { Button ,TextInput } from 'react-native-paper';
 
-
-const LoginScreen = () => {
+const LoginScreen = ({navigation}) => {
   const [userEmail, setuserEmail] = useState("");
   const [userPassword, setuserPassword] = useState("");
+  const [facilityId, setfacilityId] = useState<number>();
 const {onLogin,onRegister} = userAuth();
+const [isValidForm, setIsValidForm] = useState(true);
 
+const handleNavigateToLoginScreenOrg = () => {
+  // Use the navigation.navigate function to navigate to "LoginScreenOrg"
+  navigation.navigate('login facility');
+};
   const onLoginPress =async () => {
     //This will send requst to server
-
     console.log("Press");
     const result = await onLogin!(userEmail,userPassword);
     console.log({result});
     if(result && result.error){
         alert(result.msg);
     }
-
+  
   }; 
   const register =async () => {
-    const result = await onRegister!(userEmail,userPassword);
+   if(facilityId){
+    const result = await onRegister!(userEmail,userPassword,facilityId);
     if(result && result.error){
         alert(result.msg);
-    }
+    }}
     else{
         onLoginPress();
     }
   }
+// Function to perform form validation
+const validateForm = () => {
+  
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail); // Basic email validation
+  const isPasswordValid = userPassword.length >= 4; // Minimum password length
+  const isOrgValid = facilityId && facilityId >= 0; // Non-empty organization
+console.log(isEmailValid , isPasswordValid )
+  return isEmailValid && isPasswordValid ;
+};
+// useEffect to validate form on changes to userEmail, userOrg, and userPassword
+useEffect(() => {
+  const isFormValid = validateForm();
+  setIsValidForm(!isFormValid);
+}, [userEmail, facilityId, userPassword]);
+  
   return (
     <SafeAreaView style={{flex:1, flexDirection:'row' , justifyContent:'space-around'}}>
       <View style={styles.mainBox}>
         <View style={{flex:1, marginBottom:'60%'}}>
-          <Text style ={mainStyle.h1 }>Kamad scedualer login. </Text>
+          <Text>Kamad scedualer login. </Text>
         </View>
 
         <View style={{flex:4}} >
-          <TextInput
-          style={{flex:1 , margin: 5, }}
-          autoFocus={true}
-            onChangeText={setuserEmail}
-            value={userEmail}
-            inputMode={"email"}
-            placeholder="Email"
-          />
-          <TextInput
-          style={{flex:1,margin:5}}
-            onChangeText={setuserPassword}
+        <TextInput
+      label="Email"
+      value={userEmail}
+      onChangeText={text => setuserEmail(text)}
+    />      
+        <TextInput
+            onChangeText={(input)=>setuserPassword(input)}
             value={userPassword}
             secureTextEntry={true}
-            placeholder="Password"
+            label="Password"
+           
           />
-          <View style={{ flexDirection:'row' , flex:5, justifyContent:'space-around'  , margin:10}}>
-            <View style={{maxHeight:60 , flexDirection:'row', }}>
-          <Pressable onPress={onLoginPress} style={[mainStyle.button, mainStyle.buttonClose,]}>
-            <Text style={mainStyle.buttonText}>Log in </Text>
-          </Pressable>
-        <Pressable onPress={register}  style={[mainStyle.button, mainStyle.buttonClose]}>
-            <Text style={mainStyle.buttonText}>register</Text>
-          </Pressable>
+        <TextInput
+            onChangeText={(input)=>setfacilityId(+input)}
+            value={facilityId ? String(facilityId) : ''}
+            
+            label="Facility ID"
+           
+          />
+ 
+          <View >
+            <View>
+          <Button onPress={register} disabled={isValidForm}> Sign Up</Button>
+          <Button onPress={onLoginPress} disabled={isValidForm} >Sign In </Button>
+          </View>
+          <View  >  
+          <Button  onPress={handleNavigateToLoginScreenOrg} disabled={false} >Sign Facility </Button>
         </View>
 </View>
           </View>

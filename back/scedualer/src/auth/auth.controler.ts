@@ -5,6 +5,7 @@ import { AuthDto, devAuthDto } from "./dto";
 import { Roles } from "./roles/roles.decorator";
 import { JwtGuard } from "./Guard";
 import { RoleGuard } from "./role/role.guard";
+import { orgAuth } from "./dto/orgAuth";
 @Controller('auth') 
 
 export class AuthControler{
@@ -22,12 +23,24 @@ export class AuthControler{
                 throw new ForbiddenException("email should not be empty")
             }
         }
+        @Post('signupOrg')
+        signupOrg(@Body() dto:orgAuth){
+            console.log({dto});
+            
+            if(dto.email !== null){
+            return this.authService.signUpOrg(dto)
+            }
+            else{
+                throw new ForbiddenException("email should not be empty")
+            }
+        }
+
         @HttpCode(HttpStatus.OK)
         @Post('signin')
         signin(@Body() dto:  AuthDto){
             return this.authService.signin(dto);
         };
-
+    
         
         @UseGuards(JwtGuard,RoleGuard)
         @Roles('admin')

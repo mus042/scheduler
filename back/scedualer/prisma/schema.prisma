@@ -46,6 +46,7 @@ enum requestStatus {
   recived
   seen
 }
+ 
 
 model shift {
   id        Int      @id @default(autoincrement())
@@ -104,8 +105,57 @@ model user {
   schedual             schedule[]
   userSentRequests     userRequest[]        @relation("SentRequests")
   userAcceptedRequests userRequest[]        @relation("AcceptedRequests")
+  facility  String?
+  orgId Int?
+  organization Organization? @relation(fields: [orgId], references: [id])
 
   @@map("users")
+}
+model Organization {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  users     user[]
+}
+
+model ScheduleMold {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  start DateTime
+  end DateTime
+  shiftsADay Int
+  
+
+  shifts      ShiftMold[]
+}
+
+model ShiftMold {
+  id          Int        @id @default(autoincrement())
+  name        String
+  startHour   DateTime
+  endHour     DateTime
+  // Add other fields specific to shift mold
+  schedule    ScheduleMold @relation(fields: [scheduleId], references: [id])
+  scheduleId  Int
+  userPrefs   UserPreference[]
+}
+
+model UserPreference {
+  id           Int        @id @default(autoincrement())
+  shiftMoldId  Int
+  shiftMold    ShiftMold  @relation(fields: [shiftMoldId], references: [id])
+  rankId       Int        // Reference to the Rank model
+  rank         Rank       @relation(fields: [rankId], references: [id])
+  userCount    Int
+  // Add other fields related to user preferences
+}
+
+model Rank {
+  id     Int    @id @default(autoincrement())
+  name   String
+  userPreferences UserPreference[]
+  // Add other fields related to ranks
+  // For example, description, privileges, etc.
 }
 
 model userRequest {

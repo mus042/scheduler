@@ -1,18 +1,20 @@
-import { Role } from "@prisma/client"
-import { IsEmail,IsNotEmpty, IsString } from "class-validator"
+import { Role } from '@prisma/client';
+import { IsEmail, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
-export class devAuthDto{
+export class devAuthDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 
-    @IsEmail()
-    @IsNotEmpty()
-    email:string
+  @IsString()
+  @IsNotEmpty()
+  password: string;
 
-    @IsString()
-    @IsNotEmpty()
-    password: string
+  userRole: Role;
 
-    
-    userRole: Role
+  @IsString()
+  facility?: string;
 
-    
+  @IsNumber()
+  orgId?: number;
 }

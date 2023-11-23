@@ -1,4 +1,4 @@
-import { scheduleData } from "../App";
+import { scheduleData, shift } from "../App";
 
 
 
@@ -82,3 +82,56 @@ export const normalizeScheduleDates = (scheduleData: scheduleData | undefined) =
   
     return '';
   };
+  
+  enum shiftType {
+    "morning",
+    "noon",
+    "night"
+  }
+  export const creatNewSchedule = (
+    startingDate: Date,
+    endDate: Date,
+    shiftsADay: number,
+    roles?: string[] , 
+  ) => {
+    const daysForSchedule: number =
+      Math.abs(endDate.getTime() - startingDate.getTime()) / (24 * 60 * 60 * 1000)
+    
+
+console.log({daysForSchedule},{startingDate},{endDate})
+    const shifts = [];
+    const startDate = new Date(startingDate);
+    // const timeZoneCorrection = startDate.getHours() + 3;
+    // startDate.setHours(timeZoneCorrection);
+
+    for (let i = 0; i < daysForSchedule; i++) {
+      // startDate.setDate(startDate.getDate());
+      // const shiftsADay: number = 3; // number of shifts per day, 24 must by divde by it.
+      const shiftInterval: number = 24 / shiftsADay; //this will determain time of each shift
+      
+      // console.log({ startDate });
+      for (let j = 0; j < shiftsADay; j++) {
+        // console.log(shiftInterval * j, startDate.getHours());
+        const h = startDate.getHours() + shiftInterval;
+        // console.log({ h }, { j });
+        const endDate = new Date(startDate);
+        const tmpShiftType = j === 0? "Morning": j === 1? "Noon":"Night"; //the shift type
+        // console.log({j}, 'j', {shiftType});
+        endDate.setHours(h);
+        // console.log({ j }, { startDate }, { endDate });
+        // const endTime = new Date(startDate.setHours(startDate.getHours()+j));
+        const dto = {
+          shiftName:"",
+          shiftType: tmpShiftType,
+          typeOfShift:'short',
+          shifttStartHour: new Date(startDate),
+          shiftEndHour: new Date(endDate),
+          roles:[roles],
+        };
+        shifts.push(dto);
+        startDate.setTime(endDate.getTime());
+      }
+    }
+
+    return shifts;
+  }

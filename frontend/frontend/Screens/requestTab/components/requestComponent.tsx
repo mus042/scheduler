@@ -1,11 +1,10 @@
-import { Pressable, StyleSheet, } from 'react-native'
+import { Pressable, StyleSheet, View,Text } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { mainStyle } from '../../../utils/mainStyles'
 import { getDayName, normalizeShiftDate, normalizeShiftTime } from '../../../utils/utils'
 import axios from 'axios'
 import { API_URL } from '../../../app/context/AuthContext'
 import { userRequest } from '../../../App'
-import { Avatar, Colors, Drawer,Text, View  } from 'react-native-ui-lib'
 
 
 
@@ -44,20 +43,9 @@ const  selectUserReplay = async (replay:string)=>{
 
 
     return (
-    // <View style={{flexDirection:'row'}}>
-<Drawer
-  rightItems={[{text: 'Read', background: Colors.blue30, onPress: () => console.log('read pressed')}]}
-  leftItem={{text: 'Delete', background: Colors.red30, onPress: () => console.log('delete pressed')}}
->
-  <View centerV row spread  padding-s4 bg-white style={{height: 60}}>
-    
-<Avatar  label={"IT"}/>
-<Text text60 > {normalizeShiftDate(req.shift.shifttStartHour)} </Text>
-    <Text text70 blue20 >{normalizeShiftTime(req.shift.shifttStartHour)} - {normalizeShiftTime(req.shift.shiftEndHour)}</Text>
-    <Text text40> aaa </Text>  
-  </View>
-</Drawer>
-      /* <View style={{flex:1}}>
+    <View style={{flexDirection:'row'}}>
+
+      <View style={{flex:1}}>
         <Text> from {req?.senderId} </Text>
     </View>
      <View style={{flex:3}}>
@@ -79,7 +67,7 @@ const  selectUserReplay = async (replay:string)=>{
         </Pressable>
 
       </View>
-     {replayCompVisible  && 
+     /* {replayCompVisible  && 
       <View style={{flex:1}}>
           <Text>
             replay comp 

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, Text, StyleSheet, Button } from "react-native";
+import { View, Text, StyleSheet, Button, Platform, AppRegistry } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import LogingScreen from "./Screens/LoginScreen";
@@ -16,7 +16,11 @@ import RequestMiniCompenent from "./Screens/DashBoardScreen/components/RequestMi
 import { RequestsProvider, useRequests } from "./app/context/requestsContext";
 import RequestsScreen from "./Screens/requestTab/RequestsScreen";
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
-
+import LoginScreenOrg from "./Screens/LoginScreenOrg";
+import SettingsScreen from "./Screens/SettingsScreen";
+import { PaperProvider } from "react-native-paper";
+import { enGB, registerTranslation } from 'react-native-paper-dates';
+registerTranslation('en-GB', enGB);
 const Tab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();
 
@@ -128,13 +132,13 @@ function Article() {
   );
 }
 
-function SettingsScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Settings!</Text>
-    </View>
-  );
-}
+// function SettingsScreen() {
+//   return (
+//     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+//       <Text>Settings!</Text>
+//     </View>
+//   );
+// }
 
 function MyDrawer() {
 
@@ -142,6 +146,7 @@ function MyDrawer() {
     <SocketProvider>
       <RequestsProvider>
         <Drawer.Navigator >
+          <Drawer.Screen name="Settings" component={SettingsScreen} />
           <Drawer.Screen name="Requests" component={RequestsTab} />
           <Drawer.Screen name="Dashboard" component={MyTabs} />
           <Drawer.Screen name="About" component={Article} />
@@ -155,17 +160,26 @@ export default function App() {
 
 
   return (
-    
     <AuthProvider>
       <SocketProvider>
         <RequestsProvider>
-      {/* <GestureHandlerRootView> */}
-       <Layout />
+      <PaperProvider>
+    <>
+    {Platform.OS === 'web' ? (
+      <style type="text/css">{`
+        @font-face {
+          font-family: 'MaterialCommunityIcons';
+          src: url(${require('react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf')}) format('truetype');
+        }
+      `}</style>
+    ) : null}
+       <Layout /> 
+       </>
     {/* </GestureHandlerRootView>  */}
+     </PaperProvider>
         </RequestsProvider>
       </SocketProvider>
     </AuthProvider>
-     
 
   );
 }
@@ -193,7 +207,10 @@ export const Layout = () => {
             }}
           ></Stack.Screen>
         ) : (
+          <Stack.Group>
           <Stack.Screen name="login" component={LogingScreen}></Stack.Screen>
+          <Stack.Screen name="login facility" component={LoginScreenOrg} ></Stack.Screen>
+          </Stack.Group>
         )}
       </Stack.Navigator>
     </NavigationContainer>

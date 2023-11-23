@@ -15,17 +15,26 @@ interface AuthProps {
     authenticated: boolean | null;
     user: user | null;
     socket: any | null;
-    receivedRequests: any[] ;
-    sentRequest: any[] ;
-    requestArchive: any | null ; 
+    receivedRequests: any[];
+    sentRequest: any[];
+    requestArchive: any | null;
   };
-  onRegister?: (email: string, password: string) => Promise<any>;
+  onRegister?: (
+    email: string,
+    password: string,
+    facilityId: number
+  ) => Promise<any>;
+  onRegisterOrg?: (
+    email: string,
+    password: string,
+    facilityName: string
+  ) => Promise<any>;
   onLogin?: (email: string, password: string) => Promise<any>;
   onLogout?: () => Promise<any>;
 }
 
 const TOKEN_KEY = "my-jwt";
-export const API_URL = "http://172.18.0.1:3000/";
+export const API_URL = "http://172.26.144.1:3000/";
 const AuthContext = createContext<AuthProps>({});
 
 export const userAuth = () => {
@@ -44,11 +53,11 @@ export const AuthProvider = ({ children }: any) => {
     token: string | null;
     authenticated: boolean | null;
     user: object | null;
-    socket:Socket | null ;
+    socket: Socket | null;
     // receivedRequests:any[] ;
     // sentRequest: any[] ;
-    // requestArchive: any | null ; 
-  }>({ token: null, authenticated: null, user: null,socket:null });
+    // requestArchive: any | null ;
+  }>({ token: null, authenticated: null, user: null, socket: null });
 
   useEffect(() => {
     const loadToken = async () => {
@@ -64,27 +73,25 @@ export const AuthProvider = ({ children }: any) => {
             token: null,
             authenticated: false,
             user: null,
-            socket:null,
+            socket: null,
           });
         } else {
           const user = await getUser();
-          const socketInstance =  io(`${API_URL}events`, {
-          auth: (cb: any) => {
-           cb({ token: token });
-         }
-        });
-        socketInstance.on("newRequest",(request)=>{
-          console.log("new Message 75 ",{request});
-       
-     }
-      )
-      
-      console.log('log 71 authstate ',user, typeof user , {authState});
+          const socketInstance = io(`${API_URL}events`, {
+            auth: (cb: any) => {
+              cb({ token: token });
+            },
+          });
+          socketInstance.on("newRequest", (request) => {
+            console.log("new Message 75 ", { request });
+          });
+
+          console.log("log 71 authstate ", user, typeof user, { authState });
           setauthState({
             token: token,
             authenticated: true,
             user: user,
-           socket: socketInstance,
+            socket: socketInstance,
           });
 
           const expirationTime = jwtDecode<{ exp: number }>(token).exp;
@@ -99,12 +106,37 @@ export const AuthProvider = ({ children }: any) => {
     };
 
     loadToken();
-
   }, []);
 
-  const register = async (email: string, password: string) => {
+  const register = async (
+    email: string,
+    password: string,
+    facilityId: number
+  ) => {
     try {
-      return await axios.post(`${API_URL}auth/signup`, { email, password });
+      return await axios.post(`${API_URL}auth/signup`, {
+        email,
+        password,
+        facilityId,
+      });
+    } catch (error) {
+      return { error: true, msg: (error as any).response.data.msg };
+    }
+  };
+  const registerOrg = async (
+    email: string,
+    password: string,
+    facilityName: string
+  ) => {
+    console.log("on register org");
+    try {
+      const res = await axios.post(`${API_URL}auth/signupOrg`, {
+        email: email,
+        password: password,
+        name: facilityName,
+      });
+      console.log({ res });
+      return res;
     } catch (error) {
       return { error: true, msg: (error as any).response.data.msg };
     }
@@ -117,7 +149,6 @@ export const AuthProvider = ({ children }: any) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    
     try {
       const result = await axios.post(`${API_URL}auth/Signin `, {
         email,
@@ -131,27 +162,27 @@ export const AuthProvider = ({ children }: any) => {
         result,
         result.data.acsess_token
       );
-      console.log("signin")
+      console.log("signin");
       const user = await getUser();
-      const socketInstance =  io(`${API_URL}events`, {
+      const socketInstance = io(`${API_URL}events`, {
         auth: (cb: any) => {
-          cb({ token:  result.data.acsess_token });
-        }
+          cb({ token: result.data.acsess_token });
+        },
       });
-    
-      socketInstance.on("newRequest",(request)=>{
-        console.log("new Message",{request});
+
+      socketInstance.on("newRequest", (request) => {
+        console.log("new Message", { request });
         // store in context
         // onNewRequest(request);
         // console.log(authState.receivedRequests);
-        // show alert in request component 
+        // show alert in request component
       });
 
       setauthState({
         token: result.data.acsess_token,
         authenticated: true,
         user: user,
-        socket:socketInstance,
+        socket: socketInstance,
       });
 
       await storage.setItem(TOKEN_KEY, result.data.acsess_token);
@@ -160,9 +191,7 @@ export const AuthProvider = ({ children }: any) => {
     } catch (error: any) {
       console.log(error);
       if (error && axios.isAxiosError(error)) {
-        console.log(
-          error.response?.data.message
-        );
+        console.log(error.response?.data.message);
       }
     }
   };
@@ -178,7 +207,7 @@ export const AuthProvider = ({ children }: any) => {
         token: "",
         authenticated: false,
         user: null,
-        socket:authState.socket,
+        socket: authState.socket,
       });
       console.log({ authState });
     } catch (error) {
@@ -186,9 +215,9 @@ export const AuthProvider = ({ children }: any) => {
     }
   };
 
-
   const value = {
     onRegister: register,
+    onRegisterOrg: registerOrg,
     onLogin: signIn,
     onLogout: logOut,
     authState: authState,
