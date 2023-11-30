@@ -82,7 +82,7 @@ export const normalizeScheduleDates = (scheduleData: scheduleData | undefined) =
   
     return '';
   };
-  
+
   enum shiftType {
     "morning",
     "noon",
@@ -135,3 +135,10 @@ console.log({daysForSchedule},{startingDate},{endDate})
 
     return shifts;
   }
+  export const convertTimeToString= (time:{hours:number ,minutes:number})=>{
+    const h:string= ""+( time.hours <10 ? "0"+time.hours : time.hours);
+    const m:string = ""+(time.minutes < 10 ? "0" + time.minutes : time.minutes);
+
+    const str: string = ""+h+":"+m;
+        return  str; 
+      }
