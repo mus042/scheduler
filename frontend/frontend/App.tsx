@@ -11,14 +11,15 @@ import DashBoardScreen from "./Screens/DashBoardScreen/DashBoardScreen";
 import AdminPanel from "./Screens/AdminPanelScreen.tsx/AdminPanel";
 import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler";
 import { SocketProvider, useWebSocket } from "./app/context/WebSocketContext";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import RequestMiniCompenent from "./Screens/DashBoardScreen/components/RequestMiniCompenent";
 import { RequestsProvider, useRequests } from "./app/context/requestsContext";
 import RequestsScreen from "./Screens/requestTab/RequestsScreen";
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 import LoginScreenOrg from "./Screens/LoginScreenOrg";
 import SettingsScreen from "./Screens/SettingsScreen";
-import { PaperProvider } from "react-native-paper";
+import { PaperProvider, useTheme } from "react-native-paper";
+
 import { enGB, registerTranslation } from 'react-native-paper-dates';
 registerTranslation('en-GB', enGB);
 const Tab = createMaterialTopTabNavigator();
@@ -99,6 +100,7 @@ function MyTabs() {
   const user: user | null = authState?.user;
 
   if (user?.userRole === "admin") {
+
     return (
       <Tab.Navigator>
         <Tab.Screen name="Personal DashBoard" component={DashBoardScreen} />
@@ -132,13 +134,7 @@ function Article() {
   );
 }
 
-// function SettingsScreen() {
-//   return (
-//     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-//       <Text>Settings!</Text>
-//     </View>
-//   );
-// }
+
 
 function MyDrawer() {
 
@@ -146,10 +142,10 @@ function MyDrawer() {
     <SocketProvider>
       <RequestsProvider>
         <Drawer.Navigator >
-          <Drawer.Screen name="Settings" component={SettingsScreen} />
           <Drawer.Screen name="Requests" component={RequestsTab} />
           <Drawer.Screen name="Dashboard" component={MyTabs} />
           <Drawer.Screen name="About" component={Article} />
+          <Drawer.Screen name="Settings" component={SettingsScreen} />
         </Drawer.Navigator>
       </RequestsProvider>
     </SocketProvider>
@@ -184,36 +180,100 @@ export default function App() {
   );
 }
 
-export const Layout = () => {
+
+
+export function Layout(){
   const { authState, onLogout } = userAuth();
- 
+  const [settingsSet, setSettingsSet ] = useState<boolean>(false);
+  const theme = useTheme();
+  // Function to fetch server-side settings
+  // const checkServerSettings = async () => {
+  //   try {
+  //     // Call your server API to check settings for admin users
+  //     const response = await fetch('YOUR_SERVER_API_ENDPOINT');
+  //     const data = await response.json();
+
+  //     // Assuming the server response has a 'settingsSet' field indicating whether settings are set
+  //     setSettingsSet(data.settingsSet);
+  //   } catch (error) {
+  //     console.error('Error fetching server settings:', error);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   // Check server settings only if the user is authenticated and is an admin
+  //   if (authState?.authenticated && authState.user?.userRole === 'admin') {
+  //     checkServerSettings();
+  //   }
+  // }, [authState?.authenticated, authState?.user?.userRole]);
+  const SetScreen=()=>{
+
+    return(
+      <>
+      <SettingsScreen setSettingsShow={setSettingsSet}/>
+      </>
+    )
+  }
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
-    <NavigationContainer>
-      <Stack.Navigator>
-        {authState?.authenticated ? (
-          <Stack.Screen
-            name="HomeScreen"
-            component={MyDrawer}
-            options={{
-              headerRight: () => (
-                // <SocketProvider>
-                <View style={{ flex: 1, marginTop: 5, marginRight: 5 }}>
-                  <Button onPress={onLogout} title={"Sign Out"} />
-                  <RequestMiniCompenent />
-                </View>
-                // </SocketProvider>
-              ),
-            }}
-          ></Stack.Screen>
-        ) : (
-          <Stack.Group>
-          <Stack.Screen name="login" component={LogingScreen}></Stack.Screen>
-          <Stack.Screen name="login facility" component={LoginScreenOrg} ></Stack.Screen>
-          </Stack.Group>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{
+            headerStyle: {
+              backgroundColor: theme.colors.background,
+              borderBottomWidth:0,
+              borderBottomColor:theme.colors.background,
+            },
+            headerTintColor: 'white', // Set the text color of the header for this screen
+            headerTitleStyle: {
+              fontWeight: 'bold',
+              color:theme.colors.onBackground,
+            },
+          }}>
+          {authState?.authenticated ? (
+            // Check if settings are set before rendering the drawer
+            settingsSet ? (
+              <Stack.Screen
+                name="HomeScreen"
+                component={MyDrawer}
+                options={{
+                  headerRight: () => (
+                    <View style={{ flex: 1, marginTop: 5, marginRight: 5 }}>
+                      <Button onPress={onLogout} title={"Sign Out"} />
+                      <RequestMiniCompenent />
+                    </View>
+                  ),
+                }}
+              />
+            ) : (
+              // Render a loading or error screen if settings are not set
+             
+             
+              <Stack.Screen
+                name="Settings Not Set Screen"
+                component={SetScreen}
+
+              />
+            
+            )
+          ) : (
+            <Stack.Group>
+              <Stack.Screen name="login" component={LogingScreen} options={{
+            headerStyle: {
+              backgroundColor: theme.colors.background,
+              borderBottomWidth:0,
+              borderBottomColor:theme.colors.background,
+            },
+            headerTintColor: 'white', // Set the text color of the header for this screen
+            headerTitleStyle: {
+              fontWeight: 'bold',
+              color:theme.colors.onBackground,
+            },
+          }}/>
+              <Stack.Screen name="login facility" component={LoginScreenOrg} />
+            </Stack.Group>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
     </GestureHandlerRootView>
   );
 };

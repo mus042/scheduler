@@ -46,7 +46,6 @@ enum requestStatus {
   recived
   seen
 }
- 
 
 model shift {
   id        Int      @id @default(autoincrement())
@@ -105,16 +104,18 @@ model user {
   schedual             schedule[]
   userSentRequests     userRequest[]        @relation("SentRequests")
   userAcceptedRequests userRequest[]        @relation("AcceptedRequests")
-  facility  String?
-  orgId Int?
-  organization Organization? @relation(fields: [orgId], references: [id])
+  facility             String?
+  orgId                Int?
+  organization         Organization?        @relation(fields: [orgId], references: [id])
 
   @@map("users")
 }
+
 model Organization {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  users     user[]
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users user[]
+  scheduleMold ScheduleMold[]
 }
 
 model ScheduleMold {
@@ -124,8 +125,9 @@ model ScheduleMold {
   start DateTime
   end DateTime
   shiftsADay Int
-  
 
+   organization Organization @relation(fields: [organizationId], references: [id])
+  organizationId Int
   shifts      ShiftMold[]
 }
 
@@ -141,18 +143,18 @@ model ShiftMold {
 }
 
 model UserPreference {
-  id           Int        @id @default(autoincrement())
-  shiftMoldId  Int
-  shiftMold    ShiftMold  @relation(fields: [shiftMoldId], references: [id])
-  rankId       Int        // Reference to the Rank model
-  rank         Rank       @relation(fields: [rankId], references: [id])
-  userCount    Int
+  id          Int       @id @default(autoincrement())
+  shiftMoldId Int
+  shiftMold   ShiftMold @relation(fields: [shiftMoldId], references: [id])
+  rankId      Int // Reference to the Rank model
+  rank        Rank      @relation(fields: [rankId], references: [id])
+  userCount   Int
   // Add other fields related to user preferences
 }
 
 model Rank {
-  id     Int    @id @default(autoincrement())
-  name   String
+  id              Int              @id @default(autoincrement())
+  name            String
   userPreferences UserPreference[]
   // Add other fields related to ranks
   // For example, description, privileges, etc.
