@@ -51,7 +51,7 @@ export const normalizeScheduleDates = (scheduleData: scheduleData | undefined) =
       const options = {
         hour: 'numeric',
         minute:'numeric',
-        hour12: true, // Set this to 'false' if you want 24-hour format
+        hour12: false, // Set this to 'false' if you want 24-hour format
       };
   
       // Format the date using 'toLocaleString'
@@ -70,13 +70,13 @@ export const normalizeScheduleDates = (scheduleData: scheduleData | undefined) =
       // Get the options for date formatting
       const options = {
         day: 'numeric',
-        month: 'long',
-        year: 'numeric',
+        month: 'numeric',
+        // year: 'numeric',
       };
-  
       // Format the date using 'toLocaleString'
       const formattedDate = startDate.toLocaleString(undefined, options);
-  // console.log(formattedDate);
+      // console.log(formattedDate);
+      console.log(formattedDate);
       return formattedDate;
     }
   

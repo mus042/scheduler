@@ -2,6 +2,7 @@ import {
  StyleSheet,
   } from "react-native";
 
+
 export const mainStyle = StyleSheet.create({
     mainBox:{
      flex:1,
@@ -12,6 +13,7 @@ export const mainStyle = StyleSheet.create({
         padding: 2,
         margin:5,
         elevation: 2,
+        
       },
       buttonOpen: {
         backgroundColor: "#F194FF",

@@ -1,4 +1,4 @@
-import { StyleSheet,View, Text } from "react-native";
+import { StyleSheet,TouchableOpacity,View, } from "react-native";
 import React, { useEffect, useState } from "react";
 import { mainStyle } from "../../utils/mainStyles";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
@@ -10,17 +10,64 @@ import RequestComponent from "./components/requestComponent";
 import { userRequest } from "../../App";
 
 
-import {gestureHandlerRootHOC} from 'react-native-gesture-handler';
-import DrawerScreen from "./components/DrawerScreen";
-const RequestsScreen = () => {
-  //main screen for holding the userRequests
-  //incoming / sent
+import { Appbar , Text} from 'react-native-paper';
 
-  const [incomingRequest, setIncomingRequests] = useState<any[]>();
-  const [sentReq, setSentReq] = useState<any>();
+import DrawerScreen from "./components/DrawerScreen";
+import MyComponent from "./RequestHeader";
+import RequestsHeader from "./RequestHeader";
+
+
+const MusicRoute = () => <Text>Music</Text>;
+
+const AlbumsRoute = () => <Text>Albums</Text>;
+
+const RecentsRoute = () => <Text>Recents</Text>;
+
+const NotificationsRoute = () => <Text>Notifications</Text>;
+
+
+
+
+const RequestsScreen = () => {
+  //main screen for holding the userRequests 
+  
+  
+  //////////////////////////////////////////
+  //Context 
+  ////////////////////////////////////
   const { authState }: any = userAuth();
   const { requests,setSeen } = useRequests();
+  /////////////////////////////////////////////
+  // ////////////////////////////////////////
+  /////////////////////////////////
 
+  //incoming / sent
+  const [selctedRequests,setSelctedRequests] = useState<'in'|'out'>('in')//Set what requests are selected - in / out
+  const [showReq , setShoweReq] = useState<userRequest[]>();
+
+  const [incomingRequest, setIncomingRequests] = useState<any[]>();
+  const [sentReq, setSentReq] = useState<any[]>();
+  
+  
+
+
+useEffect(()=>{
+
+  const setAllRequsets = ()=>{
+    if(Array.isArray(requests?.recived) && Array.isArray(requests.sent)){
+    const allReq = [...requests.recived,...requests.sent];
+      setShoweReq(allReq);
+      console.log({allReq});
+    }
+} 
+setAllRequsets();
+
+},[requests])
+
+
+
+
+  
   useEffect(() => {
     //set state incoming outgoing requests
     if (requests?.recived) {
@@ -35,31 +82,43 @@ const RequestsScreen = () => {
         }
       }
     }
+    if(requests?.sent){
+      setSentReq(requests.sent);
+    };
+
+
   }, [requests]);
 
+  const selcetReqToSee =(selctedBox:"in"|"out")=>{
+    //Select shifts , from inbox / outbox 
+    if(selctedBox ==='in'){
+      setShoweReq(incomingRequest);
+    }else{
+      setShoweReq(sentReq);
+    }
+  }
+
+ 
 
   return (
     <View style={styles.mainContainer}>
-      <Text  >Requests</Text>
+       <RequestsHeader onBoxSelect={selcetReqToSee} />
+      {/* <Text  >Requests</Text> */}
        {/* <DrawerScreen /> */}
 
-      {requests?.recived && (
-        <ScrollView>
-          <Text>requests Scroll view </Text>
-          <Text >In </Text>
-          <FlatList
-            data={requests.recived}
+      {/* <RequestCompenent req={} /> */}
+        <ScrollView style={{flex:1,borderColor:'green',borderWidth:5}}>
+          {/* <Text>requests Scroll view </Text>
+          <Text >In </Text> */}
+          <View style={{flex:1 , minHeight:300, borderColor:"pink", borderWidth:3,}}>
+         <FlatList
+            data={showReq}
             renderItem={({ item }) => <RequestComponent req={item} />}
             keyExtractor={(item, index) => index.toString()}
-          />
-           <Text >In </Text>
-          <FlatList
-            data={requests.sent}
-            renderItem={({item}) => <RequestComponent req={item} />}
-            keyExtractor={(item, index) => index.toString()}
-          />
+          /> 
+         </View>
         </ScrollView>
-      )}
+    
       
   
 
@@ -72,8 +131,6 @@ export default RequestsScreen;
 const styles = StyleSheet.create({
   mainContainer:{
     flex:1,
-    borderColor:'red',
-    borderWidth:1,
-    width:'90%'
+    width:'100%',
   }
 });

@@ -24,7 +24,10 @@ interface AuthProps {
   onRegister?: (
     email: string,
     password: string,
-    facilityId: number
+    orgId: number,
+    firstName:string,
+    lastName:string,
+  
   ) => Promise<any>;
   onRegisterOrg?: (
     email: string,
@@ -36,7 +39,7 @@ interface AuthProps {
 }
 
 const TOKEN_KEY = "my-jwt";
-export const API_URL = "http://192.168.1.21:3000/";
+export const API_URL = "http://172.22.64.1:3000/";
 const AuthContext = createContext<AuthProps>({});
 
 export const userAuth = () => {
@@ -110,16 +113,25 @@ export const AuthProvider = ({ children }: any) => {
     loadToken();
   }, []);
 
+  ////////////////////////////////////////////////
+  //Register new user 
+/////////////////////////////////////////////////
   const register = async (
     email: string,
     password: string,
-    facilityId: number
+    orgId:number,
+    firstName:string,
+    lastName:string,
+   
   ) => {
     try {
       return await axios.post(`${API_URL}auth/signup`, {
         email,
         password,
-        facilityId,
+        orgId,
+        firstName,
+        lastName,
+    
       });
     } catch (error) {
       return { error: true, msg: (error as any).response.data.msg };
