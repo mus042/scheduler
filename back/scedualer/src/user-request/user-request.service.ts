@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RequestDto } from './dto/request.dto';
 import { shift, user, userRequest } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
+import { request } from 'http';
 
 @Injectable()
 export class UserRequestService {
@@ -256,32 +257,44 @@ export class UserRequestService {
       return pendingRequests;
     } catch (error) {
       console.log({ error });
-      throw new ForbiddenException(error.message);
+      throw new ForbiddenException("No request or replaying user is unauthorized.", { cause: new Error("Some additional error details") });
+  
     }
   }
-  async replayToRequest(requestId: number, userId:number , requestAnswer:string) {
-    if (!requestId) {
-      throw new ForbiddenException(' no requestId');
+  async replayToRequest(request:userRequest) {
+    console.log({request})
+    if (!request.id) {
+      
+      throw new ForbiddenException("No request or replaying user is unauthorized.", { cause: new Error("Some additional error details") });
+ 
     }
-    try {
-      const request = await this.prisma.userRequest.update({
+    // try {
+      const updatedReq = await this.prisma.userRequest.update({
         where: {
-          id: requestId,
+          id:request.id,
         },
         data:{
           isAnswered:true,
-          requestAnswer:requestAnswer,
+          requestAnswer:request.requestAnswer,
+          requestAnswerMsg:request.requestAnswerMsg,
         }
       });
-      
-      if(!request){ //if no request. consider adding cheack for role && userId to match the request destnation.
-        throw new ForbiddenException("no request or replaying user is unauthoraized.")
+      console.log({updatedReq}, " request new ")
+      if (!updatedReq) {
+        console.log("no")
+        throw new ForbiddenException("No request or replaying user is unauthorized.", { cause: new Error("Some additional error details") });
       }
-      console.log({request});
-      return request;
+      console.log({updatedReq});
+      //if(request.requestAnswer === 'true'){
+        //send request for manager approvel.. 
+        //
+      //}
+      return updatedReq;
 
-    } catch (error) { 
-      throw new ForbiddenException(error);
-    }
+    // } catch (error) { 
+    //   console.log("no2")
+    //   throw new ForbiddenException("No request or replaying user is unauthorized.", { cause: new Error("Some additional error details") });
+ 
+    // }
   }
 }

@@ -5,6 +5,7 @@ import { getDayName, normalizeShiftDate, normalizeShiftTime } from '../../../uti
 import { mainStyle } from '../../../utils/mainStyles';
 import { API_URL } from '../../../app/context/AuthContext';
 import axios from 'axios';
+import FindReplacmentComp from './FindReplacmentComp';
 
 //This is a ShiftComponent. 
 //ToDo:
@@ -74,11 +75,12 @@ if(!localShift.id){
     </Text>
   </Pressable>
   {findReplaceVisible && (
-              <FindReplacmentUser
+              <FindReplacmentComp
                 shift={shift}
                 handelFindReplace={handelFindReplace}
               />
             )}
+            {/* To Add send all btn  */}
 </View>
 </View>
     </View>

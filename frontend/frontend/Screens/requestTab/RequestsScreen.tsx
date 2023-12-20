@@ -17,14 +17,6 @@ import MyComponent from "./RequestHeader";
 import RequestsHeader from "./RequestHeader";
 
 
-const MusicRoute = () => <Text>Music</Text>;
-
-const AlbumsRoute = () => <Text>Albums</Text>;
-
-const RecentsRoute = () => <Text>Recents</Text>;
-
-const NotificationsRoute = () => <Text>Notifications</Text>;
-
 
 
 
@@ -43,7 +35,7 @@ const RequestsScreen = () => {
 
   //incoming / sent
   const [selctedRequests,setSelctedRequests] = useState<'in'|'out'>('in')//Set what requests are selected - in / out
-  const [showReq , setShoweReq] = useState<userRequest[]>();
+  const [showReq , setShoweReq] = useState<userRequest[] | []>();
 
   const [incomingRequest, setIncomingRequests] = useState<any[]>();
   const [sentReq, setSentReq] = useState<any[]>();
@@ -63,6 +55,11 @@ useEffect(()=>{
 setAllRequsets();
 
 },[requests])
+useEffect(()=>{
+
+      console.log({showReq});
+
+},[showReq])
 
 
 
@@ -97,26 +94,63 @@ setAllRequsets();
       setShoweReq(sentReq);
     }
   }
+  const searchSelctedBox = (str:string)=>{
+    //mount new selcted requests . 
+    //try to fond seprators and return arr 
+    
+    const strArr= str.split(/[/.'"-]/); // sepreate seprators
+    let tryDate = new Date(Number(strArr[2]),Number(strArr[1]),Number(strArr[0]))
+     console.log({str},Number(str),{tryDate},{strArr});
+     const num = Number(str);
+     if(str.length === 0){
+       console.log({str})
+      selcetReqToSee(selctedRequests)
+     }
+     else if(showReq){
+    const foundReq = showReq.filter((reqToCheck)=>{
+      //check for userid in case str is number
+      if(num){
+        console.log("number");
+        if(reqToCheck.id == num ) {return true} 
+        else if(reqToCheck.senderId == num){ return true } 
+        else if(reqToCheck.destionationUserId == num ){return true};
+        // console.log({})
+        
+         return[];
+      }
+    })
+    
+    if (tryDate) {
+      console.log("nan")
+      // If parsing is successful, return a normalized date string
+     const searchStr = tryDate.toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true }).toLowerCase();
+     return searchStr.toLowerCase();
+    }
+    //
+  };
 
+  // const searchStrNormalized = normalizeSearchStr(str);
+
+  }
  
 
   return (
     <View style={styles.mainContainer}>
-       <RequestsHeader onBoxSelect={selcetReqToSee} />
+       <RequestsHeader onBoxSelect={selcetReqToSee} searchFunction={searchSelctedBox} />
       {/* <Text  >Requests</Text> */}
        {/* <DrawerScreen /> */}
 
       {/* <RequestCompenent req={} /> */}
-        <ScrollView style={{flex:1,borderColor:'green',borderWidth:5}}>
+        <ScrollView style={{borderColor:'green',borderWidth:5}}>
           {/* <Text>requests Scroll view </Text>
           <Text >In </Text> */}
-          <View style={{flex:1 , minHeight:300, borderColor:"pink", borderWidth:3,}}>
+          
          <FlatList
             data={showReq}
             renderItem={({ item }) => <RequestComponent req={item} />}
             keyExtractor={(item, index) => index.toString()}
           /> 
-         </View>
+       
         </ScrollView>
     
       

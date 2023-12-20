@@ -61,8 +61,9 @@ export type userRequest = {
   senderLastName?: string | null | undefined;
   sendrRef?: user | null;
   requestAnswer?: string | null;
+  requestAnswerMsg: string|null;
   recivingRef?: user | null;
-  shiftRef?: shift | null;
+  shift?: shift | null;
   status?: "pending" | "recived" | "sent" | "seen" | "replayed" | null;
 };
 
