@@ -10,8 +10,7 @@ export const mainStyle = StyleSheet.create({
     },
     button: {
         borderRadius: 20,
-        padding: 2,
-        margin:5,
+
         elevation: 2,
         
       },
@@ -59,7 +58,6 @@ export const mainStyle = StyleSheet.create({
       },
       modalView: {
         margin: 20,
-        backgroundColor: "white",
         borderRadius: 20,
         padding: 35,
         alignItems: "center",
