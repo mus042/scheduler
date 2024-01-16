@@ -4,13 +4,14 @@ import { RequestDto } from './dto/request.dto';
 import { shift, user, userRequest } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
 import { request } from 'http';
+import { Socket } from 'socket.io';
 
 @Injectable()
 export class UserRequestService {
   //Handel all userRequest actions
   constructor(
     private prisma: PrismaService,
-    private eventsGateway: EventsGateway, // private userService: UserService, // private scheduleUtil: ScheduleUtil,
+    private eventsGateway: EventsGateway,
   ) {}
   //set new request
   async setRequest(requestDto: RequestDto) {
@@ -53,7 +54,7 @@ export class UserRequestService {
         shiftEndTime: shift.shiftEndHour,
       };
 
-      const msgSent = this.setRequest(request);
+      const msgSent = this.eventsGateway.sendRequest(request);
       console.log(' is message sent ', msgSent);
       if (msgSent) {
         //update the request status to sent
@@ -68,7 +69,7 @@ export class UserRequestService {
             },
           });
         } catch (error) {
-          console.log(error.message);
+          console.log(error.message,{error});
           // throw new ForbiddenException('cant update request status line 47');
         }
       }
@@ -262,33 +263,42 @@ export class UserRequestService {
     }
   }
   async replayToRequest(request:userRequest) {
-    console.log({request})
-    if (!request.id) {
+    console.log('replay to req',{request})
+    if (!request.id && request.requestAnswer !== null) {
       
       throw new ForbiddenException("No request or replaying user is unauthorized.", { cause: new Error("Some additional error details") });
  
     }
     // try {
-      const updatedReq = await this.prisma.userRequest.update({
+      const updatedReq:userRequest = await this.prisma.userRequest.update({
         where: {
           id:request.id,
         },
         data:{
           isAnswered:true,
+          status:'seen',
           requestAnswer:request.requestAnswer,
           requestAnswerMsg:request.requestAnswerMsg,
         }
       });
-      console.log({updatedReq}, " request new ")
+      console.log('replay' , {updatedReq}, " request new replay",{updatedReq})
       if (!updatedReq) {
-        console.log("no")
+        console.log("not update")
         throw new ForbiddenException("No request or replaying user is unauthorized.", { cause: new Error("Some additional error details") });
       }
       console.log({updatedReq});
+      //emit update for sender switch sender-reciver
+      const tmpReq:userRequest = request;
+      tmpReq.destionationUserId = request.senderId;
+      tmpReq.senderId = request.destionationUserId;
+      
+      const msgSent = this.eventsGateway.sendRequest(request);
+      console.log(' is message sent ', msgSent);
       //if(request.requestAnswer === 'true'){
         //send request for manager approvel.. 
         //
       //}
+      
       return updatedReq;
 
     // } catch (error) { 
@@ -297,4 +307,16 @@ export class UserRequestService {
  
     // }
   }
+    // emitRequest(requestToSend:userRequest,user:user,shift:shift){
+    //   //Will conver to requsetDto and emit the messege 
+    //   const request: RequestDto = {
+    //     ...requestToSend,
+    //     senderName: user.firstName,
+    //     senderLastName: user.lastName,
+    //     shiftStartTime: shift.shifttStartHour,
+    //     shiftEndTime: shift.shiftEndHour,
+    //   };
+    //   const msgSent = this.eventsGateway.sendRequest(request);
+    //   console.log(' is message sent ', msgSent);
+    // }
 }

@@ -8,7 +8,7 @@ import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.int
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const corsOptions = {
-    origin: ['http://localhost:19006','http://10.0.0.1:19006'], // Replace with the origin where your React Native app is hosted
+    origin: ['http://localhost:19006','exp://10.0.0.23:8081','http://localhost:19007'], // Replace with the origin where your React Native app is hosted
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
     optionsSuccessStatus: 200,

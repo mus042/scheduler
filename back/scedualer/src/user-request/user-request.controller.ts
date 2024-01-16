@@ -52,8 +52,8 @@ export class UserRequestController {
         console.log('dto :',{userRole},'  controler 41 ',{...requestDto}, typeof requestDto , requestDto.senderId)
         if( userId === requestDto.senderId  || userRole === 'admin'){
          const reqest =  this.requestService.setRequest(requestDto);
-            return true;
-            console.log({reqest})
+            console.log({reqest});
+            // this.webSocket.sendRequest(reqest);
         }   
     else{
         throw new ForbiddenException("Error in  id ");
@@ -101,7 +101,7 @@ export class UserRequestController {
     //To add premision to delete self / as admin    
     console.log({request});
     if((request.destionationUserId !== userId && userRole !== 'admin' ) || request.isAnswered === true ){
-        console.log("false")
+        console.log("false userId dont match ",request.destionationUserId ,{userId},{userRole})
             return false;
     }
          return this.requestService.replayToRequest(request); 

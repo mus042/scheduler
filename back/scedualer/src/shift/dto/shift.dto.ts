@@ -45,6 +45,6 @@ export class ShiftDto {
   userRef?: user | null;
 
   @IsOptional()
-  @IsEnum(typeOfUser)
-  userNeededType?: typeOfUser;
+  
+  userNeededType?: string;
 }

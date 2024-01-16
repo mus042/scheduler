@@ -5,6 +5,8 @@ import {
   typeOfShift,
   shcheduleType,
   shiftType,
+  ScheduleMold,
+  ScheduleMoldPayload,
 } from '@prisma/client';
 import { ShiftDto } from '../shift/dto';
 import { ForbiddenException, Injectable } from '@nestjs/common';
@@ -124,52 +126,78 @@ export class ScheduleUtil {
     }
     return emptySchedule;
   }
+  setToNextDayOfWeek(targetDayOfWeek) {
+     //Wil find the next date object until this day. 
+     const currentDate = new Date();
+     currentDate.setUTCHours(0,0,0,0);
+     let adjusted;
+
+     if (currentDate.getDay() >= 3) {
+       // If it's Wednesday or later, add days to reach the Sunday after next
+       const daysUntilNextSunday = 7 - currentDate.getDay();
+       const daysToAdd = daysUntilNextSunday + 7; // Additional 7 days to get to the Sunday after next
+       adjusted = new Date(
+         currentDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000,
+       );
+     } else {
+       // If it's Tuesday or earlier, add days to reach the next Sunday
+       const daysUntilNextSunday = 7 - currentDate.getDay();
+       adjusted = new Date(
+         currentDate.getTime() + daysUntilNextSunday * 24 * 60 * 60 * 1000,
+       );
+     }
+     console.log({adjusted})
+     adjusted.setTime(adjusted.getTime()+ targetDayOfWeek * 24 * 60 * 60 * 1000)
+     return adjusted;
+  }
 
   generateNewScheduleShifts(
     startingDate: Date,
     endDate: Date,
     scheduleId: number,
+    schedulMold: any | undefined,
   ) {
-    const daysForSchedule: number = Math.abs(
-      startingDate.getDate() - endDate.getDate(),
-    );
-
-    const shifts: ShiftDto[] = [];
-    const startDate = new Date(startingDate);
-    // const timeZoneCorrection = startDate.getHours() + 3;
-    // startDate.setHours(timeZoneCorrection);
-
-    for (let i = 0; i < 7; i++) {
-      // startDate.setDate(startDate.getDate());
-      const shiftsADay: number = 3; // number of shifts per day, 24 must by divde by it.
-      const shiftInterval: number = 24 / shiftsADay; //this will determain time of each shift
-      
-      // console.log({ startDate });
-      for (let j = 0; j < shiftsADay; j++) {
-        // console.log(shiftInterval * j, startDate.getHours());
-        const h = startDate.getHours() + 8;
-        // console.log({ h }, { j });
-        const endDate = new Date(startDate);
-        const tmpShiftType:shiftType = j === 0? shiftType.morning: j === 1? shiftType.noon:shiftType.night; //the shift type
-        console.log({j}, 'j', {shiftType});
-        endDate.setHours(h);
-        // console.log({ j }, { startDate }, { endDate });
-        // const endTime = new Date(startDate.setHours(startDate.getHours()+j));
+  
+    const shifts: ShiftDto[] = schedulMold.shiftsTemplate.map(
+      (shift, index) => {
+        console.log("shift Roles" , shift.roles,{shift})
+        const tmpShiftType: shiftType = shift.name.toLowerCase();
+        const startDate = this.setToNextDayOfWeek(shift.day);
+        startDate.setUTCHours(shift.startHour, 0, 0,0);
+        const endDate = this.setToNextDayOfWeek(shift.day);
+        endDate.setUTCHours(shift.endHour, 0, 0,0);
+        console.log({ startDate }, { endDate }, shift.startHour,shift.day);
+        const shiftsByRoles = shift.userPrefs.map((role)=>{
+          //create shift for each mold role
+          console.log("Role in generate shhifts ",{role})
+          // roles
+          return  {
+            userPreference: '0',
+            shiftDate: new Date(startDate),
+            shiftType: tmpShiftType,
+            typeOfShift: 'short',
+            shifttStartHour: new Date(startDate),
+            shiftEndHour: new Date(endDate),
+            scheduleId: scheduleId,
+            userNeededType: role.id,
+          };
+        })
         const dto: ShiftDto = {
           userPreference: '0',
           shiftDate: new Date(startDate),
           shiftType: tmpShiftType,
-          typeOfShift:'short',
+          typeOfShift: 'short',
           shifttStartHour: new Date(startDate),
           shiftEndHour: new Date(endDate),
           scheduleId: scheduleId,
         };
-        shifts.push(dto);
-        startDate.setTime(endDate.getTime());
-        console.log({ startDate });
-      }
-    }
-
+        console.log({ dto });
+        return shiftsByRoles?shiftsByRoles: dto;
+      },
+    );
+    
+   
+    console.log('shifts :', { shifts });
     return shifts;
   }
 
@@ -188,7 +216,7 @@ export class ScheduleUtil {
           userShift.userPreference !== '3'
         ) {
           const possibleShift = { ...userShift };
-          possibleUsersForShift.push({...possibleShift});
+          possibleUsersForShift.push({ ...possibleShift });
         }
       });
     });
@@ -220,14 +248,14 @@ export class ScheduleUtil {
     );
     return { shiftBefore, shiftAfter };
   }
-   isShiftpossible(shift: shift | ShiftDto, schedule: ShiftDto[] | schedule) {
+  isShiftpossible(shift: shift | ShiftDto, schedule: ShiftDto[] | schedule) {
     //Check if possible to place a shift in schedule
     //check if user has no shift on the same day
     //check if user dont have shift befor and after
     //case first or second shift of the week , should fetch the week befor last shift if exsit
     const morningTime = 6;
     console.log(shift);
-    //To Add - get shifts from the db insted of geting them from object 
+    //To Add - get shifts from the db insted of geting them from object
     const scheduleShifts: ShiftDto[] = Array.isArray(schedule)
       ? schedule
       : schedule.shifts;
@@ -246,7 +274,11 @@ export class ScheduleUtil {
     console.log({ shiftIndexInSched }, 'shift index in the schedule ');
     if (shiftIndexInSched >= 0) {
       //found index
-      console.log('check days befor  after is shift possible ,  ',{shift},{shiftIndexInSched});
+      console.log(
+        'check days befor  after is shift possible ,  ',
+        { shift },
+        { shiftIndexInSched },
+      );
       //check the shifts befor and after
       if (
         shiftIndexInSched < 1 ||
@@ -254,26 +286,25 @@ export class ScheduleUtil {
       ) {
         //case the index is 0 \ last one in arr
         if (shiftIndexInSched < 1) {
-          console.log("user 0", shift.userId !==
-          scheduleShifts[shiftIndexInSched + 1]?.userId &&
-        shift.userId !==
-          scheduleShifts[shiftIndexInSched + 2]?.userId )
+          console.log(
+            'user 0',
+            shift.userId !== scheduleShifts[shiftIndexInSched + 1]?.userId &&
+              shift.userId !== scheduleShifts[shiftIndexInSched + 2]?.userId,
+          );
           return (
-            shift.userId !==
-              scheduleShifts[shiftIndexInSched + 1]?.userId &&
-            shift.userId !==
-              scheduleShifts[shiftIndexInSched + 2]?.userId
+            shift.userId !== scheduleShifts[shiftIndexInSched + 1]?.userId &&
+            shift.userId !== scheduleShifts[shiftIndexInSched + 2]?.userId
           );
         } else {
-          console.log(" Last index ", scheduleShifts[shiftIndexInSched],
-          scheduleShifts[shiftIndexInSched - 1]?.userId ,
-        shift.userId !==
-          scheduleShifts[shiftIndexInSched - 2]?.userId )
+          console.log(
+            ' Last index ',
+            scheduleShifts[shiftIndexInSched],
+            scheduleShifts[shiftIndexInSched - 1]?.userId,
+            shift.userId !== scheduleShifts[shiftIndexInSched - 2]?.userId,
+          );
           return (
-            shift.userId !==
-              scheduleShifts[shiftIndexInSched - 1]?.userId &&
-            shift.userId !==
-              scheduleShifts[shiftIndexInSched - 2]?.userId
+            shift.userId !== scheduleShifts[shiftIndexInSched - 1]?.userId &&
+            shift.userId !== scheduleShifts[shiftIndexInSched - 2]?.userId
           );
         }
       }
@@ -281,15 +312,19 @@ export class ScheduleUtil {
 
       //case index in the middile
       const shiftBefore =
-        shift.userId !==
-        scheduleShifts[shiftIndexInSched - 1]?.userId;
+        shift.userId !== scheduleShifts[shiftIndexInSched - 1]?.userId;
       const shiftAfter =
-        shift.userId !==
-        scheduleShifts[shiftIndexInSched + 1]?.userId;
-      
-      console.log({ shift }, scheduleShifts[shiftIndexInSched + 1]?.userId, scheduleShifts[shiftIndexInSched - 1]?.userId, { shiftBefore }, { shiftAfter });
+        shift.userId !== scheduleShifts[shiftIndexInSched + 1]?.userId;
+
+      console.log(
+        { shift },
+        scheduleShifts[shiftIndexInSched + 1]?.userId,
+        scheduleShifts[shiftIndexInSched - 1]?.userId,
+        { shiftBefore },
+        { shiftAfter },
+      );
       if (shiftBefore === false || shiftAfter === false) {
-        console.log("not allowd ")
+        console.log('not allowd ');
         return false;
       }
       console.log(
@@ -299,24 +334,24 @@ export class ScheduleUtil {
         shift.shifttStartHour,
       );
       //in case morning shift - check if night is not assigned to same user
-      console.log(shift.shifttStartHour.getHours() === morningTime,shift.shifttStartHour.getHours())
+      console.log(
+        shift.shifttStartHour.getHours() === morningTime,
+        shift.shifttStartHour.getHours(),
+      );
       if (shift.shiftType === 'morning') {
         const sameDayShift =
-          shift.userId ===
-          scheduleShifts[shiftIndexInSched + 2].userId;
+          shift.userId === scheduleShifts[shiftIndexInSched + 2].userId;
         if (sameDayShift) {
-          console.log("same day shift  < 11 ")
+          console.log('same day shift  < 11 ');
           return false;
         }
-        
       } else if (shift.shiftType === 'night') {
         //in case night shift
-        console.log("samw day shift > 15")
+        console.log('samw day shift > 15');
         const sameDayShift =
-          shift.userId ===
-          scheduleShifts[shiftIndexInSched - 2]?.userId;
+          shift.userId === scheduleShifts[shiftIndexInSched - 2]?.userId;
         if (sameDayShift) {
-          console.log("not allowed")
+          console.log('not allowed');
           return false;
         }
       }
@@ -348,15 +383,17 @@ export class ScheduleUtil {
       const emptyShift: ShiftDto = scheduleToFill[i];
       let canceledShift: ShiftDto;
       if (
-        (emptyShift.userId === undefined || 
-          emptyShift.userPreference === '4' ) &&
-        emptyShift.shiftType !== 'noonCanceled'  && emptyShift.typeOfShift !== 'long'
+        (emptyShift.userId === undefined ||
+          emptyShift.userPreference === '4') &&
+        emptyShift.shiftType !== 'noonCanceled' &&
+        emptyShift.typeOfShift !== 'long'
       ) {
         //Search For Possible users for a empty shift
-        const possibleUsersToAssign: ShiftDto[] = this.searchPossibleUsersForShift(
-          emptyShift.shifttStartHour,
-          usersShifts,
-        );
+        const possibleUsersToAssign: ShiftDto[] =
+          this.searchPossibleUsersForShift(
+            emptyShift.shifttStartHour,
+            usersShifts,
+          );
 
         // let shiftindex:number = -1;
         const possibleForShift: shift[] = [];
@@ -389,7 +426,6 @@ export class ScheduleUtil {
                 const filterdArr: ShiftDto[] = possibleUsersToAssignNext.filter(
                   (shift) => shift.userId !== selctedShift.userId,
                 );
-          
 
                 if (filterdArr.length <= 1) {
                   //backtrack to shift assigned
@@ -421,7 +457,7 @@ export class ScheduleUtil {
                   shiftEndHour: selctedShift.shiftEndHour,
                   shifttStartHour: selctedShift.shifttStartHour,
                   shiftType: selctedShift.shiftType,
-                  typeOfShift:selctedShift.typeOfShift, 
+                  typeOfShift: selctedShift.typeOfShift,
                   userPreference: selctedShift.userPreference,
                   scheduleId: scheduleToFill[0].scheduleId,
                   typeOfUser: selctedShift.userRef.typeOfUser,
@@ -477,10 +513,11 @@ export class ScheduleUtil {
               const posibleShiftsReplace: ShiftDto[] = [];
               //check if other user can replace
               userOtherShifts.forEach((shift: shift, index: number) => {
-                const possibleUser: ShiftDto[] = this.searchPossibleUsersForShift(
-                  shift.shifttStartHour,
-                  usersShifts,
-                );
+                const possibleUser: ShiftDto[] =
+                  this.searchPossibleUsersForShift(
+                    shift.shifttStartHour,
+                    usersShifts,
+                  );
                 possibleUser.forEach((shiftOption: shift) => {
                   if (
                     shift.userId !== shiftOption.userId &&
@@ -536,7 +573,7 @@ export class ScheduleUtil {
                   shiftType: selctedShift.shiftType,
                   userPreference: selctedShift.userPreference,
                   scheduleId: scheduleToFill[0].scheduleId,
-                  userRef:selctedShift.userRef,
+                  userRef: selctedShift.userRef,
                 });
                 backTracking += 1;
                 console.log(
@@ -752,7 +789,7 @@ export class ScheduleUtil {
         time.getHours(),
         { morningShift },
         { morningDate },
-         morningDate.getHours(), 
+        morningDate.getHours(),
         schedule[2],
       );
       const morningAndNight: boolean =
@@ -799,7 +836,7 @@ export class ScheduleUtil {
                 shiftDate: new Date(morningShift.shiftDate.getTime()), // Create a new Date object for the shift date
                 userId: morningShiftUserId,
                 shiftType: 'morning',
-                typeOfShift: "long",
+                typeOfShift: 'long',
                 shifttStartHour: new Date(
                   morningShift.shifttStartHour.getTime(),
                 ),
@@ -809,8 +846,8 @@ export class ScheduleUtil {
               scheduleToFill.push({
                 userPreference: '4',
                 shiftDate: new Date(noonShift.shiftDate.getTime()), // Create a new Date object
-                shiftType:'noonCanceled' ,
-                typeOfShift:'long',
+                shiftType: 'noonCanceled',
+                typeOfShift: 'long',
                 shifttStartHour: new Date(noonShift.shifttStartHour),
                 shiftEndHour: new Date(noonShift.shiftEndHour),
                 scheduleId: noonShift.scheduleId,
@@ -849,21 +886,19 @@ export class ScheduleUtil {
             );
             morningShift.userId = noonShift.userId;
             morningShift.userPreference = noonShift.userPreference;
-          
 
             noonShift.userId = undefined;
-            
 
             nightShift.shifttStartHour.setTime(
               morningShift.shiftEndHour.getTime(),
             );
-        
+
             scheduleToFill.push({
               userPreference: morningShift.userPreference,
               shiftDate: new Date(morningShift.shiftDate.getTime()), // Create a new Date object for the shift date
               userId: morningShift.userId,
               typeOfShift: 'long',
-              shiftType:'morning',
+              shiftType: 'morning',
               shifttStartHour: new Date(morningShift.shifttStartHour.getTime()),
               shiftEndHour: new Date(morningShift.shiftEndHour),
               scheduleId: morningShift.scheduleId,
@@ -915,7 +950,9 @@ export class ScheduleUtil {
             console.log({ noonuserPref }, { morninguserPref });
             if (morninguserPref !== '3' && noonuserPref !== '3') {
               if (noonShift.userId === schedule[noonIndex + 2]?.userId) {
-                console.log(noonShift.userId === schedule[noonIndex + 2]?.userId);
+                console.log(
+                  noonShift.userId === schedule[noonIndex + 2]?.userId,
+                );
                 return;
               }
               const newEndTime: Date = new Date(morningShift.shiftEndHour);
@@ -926,7 +963,7 @@ export class ScheduleUtil {
                 userPreference: morningShift.userPreference,
                 shiftDate: new Date(morningShift.shiftDate.getTime()), // Create a new Date object for the shift date
                 userId: morningShift.userId,
-                shiftType:'morning',
+                shiftType: 'morning',
                 typeOfShift: 'long',
                 shifttStartHour: new Date(
                   morningShift.shifttStartHour.getTime(),
@@ -954,8 +991,12 @@ export class ScheduleUtil {
                 scheduleId: nightShift.scheduleId,
               });
               console.log('changes shifts time', { scheduleToFill });
-            }else{
-              console.log("cant move user pref", { noonuserPref }, { morninguserPref })
+            } else {
+              console.log(
+                'cant move user pref',
+                { noonuserPref },
+                { morninguserPref },
+              );
             }
           }
         }

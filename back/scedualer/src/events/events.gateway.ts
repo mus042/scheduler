@@ -98,10 +98,11 @@ export class EventsGateway implements OnModuleInit {
     return payload;
   }
 
-  sendRequest(request: RequestDto) {
+  sendRequest(request: RequestDto | userRequest) {
     const destinationId = request.destionationUserId;
+    console.log("Send req destenationid : gateWay.101",{destinationId})
     const destinationSocket = this.userSocketMap[destinationId];
-
+    console.log("sending msg")
     if (destinationSocket) {
       //Case user is conected socket emit new request
       destinationSocket.emit('newRequest', request);
