@@ -1,8 +1,9 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { Prisma, shift } from '@prisma/client';
+import { Prisma, shift, shiftType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateStatsDto } from './UpdateStats.dto';
 import { UsershiftStats } from './userShiftStats.dto';
+import { ShiftService } from 'src/shift/shift.services';
 
 const restDayConf: {
   start: { day: number; houre: number };
@@ -11,7 +12,9 @@ const restDayConf: {
 
 @Injectable()
 export class UserStatisticsService {
-  constructor(private prismaService: PrismaService) {} // <-- Change 'primaService' to 'prismaService'
+  constructor(private prismaService: PrismaService,
+    private shiftService: ShiftService
+    ) {} // <-- Change 'primaService' to 'prismaService'
 
   async getAllStatisticsForUser(id: number) {
     try {
@@ -124,7 +127,185 @@ export class UserStatisticsService {
       throw new ForbiddenException('error', error);
     }
   }
-  async createUsersStatsForScheduleShifts(shifts: shift[]) {
+  // async createUsersStatsForScheduleShifts(shifts: shift[]) {
+  //   //Create new stats for all users in schedule shifts.
+  //   //return true if sucssed
+  //   //get all users and create map
+  //   const userStatisticsMap: Map<
+  //     number,
+  //     {
+  //       morningShifts: number;
+  //       noonShifts: number;
+  //       nightShifts: number;
+  //       overTimeStep1: number;
+  //       overTimeStep2: number;
+  //       restDayHours: number;
+  //       scheduleId: number;
+  //     }
+  //   > = new Map();
+  //   //count shifts
+  //   shifts.forEach((shift) => {
+  //     const userId = shift.userId; // Replace with the actual property that holds the user ID
+  //     const shiftType = shift.shiftType; // Replace with the actual property that holds the shift type
+  //     let step1: number = 0;
+  //     let step2: number = 0;
+  //     let restDay: number = 0;
+  //     //check if day is restDay
+  //     const isRest = (shift) => {
+  //       return (
+  //         (shift.shifttStartHour.getDay() === restDayConf.start.day &&
+  //           shift.shifttStartHour.getHours > 14 ) ||
+  //         (shift.shifttStartHour.getDay() === restDayConf.end.day &&
+  //           shift.shifttStartHour.getHours() < restDayConf.end.houre)
+  //       );
+  //     };
+  //     if (shiftType !== 'noonCanceled') {
+  //       console.log(
+  //         { shift },
+  //         'shiftstats 114',
+  //         shift.shifttStartHour.getDay(),
+  //         restDayConf.start.day,
+  //         shift.shifttStartHour.getDay() === restDayConf.start.day &&
+  //           shiftType !== 'morning',
+  //       );
+  //       if (isRest(shift)) {
+  //         console.log('rest day');
+  //         if (shiftType === 'night' || shiftType === 'morning') {
+  //           console.log('night or morning');
+  //           if (shift.typeOfShift === 'long') {
+  //             restDay = restDay + 12;
+  //             console.log('added long rest ', { shift });
+  //           } else {
+  //             restDay = restDay + 8;
+  //             console.log('added 8 rest', { shift });
+  //           }
+  //         } else if (shiftType.name === 'noon') {
+  //           restDay = restDay + 4;
+  //           console.log('added 4', { shift }, { restDay });
+  //         }
+  //       }
+  //       if (shift.typeOfShift === 'long' && !isRest(shift)) {
+  //         console.log('long shift steps count');
+  //         if (shiftType.name === 'morning') {
+  //           step1 += 2;
+  //           step2 += 2;
+  //         } 
+  //         else if (shiftType.name === 'night') {
+  //           step1 += 1;
+  //           step2 += 3;
+  //         }
+  //       }
+  //       //Update user statistics map accordingly
+  //       if (userStatisticsMap.has(userId)) {
+  //         const userStats = userStatisticsMap.get(userId);
+  //         console.log(
+  //           'userId',
+  //           { userStats },
+  //           shiftType,
+  //           { shift },
+  //           { restDay },
+  //         );
+  //         console.log({ shiftType });
+  //         if (shiftType.name === 'morning') {
+  //           userStats.morningShifts++;
+  //         } else if (shiftType.name === 'noon') {
+  //           userStats.noonShifts++;
+  //         } else if (shiftType.name === 'night') {
+  //           userStats.nightShifts++;
+  //         }
+  //         userStats.overTimeStep1 +=step1;
+  //         userStats.overTimeStep2 += step2;
+  //         userStats.restDayHours += restDay;
+  //         userStats.scheduleId = shift.scheduleId;
+  //         console.log('userId', { userStats });
+  //       } else {
+  //         console.log(' else in userStatsmap');
+  //         const userStats = {
+  //           morningShifts: shiftType.name === 'morning' ? 1 : 0,
+  //           noonShifts: shiftType.name === 'noon' ? 1 : 0,
+  //           nightShifts: shiftType.name === 'night' ? 1 : 0,
+  //           overTimeStep1: step1,
+  //           overTimeStep2: step2,
+  //           restDayHours: restDay,
+  //           scheduleId: shift.scheduleId,
+  //         };
+  //         console.log({ userId, userStats });
+  //         userStatisticsMap.set(userId, userStats);
+  //       }
+  //     }
+  //   });
+
+  //   console.log('stats map', { userStatisticsMap });
+  //   //create stats for each user
+  //   for (const [userId, userStats] of userStatisticsMap) {
+  //     const {
+  //       morningShifts,
+  //       noonShifts,
+  //       nightShifts,
+  //       scheduleId,
+  //       overTimeStep1,
+  //       overTimeStep2,
+  //       restDayHours,
+  //     } = userStats;
+
+  //     // Check if a ShiftUserStatistic record already exists for the user and schedule (you can use Prisma to check)
+  //     if (userId !== null) {
+  //       // console.log({userId},'userid')
+  //       const existingUserStats =
+  //         await this.prismaService.shiftUserStatistic.findUnique({
+  //           where: {
+  //             userId_scheduleId: {
+  //               userId: userId,
+  //               scheduleId: scheduleId, // Replace with the actual schedule ID
+  //             },
+  //           },
+  //         });
+
+  //       if (existingUserStats) {
+  //         // Update existing ShiftUserStatistic record
+  //         await this.prismaService.shiftUserStatistic.update({
+  //           where: {
+  //             userId_scheduleId: {
+  //               userId: existingUserStats.userId,
+  //               scheduleId: existingUserStats.scheduleId,
+  //             },
+  //           },
+  //           data: {
+  //             morningShifts: morningShifts,
+  //             noonShifts: noonShifts,
+  //             nightShifts: nightShifts,
+  //             restDayHours: restDayHours,
+  //             overTimeStep1: overTimeStep1,
+  //             overTimeStep2: overTimeStep2,
+  //           },
+  //         });
+  //       } else {
+  //         // Create new ShiftUserStatistic record
+  //         await this.prismaService.shiftUserStatistic.create({
+  //           data: {
+  //             userId: userId,
+  //             scheduleId: scheduleId,
+  //             morningShifts: morningShifts,
+  //             noonShifts: noonShifts,
+  //             nightShifts: nightShifts,
+  //             overTimeStep1: overTimeStep1,
+  //             overTimeStep2: overTimeStep2,
+  //             restDayHours: restDayHours,
+  //           },
+  //         });
+  //       }
+  //     }
+  //   }
+
+  //   return true; // Return true if succeeded
+  // }
+ 
+
+
+  
+    
+  
+  async createUsersStatsForScheduleShift(shifts: shift[]) {
     //Create new stats for all users in schedule shifts.
     //return true if sucssed
     //get all users and create map
@@ -141,22 +322,16 @@ export class UserStatisticsService {
       }
     > = new Map();
     //count shifts
-    shifts.forEach((shift) => {
-      const userId = shift.userId; // Replace with the actual property that holds the user ID
-      const shiftType = shift.shiftType; // Replace with the actual property that holds the shift type
+    shifts.forEach(async (shift) => {
+      const userId = shift.userId; 
+      const shiftType  = this.shiftService.classifyShiftTypeForStats(shift.shifttStartHour,shift.shiftEndHour); 
       let step1: number = 0;
       let step2: number = 0;
       let restDay: number = 0;
       //check if day is restDay
-      const isRest = (shift) => {
-        return (
-          (shift.shifttStartHour.getDay() === restDayConf.start.day &&
-            shift.shifttStartHour.getHours > 14 ) ||
-          (shift.shifttStartHour.getDay() === restDayConf.end.day &&
-            shift.shifttStartHour.getHours() < restDayConf.end.houre)
-        );
-      };
-      if (shiftType !== 'noonCanceled') {
+      const isRest = await this.shiftService.isShiftInRestDay(shift);
+
+      if (shift.userId === undefined || shift.userId === null ) {
         console.log(
           { shift },
           'shiftstats 114',
@@ -165,7 +340,7 @@ export class UserStatisticsService {
           shift.shifttStartHour.getDay() === restDayConf.start.day &&
             shiftType !== 'morning',
         );
-        if (isRest(shift)) {
+        if(isRest) {
           console.log('rest day');
           if (shiftType === 'night' || shiftType === 'morning') {
             console.log('night or morning');
@@ -181,7 +356,7 @@ export class UserStatisticsService {
             console.log('added 4', { shift }, { restDay });
           }
         }
-        if (shift.typeOfShift === 'long' && !isRest(shift)) {
+        if (shift.typeOfShift === 'long' && !isRest) {
           console.log('long shift steps count');
           if (shiftType === 'morning') {
             step1 += 2;

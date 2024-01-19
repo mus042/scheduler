@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EditShiftByDateDto, ShiftDto } from './dto';
 import { AuthDto } from '../auth/dto/';
-import { ShiftUserStatistic, shcheduleType, shift, user } from '@prisma/client';
+import { ShiftUserStatistic, shcheduleType, shift, shiftType, user } from '@prisma/client';
 import { EditShiftDto } from './dto/editShift.dto';
 import { UsershiftStats } from 'src/user-statistics/userShiftStats.dto';
 
@@ -10,13 +10,15 @@ import { UsershiftStats } from 'src/user-statistics/userShiftStats.dto';
 export class ShiftService {
   constructor(private prisma: PrismaService) {}
   async creatShift(userId: number, dto: ShiftDto) {
-    //try create new shift
+    //create new shift
 
     try {
       // console.log({dto});
       const shift = await this.prisma.shift.create({
         data: {
           userId: userId,
+          role:dto.userRef.userRole ,
+          shiftName: dto.shiftName?dto.shiftName : dto.shiftType,
           userPreference: dto.userPreference,
           shiftDate: dto.shiftDate,
           shiftType: dto.shiftType,
@@ -41,6 +43,8 @@ export class ShiftService {
       const shift = await this.prisma.shift.create({
         data: {
           userId: dto.userId,
+          role:'',
+          shiftName: dto.shiftName || dto.shiftType + "_"+dto.typeOfShift,
           userPreference: dto.userPreference,
           shiftDate: dto.shiftDate,
           shiftType: dto.shiftType,
@@ -180,7 +184,7 @@ export class ShiftService {
           },
         },
         include: {
-          userRef: true, // Include the userRef relation
+          userRef: true,
         },
       });
       // console.log({ shifts });
@@ -201,6 +205,9 @@ export class ShiftService {
         where: {
           id: shiftId,
         },
+        include:{
+          userRef:true,
+        }
       });
       if (!shift) {
         throw new ForbiddenException('shift not fond ');
@@ -209,7 +216,7 @@ export class ShiftService {
       const userRef: user | any =shift.userId? await this.prisma.user.findUnique({
         where: {
           id: shift.userId,
-        },
+        }
       }):{};
       userRef.id && delete userRef.hash;
        
@@ -374,4 +381,54 @@ export class ShiftService {
   async updateUserForShift(shiftId : number , newUserId: number){
     
   }
+  classifyShiftTypeForStats(shiftStart : Date , shiftEnd:Date ){
+    if(!shiftStart){
+      throw new ForbiddenException("Date unexpcted");
+    }
+    
+   else{
+      if(shiftStart.getHours() >= 6 && shiftStart.getHours() <= 13 ){
+        return "morning"
+      }else if( shiftStart.getHours() >= 14 && shiftStart.getHours() <=21 && shiftEnd.getHours() <= 24  ){
+        return "noon"
+      }else {
+        return "night"
+      }
+    }
+  }
+  getShiftTypeName(shift){
+    //Return the shift type by shiftTypeId; 
+
+  }
+  async isShiftInRestDay(shift) {
+    //This will accept a shift and call the schedule mold to chack if shift hours are within restDay 
+    try {
+      const restDay = await this.prisma.scheduleMold.findUnique({
+        where: { selected: true },
+        select: {
+          restDayStartDay: true,
+          restDayStartHour: true,
+          restDayEndDay: true,
+          restDayEndHour: true,
+        },
+      });
+  
+      if (!restDay) {
+        throw new Error('Rest day information not found');
+      }
+  
+  
+      const res = (shift.shifttStartHour.getDay() === restDay.restDayStartDay &&
+      shift.shifttStartHour.getHours > Number(restDay.restDayStartHour) ) ||
+    (shift.shifttStartHour.getDay() === restDay.restDayEndDay &&
+      shift.shifttStartHour.getHours() > Number(restDay.restDayEndHour))
+  
+      return res;
+    } catch (error) {
+      console.error('Error in isShiftInRestDay:', error);
+      throw error;
+    }
+
+  }
+  
 }

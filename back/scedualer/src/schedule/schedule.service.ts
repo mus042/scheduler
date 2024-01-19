@@ -80,9 +80,13 @@ export class ScheduleService {
     const tmpMold = {
       organizationId: schedSet.organizationId,
       startDay: Number(schedSet.start.day.value),
-      startHour: '' + schedSet.start.hours + ':' + schedSet.start.minutes,
+      startHour: `${schedSet.start.hours}:${schedSet.start.minutes}`,
       endDay: Number(schedSet.end.day.value),
-      endHour: '' + schedSet.end.hours + ':' + schedSet.end.minutes,
+      endHour: `${schedSet.end.hours}:${schedSet.end.minutes}`,
+      restDayStartDay: Number(schedSet.restDay.start.day.value), 
+      restDayStartHour: `${schedSet.restDay.start.hours}:${schedSet.restDay.start.minutes}`,
+      restDayEndDay: Number(schedSet.restDay.end.day.value),
+      restDayEndHour: `${schedSet.restDay.end.hours}:${schedSet.restDay.end.minutes}`,
       name: schedSet.name,
       daysPerSchedule: schedSet.daysPerSchedule,
       description: schedSet.description,
@@ -104,18 +108,24 @@ export class ScheduleService {
         });
       }
       console.log({ tmpMold });
+      const createData:any = {
+        startDay: Number(schedSet.start.day.value),
+        startHour: `${schedSet.start.hours}:${schedSet.start.minutes}`,
+        endDay: Number(schedSet.end.day.value),
+        endHour: `${schedSet.end.hours}:${schedSet.end.minutes}`,
+        name: schedSet.name,
+        organizationId: schedSet.organizationId, // Assuming this is a valid ID
+        daysPerSchedule: 7,
+        description: schedSet.description,
+        selected: true,
+        restDayStartDay: Number(schedSet.restDay.start.day.value), 
+        restDayStartHour: `${schedSet.restDay.start.hours}:${schedSet.restDay.start.minutes}`,
+        restDayEndDay: Number(schedSet.restDay.end.day.value),
+        restDayEndHour: `${schedSet.restDay.end.hours}:${schedSet.restDay.end.minutes}`,
+      };
+      
       const res = await this.prisma.scheduleMold.create({
-        data: {
-          startDay: Number(schedSet.start.day.value),
-          startHour: '' + schedSet.start.hours + ':' + schedSet.start.minutes,
-          endDay: Number(schedSet.end.day.value),
-          endHour: '' + schedSet.end.hours + ':' + schedSet.end.minutes,
-          name: schedSet.name,
-          organizationId: schedSet.organizationId,
-          daysPerSchedule: 7,
-          description: schedSet.description,
-          selected: true,
-        },
+        data: createData,
       });
 
       if (res) {
@@ -423,12 +433,13 @@ export class ScheduleService {
         scedhuleDue: scheduleDue,
       },
     });
-
+const type= 'userSchedule';
     const shiftsArr: ShiftDto[] = this.scheduleUtil.generateNewScheduleShifts(
       newSchedule.scedualStart,
       newSchedule.scedualEnd,
       newSchedule.id,
       schedulMold,
+      type,
     );
     // console.log({shiftsArr});
 
@@ -451,7 +462,7 @@ export class ScheduleService {
     return { newSchedule, scheduleShifts }; //change here of something with createSchedule do no work
   }
   generateEmptySchedulObject(startingDate: Date, schedualId: number) {
-    const scedualLength: number = 7; // Number of days per schedule
+    const scedualLength: number = 7; 
     const emptyScheduleShifts: ShiftDto[] = [];
     const esId = schedualId;
     const esStartDate = new Date(startingDate);
@@ -464,10 +475,10 @@ export class ScheduleService {
         esEndTime.setHours(esStartDate.getHours() + 8);
         const sType =
           j === 0
-            ? shiftType.morning
+            ? "morning"
             : j === 1
-            ? shiftType.noon
-            : shiftType.night;
+            ? "noon"
+            : "night";
         const dto: ShiftDto = {
           userPreference: '0',
           shiftDate: new Date(esStartDate), // Create a new Date object for the shift date
@@ -806,13 +817,14 @@ export class ScheduleService {
         sceduleType: 'systemSchedule',
       },
     });
-
+const type="userSchedule"
     const scheduleId: number = createdSchedule.id;
     const newSchedule: ShiftDto[] = this.scheduleUtil.generateNewScheduleShifts(
       startingDate,
       endindgDate,
       scheduleId,
       schedulMold,
+      type,
     );
 
     const ceratedSched: shift[] = [];
@@ -869,7 +881,7 @@ export class ScheduleService {
     console.log('unassigned Shifts:', secondFill['emptyShifts']);
     //save the shifts statistics .
 
-    const stats = await this.shiftStats.createUsersStatsForScheduleShifts(
+    const stats = await this.shiftStats.createUsersStatsForScheduleShift(
       ceratedSched,
     );
     console.log(stats);

@@ -152,8 +152,8 @@ const SettingsScreen = ({ setSettingsShow }) => {
       },
     ],
     restDay: {
-      start: { day: { value: "0", label: "Sunday" }, hours: 6, minutes: 0 },
-      end: { day: { value: "6", label: "sunday" }, hours: 6, minutes: 0 },
+      start: { day: { value: "6", label: "Friday" }, hours: 6, minutes: 0 },
+      end: { day: { value: "0", label: "Saterday" }, hours: 6, minutes: 0 },
     },
   };
   const [schedualSettings, setscedualSettings] =

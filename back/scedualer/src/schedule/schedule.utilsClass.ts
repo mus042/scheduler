@@ -156,6 +156,7 @@ export class ScheduleUtil {
     endDate: Date,
     scheduleId: number,
     schedulMold: any | undefined,
+    type:string
   ) {
   
     const shifts: ShiftDto[] = schedulMold.shiftsTemplate.map(
@@ -166,7 +167,8 @@ export class ScheduleUtil {
         startDate.setUTCHours(shift.startHour, 0, 0,0);
         const endDate = this.setToNextDayOfWeek(shift.day);
         endDate.setUTCHours(shift.endHour, 0, 0,0);
-        console.log({ startDate }, { endDate }, shift.startHour,shift.day);
+        console.log({ startDate }, { endDate }, shift.startHour,shift.day, );
+        if(type === 'systemSchedule'){
         const shiftsByRoles = shift.userPrefs.map((role)=>{
           //create shift for each mold role
           console.log("Role in generate shhifts ",{role})
@@ -182,6 +184,9 @@ export class ScheduleUtil {
             userNeededType: role.id,
           };
         })
+        console.log({shiftsByRoles})
+        return shiftsByRoles;
+      }
         const dto: ShiftDto = {
           userPreference: '0',
           shiftDate: new Date(startDate),
@@ -191,8 +196,8 @@ export class ScheduleUtil {
           shiftEndHour: new Date(endDate),
           scheduleId: scheduleId,
         };
-        console.log({ dto });
-        return shiftsByRoles?shiftsByRoles: dto;
+        console.log({ dto },);
+        return  dto;
       },
     );
     
@@ -564,6 +569,8 @@ export class ScheduleUtil {
                 possibleForShift.push({
                   id: selctedShift.id,
                   userId: selctedShift.userId,
+                  role:'',
+                  shiftName:'',
                   createdAt: selctedShift.createdAt,
                   updatedAt: selctedShift.updatedAt,
                   typeOfShift: selctedShift.typeOfShift,

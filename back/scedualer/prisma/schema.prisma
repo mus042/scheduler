@@ -5,6 +5,7 @@ generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "darwin"]
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -20,6 +21,7 @@ enum shiftType {
   noon
   noonCanceled
   night
+  other
 }
 
 enum typeOfUser {
@@ -53,13 +55,16 @@ model shift {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+  shiftName String
 
-  shiftDate       DateTime?
+  shiftDate DateTime?
+
   shiftType       shiftType
   typeOfShift     typeOfShift? //short or long =  8 /12 
   shifttStartHour DateTime?
   shiftEndHour    DateTime?
 
+  role           String
   userId         Int?
   userRef        user?   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userPreference String?
@@ -85,7 +90,7 @@ model schedule {
   shiftUserStatistics ShiftUserStatistic[]
   user                user?                @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
-  shifts shift[]  
+  shifts shift[]
 
   @@map("schedule")
 }
@@ -114,9 +119,9 @@ model user {
 }
 
 model Organization {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  users user[]
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  users        user[]
   scheduleMold ScheduleMold[]
 }
 
@@ -130,15 +135,15 @@ model userRequest {
   acceptingUserRef   user?         @relation(name: "AcceptedRequests", fields: [destionationUserId], references: [id])
   status             requestStatus @default(pending)
   isAnswered         Boolean       @default(false)
-  requestAnswer      String? 
+  requestAnswer      String?
   requestAnswerMsg   String?
-  requestAnswerSeen  Boolean? 
+  requestAnswerSeen  Boolean?
   requsetMsg         String?
 
-  isAprroved         Boolean @default(false)
-  
-  shiftId            Int
-  shift              shift?        @relation(fields: [shiftId], references: [id],onDelete: Cascade)
+  isAprroved Boolean @default(false)
+
+  shiftId Int
+  shift   shift? @relation(fields: [shiftId], references: [id], onDelete: Cascade)
 
   @@unique([senderId, destionationUserId, shiftId])
 }
@@ -159,55 +164,55 @@ model ShiftUserStatistic {
 
   @@id([userId, scheduleId])
   @@map("shift_statistic")
-
-  
 }
 
 model ScheduleMold {
-  id             Int          @id @default(autoincrement())
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @default(now())
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
-  name           String       @default("deafult Settings")
-  description    String?
-  startDay       Int          // Day of the week as an integer (0 = Sunday, 1 = Monday, etc.)
-  startHour      String       // Time as a string, e.g., "14:00"
-  endDay         Int
-  endHour        String
-  daysPerSchedule Int 
-  selected       Boolean      @unique
+  name             String  @default("deafult Settings")
+  description      String?
+  startDay         Int // Day of the week as an integer (0 = Sunday, 1 = Monday, etc.)
+  startHour        String // Time as a string, e.g., "14:00"
+  endDay           Int
+  endHour          String
+  daysPerSchedule  Int
+  selected         Boolean @unique
+  restDayStartDay  Int
+  restDayStartHour String
+  restDayEndDay    Int
+  restDayEndHour   String
 
-   organizationId Int
+  organizationId Int
   organization   Organization @relation(fields: [organizationId], references: [id])
- shiftsTemplate ShiftMold[]
+  shiftsTemplate ShiftMold[]
 }
+
 model ShiftMold {
-  id          Int        @id @default(autoincrement())
-  name        String
-  startHour   String
-  endHour     String
-  day         Int
-  schedule    ScheduleMold @relation(fields: [scheduleId], references: [id])
-  scheduleId  Int
-  userPrefs   UserPreference[]
-  
-  }
+  id         Int              @id @default(autoincrement())
+  name       String
+  startHour  String
+  endHour    String
+  day        Int
+  schedule   ScheduleMold     @relation(fields: [scheduleId], references: [id])
+  scheduleId Int
+  userPrefs  UserPreference[]
+}
 
-  model UserPreference {
-    id          Int       @id @default(autoincrement())
-    shiftMoldId Int
-    shiftMold   ShiftMold @relation(fields: [shiftMoldId], references: [id])
-    rankId      Int // Reference to the Rank model
-    rank        Rank      @relation(fields: [rankId], references: [id])
-    userCount   Int
-    // Add other fields related to user preferences
-  }
+model UserPreference {
+  id          Int       @id @default(autoincrement())
+  shiftMoldId Int
+  shiftMold   ShiftMold @relation(fields: [shiftMoldId], references: [id])
+  rankId      Int // Reference to the Rank model
+  rank        Rank      @relation(fields: [rankId], references: [id])
+  userCount   Int
+}
 
-  model Rank {
-    id              Int              @id @default(autoincrement())
-    name            String            @unique
-    userPreferences UserPreference[]
-    // Add other fields related to ranks
-    // For example, description, privileges, etc.
-  }
-
+model Rank {
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  userPreferences UserPreference[]
+  // Add other fields related to ranks
+  // For example, description, privileges, etc.
+}

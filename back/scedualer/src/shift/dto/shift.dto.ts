@@ -23,6 +23,8 @@ export class ShiftDto {
   shiftType: shiftType;
 
   @IsString()
+  shiftName?: string 
+  @IsString()
   shifttStartHour: Date;
   @IsString()
   shiftEndHour: Date;
@@ -47,4 +49,6 @@ export class ShiftDto {
   @IsOptional()
   
   userNeededType?: string;
+
+  role?: string 
 }

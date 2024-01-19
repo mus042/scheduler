@@ -20,4 +20,5 @@ services:
     networks:
       - scedualer
 
-
+networks:
+  scedualer:
