@@ -5,7 +5,7 @@ import { ShiftService } from 'src/shift/shift.services';
 
 @Module({
   controllers: [UserStatisticsController],
-  providers: [UserStatisticsService,ShiftService],
-exports:[UserStatisticsService]
+  providers: [UserStatisticsService, ShiftService],
+  exports: [UserStatisticsService],
 })
 export class UserStatisticsModule {}

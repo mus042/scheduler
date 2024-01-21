@@ -6,6 +6,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { orgAuth } from './dto/orgAuth';
+import { userProfileDto } from './dto/userProfile.dto';
 
 @Injectable()
 export class AuthService {
@@ -15,29 +16,33 @@ export class AuthService {
     private config: ConfigService,
   ) {}
 
-    //signUp as organiation , and facility 
-    async signUpOrg(dto:orgAuth){
-      try {
-        //Add new Org and  facility 
-        
-          const org = await this.Prisma.organization.create({
-            data:{
-              name:dto.name,
-            }
-          });
-          console.log({org})
-          const user : devAuthDto={ email:dto.email,password:dto.password,orgId:org.id,userRole:'admin'}
-        //Add new User to DB
-          const token = await this.signup(user);
-          // return org.id;
-           console.log({token});
-          return token;
+  //signUp as organiation , and facility
+  async signUpOrg(dto: orgAuth) {
+    try {
+      //Add new Org and  facility
+      const org = await this.Prisma.facility.create({
+        data: {
+          name: dto.name,
+        },
+      });
+      console.log({ org });
+      const user: devAuthDto = {
+        email: dto.email,
+        password: dto.password,
+        facilityId: org.id,
+        userServerRole: 'admin',
+        userProfile: dto.userProfile,
+      };
+      //Add new User to DB
+      const token = await this.signup(user);
+      // return org.id;
+      console.log({ token });
+      return token;
+    } catch (eror) {
+      console.log(eror);
+      if (eror.code === 'P2002') {
+        throw new ForbiddenException('Email adress already in use ');
       }
-      catch (eror) {
-        console.log(eror);
-        if (eror.code === 'P2002') {
-          throw new ForbiddenException('Email adress already in use ');
-        }
     }
   }
 
@@ -46,13 +51,20 @@ export class AuthService {
     //Generate pass hash
     const hash = await argon.hash(dto.password); // create hash for password
     delete dto.password;
-    const userDto =
-         { ...dto, hash }
-          console.log({ dto });
+    const profile = dto.userProfile;
+    const userDto = { ...dto, hash };
+    console.log({ dto });
     try {
       //Add new User to DB
       const user = await this.Prisma.user.create({
-        data: userDto,
+        data: {
+          ...userDto,
+          userProfile: {
+            create: {
+              ...profile,
+            },
+          },
+        },
       });
       delete user.hash;
       //Return saved user
@@ -62,10 +74,9 @@ export class AuthService {
       if (eror.code === 'P2002') {
         throw new ForbiddenException('Email adress already in use ');
       }
-     
     }
   }
- //sign in to existing user 
+  //sign in to existing user
   async signin(dto: AuthDto) {
     const user = await this.Prisma.user.findUnique({
       where: {
@@ -86,7 +97,7 @@ export class AuthService {
 
     //consider not deletig
     delete user.hash;
-    console.log({ dto }, 'signin');
+    console.log({ dto }, 'signin singin service 97');
     return this.signToken(user.id, user.email);
   }
 

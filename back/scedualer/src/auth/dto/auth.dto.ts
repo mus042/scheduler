@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+import { Role, serverRole } from '@prisma/client';
 import {
   IsEmail,
   IsEnum,
@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { userProfileDto } from './userProfile.dto';
 
 export class AuthDto {
   @IsEmail()
@@ -18,12 +19,13 @@ export class AuthDto {
   password: string;
 
   @IsOptional()
-  @IsEnum(Role)
-  userRole?: Role;
-
+  @IsEnum(serverRole)
+  userServerRole?: serverRole;
 
   @IsOptional()
   @IsNumber()
-  orgId?: number
+  facilityId?: number;
 
+  @IsOptional()
+  userProfile?: userProfileDto;
 }

@@ -1,5 +1,12 @@
-import { Role } from '@prisma/client';
-import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Role, serverRole } from '@prisma/client';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { userProfileDto } from './userProfile.dto';
 
 export class devAuthDto {
   @IsEmail()
@@ -10,23 +17,11 @@ export class devAuthDto {
   @IsNotEmpty()
   password: string;
 
-  userRole: Role;
-
-  @IsString()
-  facility?: string;
+  userServerRole: serverRole;
 
   @IsNumber()
-  orgId?: number;
+  facilityId?: number;
 
   @IsOptional()
-  @IsString()
-  firstName?: string;
-  
-  @IsOptional()
-  @IsString()
-  lastName?: string;
-  
-  @IsOptional()
-  @IsString()
-  phoneNumber?: number;
+  userProfile: userProfileDto;
 }

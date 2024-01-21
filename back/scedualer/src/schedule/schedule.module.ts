@@ -8,8 +8,8 @@ import { UserStatisticsModule } from '../user-statistics/user-statistics.module'
 import { UserStatisticsService } from '../user-statistics/user-statistics.service';
 
 @Module({
-    imports:[ShiftModule,UserModule,UserStatisticsModule],
-    controllers: [SchedulerController],
-    providers: [ScheduleService,ScheduleUtil]
+  imports: [ShiftModule, UserModule, UserStatisticsModule],
+  controllers: [SchedulerController],
+  providers: [ScheduleService, ScheduleUtil],
 })
 export class ScheduleModule {}

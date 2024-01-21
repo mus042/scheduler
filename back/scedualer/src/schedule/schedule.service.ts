@@ -4,9 +4,9 @@ import {
   schedule,
   user,
   typeOfShift,
-  shiftType,
   ScheduleMold,
   ShiftMold,
+  ScheduleTime,
 } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -48,13 +48,15 @@ type schedualSettings = {
   id?: number;
   name?: string | undefined;
   description?: string | undefined;
-  organizationId: number;
+  facilityId: number;
   start: scedualeDate;
   end: scedualeDate;
   shiftsTemplate: shiftTemp[];
   daysPerSchedule: number | undefined;
   restDay: { start: scedualeDate; end: scedualeDate };
 };
+type dayOptions = number | Date | { H: number; M: number; D: number } | string | undefined;
+
 @Injectable()
 export class ScheduleService {
   constructor(
@@ -65,7 +67,59 @@ export class ScheduleService {
     private shiftStats: UserStatisticsService,
   ) {}
   scheduleDue: number = 2; // to change later - get from schedule object
+  
+  /**
+   * @description Get the next date by day number or date string 
+   * @param {dayOptions} day
+   * @returns {*}  
+   * @memberof ScheduleService
+   */
+  getNextDayDate(day:dayOptions) {
+    console.log({day})
+   let dayToAdd;
+   let currentDate = new Date();//hold the date with hours in case needed. 
+   if(day === undefined){
+    dayToAdd = 0;
+   }
+   else if(typeof day === 'string'){
 
+    dayToAdd=Number(day);
+    currentDate.setHours(0,0,0,0)
+   }
+   else if(typeof day === 'object' && 'D' in day) {
+    dayToAdd = day.D;
+  
+    currentDate.setUTCHours(day.H,day.M,0,0);
+    console.log(currentDate);
+  }
+  else if (day instanceof Date) {
+    // If day is a Date object
+    dayToAdd = day.getDay();
+    currentDate.setHours(day.getUTCHours(),day.getUTCMinutes(),0,0)
+    console.log(currentDate);
+  }
+  else{
+    dayToAdd = day;
+  }
+    let adjusted;
+
+    if (currentDate.getDay() >= 3) {
+      // If it's Wednesday or later, add days to reach the Sunday after next
+      const daysUntilNextSunday = 7 - currentDate.getDay();
+      const daysToAdd = daysUntilNextSunday + dayToAdd;
+      adjusted = new Date(
+        currentDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000,
+      ); console.log({ adjusted },adjusted.getDate());
+    } else {
+      // If it's Tuesday or earlier, add days to reach the next Sunday
+      const daysUntilNextSunday = 7 - currentDate.getDay()+dayToAdd;
+      adjusted = new Date(
+        currentDate.getTime() + daysUntilNextSunday * 24 * 60 * 60 * 1000,
+      );
+    }
+    console.log({ adjusted },adjusted.getDate());
+    return adjusted;
+  }
   isHourMinuteObject(value: any): value is { hours: number; minutes: number } {
     return (
       value &&
@@ -74,16 +128,59 @@ export class ScheduleService {
       'minutes' in value
     );
   }
-  async setScheduleMold(schedSet: schedualSettings) {
-    //Save mold to DB . convert types to match.
+  /**
+   * @description Create new scheduleTime Object.
+   * @param {{day:any,houre:number,minutes:number,fieldRelation}} time
+   * @memberof ScheduleService
+   * @returns ScheduleTime
+   */
+  async createScheduleTime(start: any, end: any) {
+    //check input is valid as time : d 1-30 , h 0-24,m:0-60
 
+    try {
+      //try creating the time object
+      console.log({ start }, { end }, end.day);
+
+      const data = {
+        startDay: Number(start.day),
+        startHour: Number(start.hours),
+        startMinutes: Number(start.minutes),
+        endDay: Number(end.day),
+        endHour: Number(end.hours),
+        endMinutes: Number(end.minutes),
+      };
+      console.log({ data });
+      const res = this.prisma.scheduleTime.create({
+        data: {
+          ...data,
+        },
+      });
+      return res;
+    } catch (error) {
+      throw new ForbiddenException(error);
+    }
+  }
+  async deleteScheduleTime(schedTimeId: number) {
+    try {
+      const res = this.prisma.scheduleTime.delete({
+        where: {
+          id: schedTimeId,
+        },
+      });
+    } catch (error) {
+      throw new ForbiddenException(error);
+    }
+  }
+  async setScheduleMold(schedSet: schedualSettings, facilityId: number) {
+    //Save mold to DB . convert types to match.
+    console.log({ schedSet });
     const tmpMold = {
-      organizationId: schedSet.organizationId,
+      facilityId: facilityId,
       startDay: Number(schedSet.start.day.value),
       startHour: `${schedSet.start.hours}:${schedSet.start.minutes}`,
       endDay: Number(schedSet.end.day.value),
       endHour: `${schedSet.end.hours}:${schedSet.end.minutes}`,
-      restDayStartDay: Number(schedSet.restDay.start.day.value), 
+      restDayStartDay: Number(schedSet.restDay.start.day.value),
       restDayStartHour: `${schedSet.restDay.start.hours}:${schedSet.restDay.start.minutes}`,
       restDayEndDay: Number(schedSet.restDay.end.day.value),
       restDayEndHour: `${schedSet.restDay.end.hours}:${schedSet.restDay.end.minutes}`,
@@ -92,9 +189,11 @@ export class ScheduleService {
       description: schedSet.description,
       selected: true,
     };
+    let createRestDays = null;
+    let createScheduleTime = null;
     try {
       const existingSelected = await this.getSelctedScheduleMold(
-        schedSet.organizationId,
+        schedSet.facilityId,
       );
       // If there's a selected entry, unselect it
       if (existingSelected) {
@@ -108,22 +207,43 @@ export class ScheduleService {
         });
       }
       console.log({ tmpMold });
-      const createData:any = {
-        startDay: Number(schedSet.start.day.value),
-        startHour: `${schedSet.start.hours}:${schedSet.start.minutes}`,
-        endDay: Number(schedSet.end.day.value),
-        endHour: `${schedSet.end.hours}:${schedSet.end.minutes}`,
+
+      createRestDays = await this.createScheduleTime(
+        {
+          day: schedSet.restDay.start.day.value,
+          hours: schedSet.restDay.start.hours,
+          minutes: schedSet.restDay.start.minutes,
+        },
+        {
+          day: schedSet.restDay.end.day.value,
+          hours: schedSet.restDay.end.hours,
+          minutes: schedSet.restDay.end.minutes,
+        },
+      );
+
+      createScheduleTime = await this.createScheduleTime(
+        {
+          day: schedSet.start.day.value,
+          hours: schedSet.start.hours,
+          minutes: schedSet.start.minutes,
+        },
+        {
+          day: schedSet.end.day.value,
+          hours: schedSet.end.hours,
+          minutes: schedSet.end.minutes,
+        },
+      );
+
+      const createData: any = {
         name: schedSet.name,
-        organizationId: schedSet.organizationId, // Assuming this is a valid ID
-        daysPerSchedule: 7,
+        facilityId: facilityId,
+        daysPerSchedule: schedSet.daysPerSchedule,
         description: schedSet.description,
         selected: true,
-        restDayStartDay: Number(schedSet.restDay.start.day.value), 
-        restDayStartHour: `${schedSet.restDay.start.hours}:${schedSet.restDay.start.minutes}`,
-        restDayEndDay: Number(schedSet.restDay.end.day.value),
-        restDayEndHour: `${schedSet.restDay.end.hours}:${schedSet.restDay.end.minutes}`,
+        scheduleTimeId: createScheduleTime.id,
+        restDaysId: createRestDays.id,
       };
-      
+      console.log({ createData });
       const res = await this.prisma.scheduleMold.create({
         data: createData,
       });
@@ -151,12 +271,12 @@ export class ScheduleService {
           console.log(shift.roles);
           // Assuming 'shift.roles' is an array of role names
           for (const role of shift.roles) {
-            let rank = await this.prisma.rank.findUnique({
+            let rank = await this.prisma.role.findUnique({
               where: { name: role.name },
             });
             console.log({ rank });
             if (!rank) {
-              rank = await this.prisma.rank.create({
+              rank = await this.prisma.role.create({
                 data: { name: role.name },
               });
             }
@@ -164,9 +284,8 @@ export class ScheduleService {
             await this.prisma.userPreference.create({
               data: {
                 shiftMoldId: shiftMold.id,
-                rankId: rank.id,
+                roleId: rank.id,
                 userCount: role.quantity,
-                // Add additional fields if necessary
               },
             });
           }
@@ -174,27 +293,47 @@ export class ScheduleService {
 
         console.log('Shifts and preferences created');
         return true;
-      } else if (existingSelected) {
-        // ...existing logic to reset existingSelected...
+      } else {
       }
     } catch (error) {
       console.log({ error });
+      if (createRestDays.id) {
+        await this.deleteSchedule(createRestDays.Id);
+      }
+      if (createScheduleTime.id) {
+        await this.deleteSchedule(createScheduleTime.id);
+      }
+
       throw new HttpException('Error in creating new mold', 400, {
         cause: new Error('Some Error'),
       });
     }
   }
-  async getSelctedScheduleMold(orgId: number) {
-    console.log('selcted mold', { orgId });
+  async getSelctedScheduleMold(facilityId: number) {
+    console.log('selcted mold', { facilityId });
     try {
       // Check if there's already a selected entry
       const res = await this.prisma.scheduleMold.findFirst({
         where: {
-          organizationId: orgId,
+          facilityId: facilityId,
           selected: true,
-        },
-      });
+        },include:{
+          scheduleTime:true,
+          shiftsTemplate:{
+            include:{
+              userPrefs:{
+                include:{
+                  role:{select:{name:true},
+                  }
+                }
+              }
 
+            }
+          },
+          
+        }
+      });
+ console.log({res})
       if (res) return res;
       else return false;
     } catch (error) {
@@ -229,13 +368,13 @@ export class ScheduleService {
       console.log('find nextScheudle', { adjusted });
       const scheduleArr: schedule[] = await this.prisma.schedule.findMany({
         where: {
-          scedualStart: {
+          scheduleStart: {
             gte: adjusted,
           },
           userId: userId,
         },
         orderBy: {
-          scedualStart: 'asc',
+          scheduleStart: 'asc',
         },
       });
       console.log('found schedule in db', scheduleArr[0]);
@@ -281,33 +420,34 @@ export class ScheduleService {
   }
   async getNextSystemSchedule() {
     const currentDate = new Date();
-    console.log({ currentDate });
+    console.log('next sys schedule ', { currentDate });
 
     try {
       console.log('next sys schedule ');
       const scheduleArr: schedule[] = await this.prisma.schedule.findMany({
         where: {
-          scedualStart: {
+          scheduleStart: {
             gt: currentDate,
           },
-          sceduleType: 'systemSchedule',
+          scheduleType: 'systemSchedule',
         },
         orderBy: {
-          scedualStart: 'asc',
+          scheduleStart: 'asc',
         },
       });
       console.log(scheduleArr);
 
       if (scheduleArr) {
         const nextSchedule: schedule = scheduleArr[0];
-        console.log({ nextSchedule });
-        const scheduleShifts: any =
-          await this.shiftSercvice.getAllShiftsByScheduleId(nextSchedule.id);
-        const tmpSchedule = {
-          data: { ...nextSchedule },
-          shifts: [...scheduleShifts],
-        };
-        return tmpSchedule;
+        if (nextSchedule) {
+          const scheduleShifts: any =
+            await this.shiftSercvice.getAllShiftsByScheduleId(nextSchedule.id);
+          const tmpSchedule = {
+            data: { ...nextSchedule },
+            shifts: [...scheduleShifts],
+          };
+          return tmpSchedule;
+        }
       }
     } catch (error) {
       console.log(error);
@@ -319,18 +459,18 @@ export class ScheduleService {
       console.log('get current schedule ', currentDate);
       const currentSchedule = await this.prisma.schedule.findFirst({
         where: {
-          scedualStart: {
+          scheduleStart: {
             // Filter for shifts that have a startTime greater than the current date and time
             lte: currentDate,
           },
 
-          sceduleType: 'systemSchedule',
+          scheduleType: 'systemSchedule',
         },
         orderBy: {
-          scedualStart: 'asc',
+          scheduleStart: 'asc',
         },
       });
-      console.log(currentSchedule?.scedualStart);
+      console.log(currentSchedule?.scheduleStart);
       const currentScheduleShifts: ShiftDto[] = currentSchedule
         ? await this.shiftSercvice.getAllShiftsByScheduleId(currentSchedule.id)
         : null;
@@ -351,28 +491,7 @@ export class ScheduleService {
       console.log({ error });
     }
   }
-  getNextDayDate(day: number) {
-    //Wil find the next date object until this day.
-    const currentDate = new Date();
-    // currentDate.setHours(5, 0, 0);
-    let adjusted;
-
-    if (currentDate.getDay() >= 3) {
-      // If it's Wednesday or later, add days to reach the Sunday after next
-      const daysUntilNextSunday = 7 - currentDate.getDay();
-      const daysToAdd = daysUntilNextSunday + 7; // Additional 7 days to get to the Sunday after next
-      adjusted = new Date(
-        currentDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000,
-      );
-    } else {
-      // If it's Tuesday or earlier, add days to reach the next Sunday
-      const daysUntilNextSunday = 7 - currentDate.getDay();
-      adjusted = new Date(
-        currentDate.getTime() + daysUntilNextSunday * 24 * 60 * 60 * 1000,
-      );
-    }
-    return adjusted;
-  }
+  
   async createSchedualeForUser(scheduleDto: scheduleDto) {
     const scheduleShifts: ShiftDto[] = [];
     const scheduleDue: Date = new Date(scheduleDto.scedualStart.getTime());
@@ -380,12 +499,14 @@ export class ScheduleService {
     //Will create new schedule and create new shifts
     const userId = scheduleDto.userId ? scheduleDto.userId : 0;
     //get schedule and shift mold
-    const schedulMold: ScheduleMold = await this.prisma.scheduleMold.findFirst({
+    const schedulMold: any = await this.prisma.scheduleMold.findFirst({
       where: {
         selected: true,
       },
       include: {
         shiftsTemplate: true,
+        scheduleTime: true,
+        restDays: true,
       },
     });
     console.log('create sched for user , mold:', { schedulMold });
@@ -395,7 +516,7 @@ export class ScheduleService {
     const schedExist: schedule = await this.prisma.schedule.findFirst({
       where: {
         userId: userId,
-        scedualStart: scheduleDto.scedualStart,
+        scheduleStart: scheduleDto.scedualStart,
       },
     });
     if (userId === 0 || schedExist) {
@@ -405,38 +526,42 @@ export class ScheduleService {
         { schedExist },
       );
       //  if(schedExist) return schedExist;
-      throw new error();
+      throw new ForbiddenException('error');
     }
-    const startDate: Date = this.getNextDayDate(schedulMold.startDay);
+    console.log({ schedulMold }, schedulMold.scheduleTime);
+    const startDate: Date = this.getNextDayDate(
+      schedulMold.scheduleTime.startDay,
+    );
+    console.log({ startDate });
     startDate.setUTCHours(
-      Number(schedulMold.startHour.at(0)),
-      Number(schedulMold.startHour.at(2)),
+      Number(schedulMold.scheduleTime.startHour),
+      Number(schedulMold.scheduleTime.startHour),
       0,
       0,
     );
     const endDate: Date = new Date(
-      this.getNextDayDate(schedulMold.endDay).getTime() +
+      this.getNextDayDate(schedulMold.scheduleTime.endDay).getTime() +
         schedulMold.daysPerSchedule * 24 * 60 * 60 * 1000,
     );
     endDate.setUTCHours(
-      Number(schedulMold.endHour.at(0)),
-      Number(schedulMold.endHour.at(2)),
+      Number(schedulMold.scheduleTime.endHour),
+      Number(schedulMold.scheduleTime.endHour),
       0,
       0,
     );
     const newSchedule: schedule = await this.prisma.schedule.create({
       data: {
         userId: userId,
-        scedualStart: startDate,
-        scedualEnd: endDate,
-        sceduleType: 'userSchedule',
-        scedhuleDue: scheduleDue,
+        scheduleStart: startDate,
+        scheduleEnd: endDate,
+        scheduleType: 'userSchedule',
+        scheduleDue: scheduleDue,
       },
     });
-const type= 'userSchedule';
+    const type = 'userSchedule';
     const shiftsArr: ShiftDto[] = this.scheduleUtil.generateNewScheduleShifts(
-      newSchedule.scedualStart,
-      newSchedule.scedualEnd,
+      newSchedule.scheduleStart,
+      newSchedule.scheduleEnd,
       newSchedule.id,
       schedulMold,
       type,
@@ -462,7 +587,7 @@ const type= 'userSchedule';
     return { newSchedule, scheduleShifts }; //change here of something with createSchedule do no work
   }
   generateEmptySchedulObject(startingDate: Date, schedualId: number) {
-    const scedualLength: number = 7; 
+    const scedualLength: number = 7;
     const emptyScheduleShifts: ShiftDto[] = [];
     const esId = schedualId;
     const esStartDate = new Date(startingDate);
@@ -473,20 +598,16 @@ const type= 'userSchedule';
       for (let j = 0; j < 3; j++) {
         const esEndTime = new Date(esStartDate); // Create a new Date object for the end time
         esEndTime.setHours(esStartDate.getHours() + 8);
-        const sType =
-          j === 0
-            ? "morning"
-            : j === 1
-            ? "noon"
-            : "night";
+        const sType = j === 0 ? 'morning' : j === 1 ? 'noon' : 'night';
         const dto: ShiftDto = {
           userPreference: '0',
-          shiftDate: new Date(esStartDate), // Create a new Date object for the shift date
-          shiftType: sType,
+          shiftType: 'systemSchedule',
+          shiftTimeName: sType,
           typeOfShift: 'short',
-          shifttStartHour: esStartDate,
+          shiftStartHour: esStartDate,
           shiftEndHour: esEndTime,
           scheduleId: esId,
+          
         };
         esStartDate.setHours(esStartDate.getHours() + 8);
         emptyScheduleShifts.push(dto);
@@ -504,7 +625,7 @@ const type= 'userSchedule';
       const schedule: schedule = await this.prisma.schedule.findFirst({
         //change to find uniqe
         where: {
-          AND: [{ scedualStart: dateIso }, { userId: userId }],
+          AND: [{ scheduleStart: dateIso }, { userId: userId }],
         },
       });
 
@@ -524,17 +645,14 @@ const type= 'userSchedule';
     scheduleId: number,
     shiftsToEdit: EditShiftByDateDto[],
   ) {
+    console.log({ shiftsToEdit });
     try {
       const schedule = await this.prisma.schedule.findUnique({
         where: {
           id: scheduleId,
         },
       });
-      // const today = new Date();
-      // if (today.getDay() >= dayToSubmit) {
-      //   //user cant edit schedule
-      //   throw new ForbiddenException('Schedule due is over');
-      // }
+
       const editedShifts: shift[] = [];
       const existingShifts: shift[] =
         await this.shiftSercvice.getAllShiftsByScheduleId(scheduleId);
@@ -548,22 +666,27 @@ const type= 'userSchedule';
       );
 
       existingShifts.forEach((shift: shift) => {
-        const shiftTime = new Date(shift.shiftDate);
+        const shiftTime = new Date(shift.shiftStartHour);
         console.log({ shiftTime });
         // shiftTime.setUTCHours(shiftTime.getHours());
         const shiftId = shift.id;
 
         shiftsToEdit.forEach(async (editInfo: EditShiftByDateDto) => {
           const userPref: string = editInfo.userPreference;
-          const dateOfshift = new Date(editInfo.shiftDate);
-
           console.log(
-            shiftTime.getTime() === dateOfshift.getTime(),
-            shiftTime,
-            dateOfshift,
-            { shift },
+            { editInfo },
+            shiftTime.getTime(),
+            shift.shiftStartHour.getTime(),
+            shiftTime.getDate(),
+            shift.shiftStartHour.getDate(),
+            shiftTime.getHours(),
+            shift.shiftStartHour.getHours(),
           );
-          if (shiftTime.getTime() === dateOfshift.getTime()) {
+          if (
+            shiftTime.getDate() === shift.shiftStartHour.getDate() &&
+            shiftTime.getHours() === shift.shiftStartHour.getHours()
+          ) {
+            console.log({ shift });
             const editShiftDto: EditShiftDto = {
               shiftId: shiftId,
               userPreference: userPref,
@@ -585,14 +708,32 @@ const type= 'userSchedule';
       throw new ForbiddenException(error.message);
     }
   }
-  //get  all the users schedules
-  async getAllUsersForSchedule(startingDate: Date) {
-    // Params - users , starting date => scheduled :shift[number of users ][shifts ]
 
+
+  
+  /**
+   * @description All users if provided that added prefernce to thier schedule shifts. 
+   * @param {Date} startingDate
+   * @param {(user[]| undefined)} selctedUsers
+   * @returns {*}  
+   * @memberof ScheduleService
+   */
+  async getAllUsersForSchedule(startingDate: Date, selectedUsers:user[] |  undefined) {
+  
     //for each user get schedule and save it in schedules arr
     const schedules: shift[][] = [];
-    const users: user[] = await this.userService.getAllUsers();
-    for (const user of users) {
+    const allUsers: user[] = await this.userService.getAllUsers();
+
+    let filteredUsers: user[];
+    if (selectedUsers && selectedUsers.length > 0) {
+      filteredUsers = allUsers.filter(user => 
+        selectedUsers.some(selectedUser => selectedUser.id === user.id)
+      );
+    } else {
+      filteredUsers = allUsers;
+    }
+   //iterate throw users ,  check if prefernce submited
+    for (const user of filteredUsers) {
       const schedule: schedule = await this.getScheduleIdByDateAnduserId(
         user.id,
         startingDate,
@@ -602,10 +743,10 @@ const type= 'userSchedule';
         await this.shiftSercvice.getAllShiftsByScheduleId(schedule?.id);
       // filter empty shifts
       const filterdShifts: shift[] = shiftsForSchedule.filter(
-        (item: shift) => item.userPreference !== '0',
+        (item: shift) => item.userPreference === '0',
       );
       console.log('shift service 226', { filterdShifts });
-      if (filterdShifts !== null) {
+      if (filterdShifts.length === 0) {
         console.log('shift service 227', { filterdShifts });
         schedules.push(filterdShifts);
       }
@@ -700,16 +841,17 @@ const type= 'userSchedule';
             scheduleIdToCheck,
           );
           const schedShifts = await this.getAllUsersForSchedule(
-            scheduleToCheck.scedualStart,
+            scheduleToCheck.scheduleStart,
+            undefined,
           );
-          if (scheduleToCheck.sceduleType !== 'systemSchedule') {
+          if (scheduleToCheck.scheduleType !== 'systemSchedule') {
             throw new ForbiddenException(
               'Replace alowd only on system schedule',
             );
           }
           const avialbleUsersForShift: ShiftDto[] =
             this.scheduleUtil.searchPossibleUsersForShift(
-              shiftToReplace.shifttStartHour,
+              shiftToReplace.shiftStartHour,
               schedShifts,
             );
           console.log('419:', avialbleUsersForShift);
@@ -740,20 +882,159 @@ const type= 'userSchedule';
       }
     }
   }
+
+convertShiftMoldToShift(shiftMold,schedualId:number | undefined){
+  const startDate:Date = this.getNextDayDate({D:Number(shiftMold.day),H:Number(shiftMold.startHour),M:0});
+
+  console.log({startDate})
+  const endDate:Date =  this.getNextDayDate({D:Number(shiftMold.day),H:Number(shiftMold.endHour),M:0});
+
+   console.log({endDate} , shiftMold.userPrefs)
+  const dto:any = {
+    userPreference: '0',
+    shiftType: 'systemSchedule',
+    shiftTimeName: shiftMold.name,
+    typeOfShift: shiftMold.endHour - shiftMold.startHour >10 ?"long" : "short",//TOFIX -- dynemic by hours 
+    shiftStartHour: startDate,
+    shiftEndHour: endDate,
+    assignedShiftRoles:shiftMold.userPrefs
+
+   
+
+  }; 
+  dto['scheduleId'] = schedualId || dto['scheduleId'];
+
+  return dto;
+}
+  /**
+   * @description Create a new shifts arr acurding to mold. 
+   * @param {Date} startDate
+   * @param {number} scheduleId
+   * @param {any[]} shiftsMold
+   * @returns {*}  shifts 
+   * @memberof ScheduleService
+   */
+  genrateEmptySysSchedShifts(startDate:Date,scheduleId:number,shiftsMold:any[]){
+    let shifts:ShiftDto[] = [];
+    for(const shiftMold of shiftsMold){
+      console.log({shiftMold});
+      //create shift for each mold shift/ 
+      const tmpShift:ShiftDto = this.convertShiftMoldToShift(shiftMold,scheduleId);//dates set to next date 
+      console.log({tmpShift});
+       shifts.push(tmpShift);
+    }
+    return shifts;
+
+  }
+
+async createEmptySchedule (startDate:Date,endDate:Date,) {
+ try {
+  const newSchedule  = await this.prisma.schedule.create({
+    data:{
+      scheduleStart: startDate,
+        scheduleEnd: endDate,
+        scheduleType: 'systemSchedule',
+    }
+   })
+   return newSchedule;
+ } catch (error) {
+    throw new ForbiddenException(error);
+ }
+ 
+}
+  /**
+   * @description Will Assing users accurding to the needed role, 
+   * @param {shift[]} emptyShifts
+   * @param {shifts[][]} userScheduel
+   * @memberof ScheduleService
+   */
+  assigningUsersToShifts(emptyShifts:any[] , userScheduel:shift[][])
+  {
+    const noUserShifts :shift[]= [];
+    const assignedShifts:any[] = [];
+      console.log("713 sched service assing users to shifts",{emptyShifts});
+      //loop over the empty shifts and create shift Roles arr 
+      const userShiftRoleArr:any[] = [];
+      console.log({emptyShifts})
+      for(const shiftToAssign of emptyShifts){
+        for(const userPref of shiftToAssign.assignedShiftRoles){
+            console.log({userPref});
+            const possibleForShift = userScheduel.filter((userShift)=>{
+              console.log({userShift})
+              return( 
+                userShift.userRef.roleId === userPref.roleId &&
+                userShift.userPreference !== '3' && this.scheduleUtil.isShiftpossible(emptyShifts,shiftToAssign)
+              )
+            })
+        }
+      }
+
+  }
+
+/**
+ * @description Create the a system schedule for the date provided. 
+ * @param {generateScheduleForDateDto} dto
+ * @memberof ScheduleService
+ */
+async createSystemSchedule(dto:generateScheduleForDateDto){
+
+  console.log("Create sys schedule service 903",dto)
+  //Get current mold 
+  const currentMold = await this.getSelctedScheduleMold(dto.facilityId);
+  
+  if(currentMold === false){
+    throw new ForbiddenException("907 sched service currentmold ")
+  }
+  //Normalize the dates .
+  const normelizedStartDate = this.getNextDayDate({D:currentMold.scheduleTime.startDay,H:currentMold.scheduleTime.startHour,M: currentMold.scheduleTime.startMinutes});
+  const normelizedendDate =this.getNextDayDate({D:currentMold.scheduleTime.endDay,H:currentMold.scheduleTime.endHour,M: currentMold.scheduleTime.endMinutes});
+  console.log({normelizedStartDate},{currentMold},currentMold.scheduleTime,currentMold.daysPerSchedule,currentMold.shiftsTemplate);
+
+  //Get all avileble users schedules from users list if it exist, else all users. 
+  const avilebleUserShifts = await this.getAllUsersForSchedule(dto.scedualStart,dto.usersIdList);
+  //  console.log({avilebleUserShifts});
+   if(!avilebleUserShifts){
+    throw new ForbiddenException("907 sched service currentmold ")
+  }
+   //Generate schedule to have schdule id for next steps. 
+   const newSchedule = await this.createEmptySchedule(normelizedStartDate,normelizedendDate);
+   if(!newSchedule ){
+    throw new ForbiddenException("907 sched service currentmold ")
+  }
+  //Generate empty shift object from mold, include empty roles 
+  const emptyShifts :ShiftDto[] = this.genrateEmptySysSchedShifts(normelizedStartDate,newSchedule.id,currentMold.shiftsTemplate);
+  console.log({emptyShifts})
+  //Assing users 
+    const assingedSchedule = this.assigningUsersToShifts(emptyShifts,avilebleUserShifts);
+
+
+
+
+  //return the schedule , userStats for schedule 
+
+
+
+}
+
+
+
+
   //Create new object for new  schedule
-  async createSchedule(dto: generateScheduleForDateDto) {
+  async createSchedule(dto: any) {
     //get schedule and shift mold
 
-    const schedulMold: ScheduleMold = await this.prisma.scheduleMold.findFirst({
+    const schedulMold: any = await this.prisma.scheduleMold.findFirst({
       where: {
         selected: true,
       },
       include: {
         shiftsTemplate: {
           include: {
-            userPrefs: true, // Include userPrefs from each ShiftMold
-          }
+            userPrefs: true,
+          },
         },
+        restDays: true,
+        scheduleTime: true,
       },
     });
 
@@ -761,38 +1042,45 @@ const type= 'userSchedule';
       throw new Error('Schedule Mold not found');
     }
     console.log('create schedule ', { dto }, { schedulMold });
-    const startingDate: Date = this.getNextDayDate(schedulMold.startDay);
+    const startingDate: Date = this.getNextDayDate(
+      schedulMold.scheduleTime.startDay,
+    );
+    console.log('832', { startingDate });
     startingDate.setUTCHours(
-      Number(schedulMold.startHour.at(0)),
-      Number(schedulMold.startHour.at(2)),
-      0,
+      Number(schedulMold.scheduleTime.startHour),
+      Number(schedulMold.scheduleTime.startHour),
+      Number(schedulMold.scheduleTime.startMinutes),
       0,
     );
+
+    console.log('840', { startingDate });
     const endindgDate: Date = new Date(
       this.getNextDayDate(schedulMold.endDay) +
         schedulMold.daysPerSchedule * 24 * 60 * 60 * 1000,
     );
     endindgDate.setUTCHours(
-      Number(schedulMold.endHour.at(0)),
-      Number(schedulMold.endHour.at(2)),
-      0,
+      Number(schedulMold.scheduleTime.endHour),
+      Number(schedulMold.scheduleTime.endHour),
+
+      Number(schedulMold.scheduleTime.endMinutes),
       0,
     );
 
     console.log('create schedule ', { startingDate }, { schedulMold });
     const availableUsers: user[] = await this.prisma.user.findMany({
       where: {
-        schedual: {
+        schedules: {
           some: {
-            // Use 'some' if a user can have multiple schedules and you want to match any of them
-            sceduleType: 'userSchedule',
-            scedualStart: startingDate,
+            scheduleType: 'userSchedule',
+            scheduleStart: {
+              equals: startingDate,
+            },
           },
         },
       },
     });
     console.log({ availableUsers });
-    // const users: user[] = await this.userService.getAllUsers();
+   
     // console.log({ users });
 
     console.log('create schedule ', { startingDate });
@@ -807,17 +1095,17 @@ const type= 'userSchedule';
     const minimunUsersForSchedule = 3;
     if (useresSchedules.length < minimunUsersForSchedule) {
       //minimun users for schedule
-      console.log('766 user service  forbbiden error ', useresSchedules.length);
+      console.log('879 user service  forbbiden error ', useresSchedules.length);
       throw new ForbiddenException('insufficenst users for scheudle ');
     }
     const createdSchedule: schedule = await this.prisma.schedule.create({
       data: {
-        scedualStart: startingDate,
-        scedualEnd: endindgDate,
-        sceduleType: 'systemSchedule',
+        scheduleStart: startingDate,
+        scheduleEnd: endindgDate,
+        scheduleType: 'systemSchedule',
       },
     });
-const type="userSchedule"
+    const type = 'systemSchedule';
     const scheduleId: number = createdSchedule.id;
     const newSchedule: ShiftDto[] = this.scheduleUtil.generateNewScheduleShifts(
       startingDate,
@@ -857,9 +1145,9 @@ const type="userSchedule"
       // if (filled2Sched[i].userId > 0) {
       const shiftDto: ShiftDto = {
         userPreference: filled2Sched[i].userPreference,
-        shiftDate: filled2Sched[i].shiftDate,
+        // shiftDate: filled2Sched[i].shiftDate,
         shiftType: filled2Sched[i].shiftType,
-        shifttStartHour: filled2Sched[i].shifttStartHour,
+        shiftStartHour: filled2Sched[i].shiftStartHour,
         shiftEndHour: filled2Sched[i].shiftEndHour,
         typeOfShift: filled2Sched[i].typeOfShift
           ? filled2Sched[i].typeOfShift
@@ -880,9 +1168,10 @@ const type="userSchedule"
     const emptyShifts = secondFill['emptyShifts'];
     console.log('unassigned Shifts:', secondFill['emptyShifts']);
     //save the shifts statistics .
-
+console.group({schedulMold})
     const stats = await this.shiftStats.createUsersStatsForScheduleShift(
       ceratedSched,
+      schedulMold.restDays 
     );
     console.log(stats);
 
@@ -898,16 +1187,16 @@ const type="userSchedule"
       throw new Error('Invalid schedule ID');
     }
     try {
-      const resultDeleteRequests =  await this.prisma.userRequest.deleteMany({
+      const resultDeleteRequests = await this.prisma.userRequest.deleteMany({
         where: {
-            shift: {
-                scheduleId: scheduleId,
-            },
+          shift: {
+            scheduleId: scheduleId,
+          },
         },
-    });
+      });
       //delete all the reqestes
-      if(!resultDeleteRequests){
-        throw new ForbiddenException("cant compete delete ")
+      if (!resultDeleteRequests) {
+        throw new ForbiddenException('cant compete delete ');
       }
       const res = await this.prisma.schedule.delete({
         where: {

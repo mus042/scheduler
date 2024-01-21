@@ -9,7 +9,6 @@ export interface Room {
   shiftId: number;
 }
 
-
-/// user add request , 
-//everytime user enter system - server websocket should conect. 
-// once conected should recive new requests 
+/// user add request ,
+//everytime user enter system - server websocket should conect.
+// once conected should recive new requests

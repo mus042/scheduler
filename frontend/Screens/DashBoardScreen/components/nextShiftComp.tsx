@@ -25,10 +25,10 @@ const NextShiftComp = ({nextShift}:{nextShift:shift | undefined}) => {
     id: 1,
     createdAt:date,
     updatedAt:date,
-    shiftType: 'morning',
-    shiftDate:date,
+    shiftTimeName: 'morning',
+
     typeOfShift: "short",
-    shifttStartHour:date,
+    shiftStartHour:date,
     shiftEndHour:date,
     userId: 6,
     userPreference: "1",

@@ -78,7 +78,7 @@ const RequestComponent = ({
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
-      const shiftStart = new Date(req.shift.shifttStartHour);
+      const shiftStart = new Date(req.shift.shiftStartHour);
       const difference = shiftStart.getTime() - now.getTime();
 
       if (difference > 0) {
@@ -200,14 +200,14 @@ const RequestComponent = ({
   const sentDefMsg = isCurrentUserSender
     ? `You want ${
         req.acceptingUserRef?.firstName !==undefined ?req.acceptingUserRef?.firstName:``
-      } to replace you on ${normalizeShiftDate(req.shift.shifttStartHour)} ${
+      } to replace you on ${normalizeShiftDate(req.shift.shiftStartHour)} ${
         req.shift.typeOfShift
-      } ${req.shift.shiftType} shift.`
+      } ${req.shift.ShiftTimeName} shift.`
     : `${
         req.senderUserRef?.firstName
       } wants you to replace him on ${normalizeShiftDate(
-        req.shift.shifttStartHour
-      )} ${req.shift.typeOfShift} ${req.shift.shiftType} shift.`;
+        req.shift.shiftStartHour
+      )} ${req.shift.typeOfShift} ${req.shift.ShiftTimeName} shift.`;
 
   console.log({ sentDefMsg }, user?.id, isCurrentUserSender);
 
@@ -280,9 +280,9 @@ const RequestComponent = ({
 
           <View style={{ flex: 3, margin: 1, alignSelf: "center" }}>
             <Text>
-              {getDayName(localRequest.shift?.shifttStartHour)},{" "}
-              {normalizeShiftDate(localRequest.shift?.shifttStartHour)}{" "}
-              {normalizeShiftTime(localRequest.shift?.shifttStartHour)} -{" "}
+              {getDayName(localRequest.shift?.shiftStartHour)},{" "}
+              {normalizeShiftDate(localRequest.shift?.shiftStartHour)}{" "}
+              {normalizeShiftTime(localRequest.shift?.shiftStartHour)} -{" "}
               {normalizeShiftTime(localRequest.shift?.shiftEndHour)}
             </Text>
           </View>

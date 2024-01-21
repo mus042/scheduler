@@ -4,6 +4,7 @@ import {
   IsISO8601,
   IsNumber,
   IsObject,
+  IsOptional,
   IsString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -13,4 +14,16 @@ export class generateScheduleForDateDto {
   @Type(() => Date)
   @IsDate()
   scedualStart: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  scedualEnd?: Date;
+
+  @IsNumber()
+  facilityId: number;
+
+  @IsOptional()
+  @IsArray()
+  usersIdList?: any;
 }

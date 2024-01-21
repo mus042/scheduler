@@ -32,7 +32,7 @@ const FindReplacmentComp = ({ shift, handelFindReplace }) => {
         isAnswered: false,
         requsetMsg: "",
         shiftId: shift.id,
-        shiftStartTime:shift.shifttStartHour ,
+        shiftStartTime:shift.shiftStartHour ,
         requestAnswerMsg:null,
         shiftEndTime:shift.shiftEndHour,
         senderName: authState?.user?.firstName,

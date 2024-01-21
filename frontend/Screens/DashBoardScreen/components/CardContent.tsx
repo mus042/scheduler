@@ -71,7 +71,7 @@ const CardContent = ({name,shift,user,handelAskReplace})=>{
         {name},
       </Text>
       <Text variant="labelLarge" style={{ textAlign:"center",alignItems:'flex-end',alignSelf:'flex-end', }}>
-        {normalizeShiftTime(shift.shifttStartHour)} -{" "}
+        {normalizeShiftTime(shift.shiftStartHour)} -{" "}
         {normalizeShiftTime(shift.shiftEndHour)}
       </Text>
     </View>

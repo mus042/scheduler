@@ -9,11 +9,14 @@ import {
   IsString,
 } from 'class-validator';
 import { AuthDto } from './auth.dto';
+import { userProfileDto } from './userProfile.dto';
 
 export class orgAuth {
   @IsString()
   @IsNotEmpty()
   name: string;
+
+  userProfile: any;
 
   @IsOptional()
   @IsNumber()
@@ -23,14 +26,11 @@ export class orgAuth {
   @IsNumber()
   orgId?: number;
 
-//   @IsObject()
-//   user?: AuthDto
-@IsEmail()
-@IsNotEmpty()
-email: string;
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 
-@IsString()
-@IsNotEmpty()
-password: string;
-
+  @IsString()
+  @IsNotEmpty()
+  password: string;
 }

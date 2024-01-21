@@ -8,6 +8,5 @@ import { EventsGateway } from '../events/events.gateway';
   imports: [EventsModule],
   controllers: [UserRequestController],
   providers: [UserRequestService],
-  
 })
 export class UserRequestModule {}

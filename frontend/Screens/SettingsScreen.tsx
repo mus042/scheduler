@@ -46,12 +46,13 @@ export type shiftTemp = {
 };
 type schedualSettings = {
   id?: number;
-  organizationId: number | undefined;
+  facilityId: number | undefined;
   name?: string | undefined;
   description?: string | undefined;
   start: scedualeDate;
   end: scedualeDate;
   shiftsTemplate: shiftTemp[];
+  daysPerSchedule:number;
   restDay: { start: scedualeDate; end: scedualeDate };
 };
 type scheduleMold = {
@@ -122,7 +123,8 @@ const SettingsScreen = ({ setSettingsShow }) => {
     end: { day: { value: "6", label: "sunday" }, hours: 6, minutes: 0 },
   });
   const defScedSettings: schedualSettings = {
-    organizationId: organizationId,
+    facilityId: organizationId,
+    daysPerSchedule:daysPerSchedule,
     start: { day: { value: "0", label: "Sunday" }, hours: 6, minutes: 0 },
     end: { day: { value: "6", label: "SaturDay" }, hours: 6, minutes: 0 },
     shiftsTemplate: [
@@ -233,7 +235,8 @@ const SettingsScreen = ({ setSettingsShow }) => {
 
     console.log({ newShiftTemplate });
     const settings: schedualSettings = {
-      organizationId:organizationId,
+      facilityId:organizationId,
+      daysPerSchedule:daysPerSchedule,
       name:'deafult-settings',
       description:'',
       start: scheduleStartDay,

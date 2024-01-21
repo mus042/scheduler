@@ -37,13 +37,13 @@ export class WsJwtGuard implements CanActivate {
   static validateToken(client: Socket) {
     // const { authorization } = client.handshake.headers;
     // if(!authorization){
-      const authorization = client.handshake.auth ;
+    const authorization = client.handshake.auth;
     // }
-    console.log({authorization}, client.handshake)
+    console.log({ authorization }, client.handshake);
 
     const jwt: JwtService = new JwtService();
     // console.log('38', { authorization });
- 
+
     // const token: string = authorization.split(' ')[1];
     try {
       // console.log('line 39 ', { token });

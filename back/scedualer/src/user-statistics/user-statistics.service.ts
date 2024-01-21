@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { Prisma, shift, shiftType } from '@prisma/client';
+import { Prisma, ScheduleTime, ShiftMoldPayload, shift } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateStatsDto } from './UpdateStats.dto';
 import { UsershiftStats } from './userShiftStats.dto';
@@ -12,9 +12,10 @@ const restDayConf: {
 
 @Injectable()
 export class UserStatisticsService {
-  constructor(private prismaService: PrismaService,
-    private shiftService: ShiftService
-    ) {} // <-- Change 'primaService' to 'prismaService'
+  constructor(
+    private prismaService: PrismaService,
+    private shiftService: ShiftService,
+  ) {} // <-- Change 'primaService' to 'prismaService'
 
   async getAllStatisticsForUser(id: number) {
     try {
@@ -61,7 +62,7 @@ export class UserStatisticsService {
           },
         },
       });
-      console.log('result in user stats for sced',{result})
+      console.log('result in user stats for sced', { result });
       return result;
     } catch (error) {
       throw new ForbiddenException(error);
@@ -153,19 +154,19 @@ export class UserStatisticsService {
   //     //check if day is restDay
   //     const isRest = (shift) => {
   //       return (
-  //         (shift.shifttStartHour.getDay() === restDayConf.start.day &&
-  //           shift.shifttStartHour.getHours > 14 ) ||
-  //         (shift.shifttStartHour.getDay() === restDayConf.end.day &&
-  //           shift.shifttStartHour.getHours() < restDayConf.end.houre)
+  //         (shift.shiftStartHour.getDay() === restDayConf.start.day &&
+  //           shift.shiftStartHour.getHours > 14 ) ||
+  //         (shift.shiftStartHour.getDay() === restDayConf.end.day &&
+  //           shift.shiftStartHour.getHours() < restDayConf.end.houre)
   //       );
   //     };
   //     if (shiftType !== 'noonCanceled') {
   //       console.log(
   //         { shift },
   //         'shiftstats 114',
-  //         shift.shifttStartHour.getDay(),
+  //         shift.shiftStartHour.getDay(),
   //         restDayConf.start.day,
-  //         shift.shifttStartHour.getDay() === restDayConf.start.day &&
+  //         shift.shiftStartHour.getDay() === restDayConf.start.day &&
   //           shiftType !== 'morning',
   //       );
   //       if (isRest(shift)) {
@@ -189,7 +190,7 @@ export class UserStatisticsService {
   //         if (shiftType.name === 'morning') {
   //           step1 += 2;
   //           step2 += 2;
-  //         } 
+  //         }
   //         else if (shiftType.name === 'night') {
   //           step1 += 1;
   //           step2 += 3;
@@ -299,13 +300,11 @@ export class UserStatisticsService {
 
   //   return true; // Return true if succeeded
   // }
- 
 
-
-  
-    
-  
-  async createUsersStatsForScheduleShift(shifts: shift[]) {
+  async createUsersStatsForScheduleShift(
+    shifts: shift[],
+    restDays: ScheduleTime | undefined,
+  ) {
     //Create new stats for all users in schedule shifts.
     //return true if sucssed
     //get all users and create map
@@ -323,24 +322,27 @@ export class UserStatisticsService {
     > = new Map();
     //count shifts
     shifts.forEach(async (shift) => {
-      const userId = shift.userId; 
-      const shiftType  = this.shiftService.classifyShiftTypeForStats(shift.shifttStartHour,shift.shiftEndHour); 
+      const userId = shift.userId;
+      const shiftType = this.shiftService.classifyShiftTypeForStats(
+        shift.shiftStartHour,
+        shift.shiftEndHour,
+      );
       let step1: number = 0;
       let step2: number = 0;
       let restDay: number = 0;
       //check if day is restDay
-      const isRest = await this.shiftService.isShiftInRestDay(shift);
+      const isRest = await this.shiftService.isShiftInRestDay(shift, restDays);
 
-      if (shift.userId === undefined || shift.userId === null ) {
+      if (shift.userId === undefined || shift.userId === null) {
         console.log(
           { shift },
           'shiftstats 114',
-          shift.shifttStartHour.getDay(),
+          shift.shiftStartHour.getDay(),
           restDayConf.start.day,
-          shift.shifttStartHour.getDay() === restDayConf.start.day &&
+          shift.shiftStartHour.getDay() === restDayConf.start.day &&
             shiftType !== 'morning',
         );
-        if(isRest) {
+        if (isRest) {
           console.log('rest day');
           if (shiftType === 'night' || shiftType === 'morning') {
             console.log('night or morning');
@@ -361,8 +363,7 @@ export class UserStatisticsService {
           if (shiftType === 'morning') {
             step1 += 2;
             step2 += 2;
-          } 
-          else if (shiftType === 'night') {
+          } else if (shiftType === 'night') {
             step1 += 1;
             step2 += 3;
           }
@@ -385,7 +386,7 @@ export class UserStatisticsService {
           } else if (shiftType === 'night') {
             userStats.nightShifts++;
           }
-          userStats.overTimeStep1 +=step1;
+          userStats.overTimeStep1 += step1;
           userStats.overTimeStep2 += step2;
           userStats.restDayHours += restDay;
           userStats.scheduleId = shift.scheduleId;

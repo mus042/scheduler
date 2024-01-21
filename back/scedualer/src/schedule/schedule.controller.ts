@@ -21,7 +21,7 @@ import { GetUser } from '../Decorator';
 import { EditShiftDto } from 'src/shift/dto/editShift.dto';
 import { EditShiftByDateDto, bulkShiftsToEditDto } from '../shift/dto';
 import { Type } from 'class-transformer';
-import { Role, ScheduleMold, schedule, shift, typeOfUser, user } from '@prisma/client';
+import { Role, ScheduleMold, schedule, shift, user } from '@prisma/client';
 import { generateScheduleForDateDto } from './dto/GenerateScheduleForDate.Dto';
 
 import { UserService } from '../user/user.service';
@@ -33,13 +33,15 @@ import { Roles } from '../auth/roles/roles.decorator';
 export class SchedulerController {
   constructor(private ScheduleService: ScheduleService) {}
 
-
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
   @Post('setScheduleMold')
-  setScheduleMold(@Body() scheduleMold) {
-    console.log("mold",{scheduleMold});
-    return this.ScheduleService.setScheduleMold(scheduleMold);
+  setScheduleMold(
+    @Body() scheduleMold,
+    @GetUser('facilityId') facilityId: number,
+  ) {
+    console.log('mold', { scheduleMold });
+    return this.ScheduleService.setScheduleMold(scheduleMold, facilityId);
   }
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
@@ -48,12 +50,12 @@ export class SchedulerController {
     console.log(orgId);
     return this.ScheduleService.getSelctedScheduleMold(orgId);
   }
-  
+
   @Roles('user', 'admin')
   @HttpCode(HttpStatus.OK)
   @Get('getNextSchedule')
   getNextScheduleUser(@GetUser('id') userId: number) {
-    console.log("next schedule for user call",{userId})
+    console.log('next schedule for user call', { userId });
     return this.ScheduleService.getNextScheduleForUser(userId);
   }
 
@@ -89,7 +91,7 @@ export class SchedulerController {
     const schedDto: scheduleDto = {
       scedualStart: startDate,
       scedualEnd: endDate,
-      scedualDue:dto.scedualDue,
+      scedualDue: dto.scedualDue,
       userId: userId,
     };
     return this.ScheduleService.createSchedualeForUser(schedDto);
@@ -99,7 +101,7 @@ export class SchedulerController {
   @HttpCode(HttpStatus.OK)
   @Post('editeFuterSceduleForUser')
   editeFuterSceduleForUser(@Body() shiftsToEdit: bulkShiftsToEditDto) {
-    console.log('controler ',{shiftsToEdit})
+    console.log('controler ', { shiftsToEdit });
     const schedualId = shiftsToEdit.scheduleId;
     const shifts = shiftsToEdit.shiftsEdit;
 
@@ -110,16 +112,17 @@ export class SchedulerController {
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
   @Post('createSchedule')
-  createSchedule(@Body() scheduleDto: generateScheduleForDateDto) {
+  createSchedule(@Body() scheduleDto) {
     console.log({ scheduleDto });
-    return this.ScheduleService.createSchedule(scheduleDto);
+    return this.ScheduleService.createSystemSchedule(scheduleDto);
   }
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
   @Delete('deleteSchedule/:scheduleId')
-  deleteSchedule(@Param('scheduleId') scheduleId) { // Extract scheduleId from path
-    console.log("schedule id in controller", scheduleId,typeof scheduleId);
-    const idInt:number = parseInt(scheduleId, 10);
+  deleteSchedule(@Param('scheduleId') scheduleId) {
+    // Extract scheduleId from path
+    console.log('schedule id in controller', scheduleId, typeof scheduleId);
+    const idInt: number = parseInt(scheduleId, 10);
     return this.ScheduleService.deleteSchedule(idInt);
   }
   @Roles('admin', 'user')
@@ -129,8 +132,11 @@ export class SchedulerController {
     @Param('shiftId') shiftId: string,
     @Param('schedule') schedule: string,
   ) {
-    console.log("shift id controler",{shiftId});
-    return this.ScheduleService.findReplaceForShift(parseInt(shiftId),parseInt(schedule));
+    console.log('shift id controler', { shiftId });
+    return this.ScheduleService.findReplaceForShift(
+      parseInt(shiftId),
+      parseInt(schedule),
+    );
   }
 
   @Roles('admin')

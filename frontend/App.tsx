@@ -78,7 +78,7 @@ export type scheduleInfo = {
 
   scedualStart: Date | undefined;
   scedualEnd: Date | undefined;
-  sceduleType: "systemSchedule" | "userSchedule" | undefined;
+  scheduleType: "systemSchedule" | "userSchedule" | undefined;
 
   userId?: number | undefined;
 };
@@ -86,7 +86,7 @@ export type user = {
   id: number;
   createdAt: Date;
   updatedAt: Date;
-  userRole: "admin" | "user";
+  userServerRole: "admin" | "user";
   userLevel: number;
   typeOfUser: "new";
   email: string;
@@ -94,18 +94,18 @@ export type user = {
   firstName: string | null;
   lastName: string | null;
 };
+export type ShiftTimeName = 'morning' | 'noon' | 'noonCanceled' | 'night' | 'other';
 
 export type shift = {
   id: number;
   createdAt: Date;
   updatedAt: Date;
 
-  shiftDate: string;
-  shiftType: string;
+  shiftTimeName: ShiftTimeName;
   typeOfShift: "short" | "long";
-  shifttStartHour: string;
-  shiftEndHour: string;
-
+  shiftStartHour: string | Date;
+  shiftEndHour: string | Date;
+  shiftRoleUser: any,
   userId: number;
   userPreference: string | null;
   scheduleId: number | null;
@@ -188,7 +188,7 @@ function MyTabs() {
   const theme = useTheme();
   const user: user | null = authState?.user;
 
-  if (user?.userRole === "admin") {
+  if (user?.userServerRole === "admin") {
     return (
       <Tab.Navigator
         screenOptions={{
@@ -331,10 +331,10 @@ export function Layout() {
 
   useEffect(() => {
     // Check server settings only if the user is authenticated and is an admin
-    if (authState?.authenticated && authState.user?.userRole === "admin") {
+    if (authState?.authenticated && authState.user?.userServerRole === "admin") {
       checkServerSettings();
     }
-  }, [authState?.authenticated, authState?.user?.userRole]);
+  }, [authState?.authenticated, authState?.user?.userServerRole]);
 
   const SetScreen = () => {
     return (

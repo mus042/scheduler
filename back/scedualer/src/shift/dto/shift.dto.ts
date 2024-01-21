@@ -1,4 +1,12 @@
-import { shift, shiftType, typeOfShift, typeOfUser, user } from '@prisma/client';
+import {
+  UserPreference,
+  UserShiftRole,
+  scheduleType,
+  shift,
+  shiftTimeClassification,
+  typeOfShift,
+  user,
+} from '@prisma/client';
 import {
   IsEnum,
   IsNumber,
@@ -9,46 +17,40 @@ import {
   isNumber,
 } from 'class-validator';
 export class ShiftDto {
-  @IsString()
-  userPreference: string;
-
+  @IsOptional()
+  @IsNumber()
   id?: number;
+  @IsOptional()
   createdAt?: Date;
   updatedAt?: Date;
 
   @IsString()
-  shiftDate: Date;
-
-  @IsEnum(shiftType)
-  shiftType: shiftType;
-
+  shiftName?: string;
   @IsString()
-  shiftName?: string 
-  @IsString()
-  shifttStartHour: Date;
+  shiftStartHour: Date;
   @IsString()
   shiftEndHour: Date;
-
-  @IsOptional()
-  @IsEnum(typeOfUser)
-  typeOfUser?: typeOfUser;
 
   @IsOptional()
   @IsEnum(typeOfShift)
   typeOfShift?: typeOfShift;
 
-  @IsOptional()
-  @IsNumber()
-  scheduleId?: number;
+  @IsEnum(shiftTimeClassification)
+  shiftTimeName?: shiftTimeClassification;
 
   @IsOptional()
   @IsNumber()
   userId?: number | undefined;
   userRef?: user | null;
+  @IsString()
+  userPreference: string;
 
   @IsOptional()
-  
-  userNeededType?: string;
+  @IsNumber()
+  scheduleId?: number;
+  @IsEnum(scheduleType)
+  shiftType: scheduleType;
 
-  role?: string 
+  shiftRoles?: any[];
+  userPref?: UserPreference;
 }

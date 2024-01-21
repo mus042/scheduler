@@ -26,15 +26,17 @@ interface AuthProps {
   onRegister?: (
     email: string,
     password: string,
-    orgId: number,
-    firstName:string,
-    lastName:string,
+    faciityId: number,
+    userProfile:{firstName:string,
+    lastName:string,phoneNumber:string}
   
   ) => Promise<any>;
   onRegisterOrg?: (
     email: string,
     password: string,
-    facilityName: string
+    facilityName: string,
+    userProfile:{firstName:string,
+      lastName:string,phoneNumber:string}
   ) => Promise<any>;
   onLogin?: (email: string, password: string) => Promise<any>;
   onLogout?: () => Promise<any>;
@@ -61,9 +63,6 @@ export const AuthProvider = ({ children }: any) => {
     authenticated: boolean | null;
     user: object | null;
     socket?: Socket |null;
-    // receivedRequests:any[] ;
-    // sentRequest: any[] ;
-    // requestArchive: any | null ;
   }>({ token: null, authenticated: null, user: null, socket: null });
   const {updateInRequests} = useRequests();
   const {addSnackBarToQueue} = useSnackbarContext();
@@ -122,19 +121,17 @@ export const AuthProvider = ({ children }: any) => {
   const register = async (
     email: string,
     password: string,
-    orgId:number,
-    firstName:string,
-    lastName:string,
+    facilityId:number,
+    userProfile:{firstName:string,
+      lastName:string,phoneNumber:string}
    
   ) => {
     try {
       return await axios.post(`${API_URL}auth/signup`, {
         email,
         password,
-        orgId,
-        firstName,
-        lastName,
-    
+        facilityId,
+        userProfile,
       });
     } catch (error) {
       return { error: true, msg: (error as any).response.data.msg };
@@ -143,15 +140,23 @@ export const AuthProvider = ({ children }: any) => {
   const registerOrg = async (
     email: string,
     password: string,
-    facilityName: string
+    facilityName: string,
+    userProfile:{firstName:string,
+      lastName:string,phoneNumber:string}
   ) => {
     console.log("on register org");
     try {
-      const res = await axios.post(`${API_URL}auth/signupOrg`, {
-        email: email,
-        password: password,
-        name: facilityName,
-      });
+  const res = await axios.post(`${API_URL}auth/signupOrg`, {
+    email: email,
+    password: password,
+    name: facilityName,
+    userProfile: {
+      firstName: userProfile.firstName,
+      lastName: userProfile.lastName,
+      phoneNumber: userProfile.phoneNumber, // Assuming phoneNumber is a field in userProfile
+  },
+
+});
       console.log({ res });
       return res;
     } catch (error) {
@@ -162,6 +167,7 @@ export const AuthProvider = ({ children }: any) => {
   const getUser = async () => {
     console.log("get user ");
     const result = await axios.get(`${API_URL}users/me`);
+    console.log({result})
     return result.data;
   };
 
@@ -186,14 +192,6 @@ export const AuthProvider = ({ children }: any) => {
           cb({ token: result.data.acsess_token });
         },
       });
-
-      // socketInstance.on("newRequest", (request) => {
-      //   console.log("new Message", { request });
-      //   // store in context
-      //   // onNewRequest(request);
-      //   // console.log(authState.receivedRequests);
-      //   // show alert in request component
-      // });
 
       setauthState({
         token: result.data.acsess_token,

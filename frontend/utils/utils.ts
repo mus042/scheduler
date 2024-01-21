@@ -1,4 +1,4 @@
-import { scheduleData, shift } from "../App";
+import { scheduleData, shift, } from "../App";
 
 //Date utils
 export const normalizeScheduleDates = (
@@ -89,11 +89,7 @@ export const normalizeShiftDate = (data: Date | string | undefined) => {
   return "";
 };
 
-enum shiftType {
-  "morning",
-  "noon",
-  "night",
-}
+
 export const creatNewSchedule = (
   startingDate: Date,
   endDate: Date,
@@ -106,9 +102,7 @@ export const creatNewSchedule = (
 
   console.log({ daysForSchedule }, { startingDate }, { endDate });
   const shifts = [];
-  const startDate = new Date(startingDate);
-  // const timeZoneCorrection = startDate.getHours() + 3;
-  // startDate.setHours(timeZoneCorrection);
+
 
   for (let i = 0; i < daysForSchedule; i++) {
     // startDate.setDate(startDate.getDate());
@@ -118,19 +112,19 @@ export const creatNewSchedule = (
     // console.log({ startDate });
     for (let j = 0; j < shiftsADay; j++) {
       // console.log(shiftInterval * j, startDate.getHours());
-      const h = startDate.getHours() + shiftInterval;
+      const h = startingDate.getHours() + shiftInterval;
       // console.log({ h }, { j });
-      const endDate = new Date(startDate);
+      const endDate = new Date(startingDate);
       const tmpShiftType = j === 0 ? "Morning" : j === 1 ? "Noon" : "Night"; //the shift type
-      // console.log({j}, 'j', {shiftType});
+  
       endDate.setHours(h);
-      // console.log({ j }, { startDate }, { endDate });
+     
       // const endTime = new Date(startDate.setHours(startDate.getHours()+j));
       const dto = {
         shiftName: "",
-        shiftType: tmpShiftType,
+        ShiftTimeName: tmpShiftType,
         typeOfShift: "short",
-        shifttStartHour: new Date(startDate),
+        shiftStartHour: new Date(startDate),
         shiftEndHour: new Date(endDate),
         roles: [roles],
       };

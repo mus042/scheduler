@@ -6,12 +6,17 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { serverToClientEvents } from './types/events';
-import { PrismaClient, shift, user, userRequest } from '@prisma/client';
+import {
+  PrismaClient,
+  UserProfile,
+  shift,
+  user,
+  userRequest,
+} from '@prisma/client';
 import { Injectable, Logger, OnModuleInit, UseGuards } from '@nestjs/common';
 
 import { WsJwtGuard } from '../auth/ws-jwt/ws-jwt.guard';
 import { RequestDto } from '../user-request/dto/request.dto';
-
 
 @Injectable()
 @WebSocketGateway({
@@ -28,7 +33,6 @@ export class EventsGateway implements OnModuleInit {
   @WebSocketServer()
   server: Server<any, serverToClientEvents>;
   onModuleInit() {
-    
     this.server.on('connection', async (Socket) => {
       console.log('conected', Socket.id);
       console.log('client', { Socket });
@@ -44,7 +48,7 @@ export class EventsGateway implements OnModuleInit {
           const allPendingReq: userRequest[] =
             await this.prismaService.userRequest.findMany({
               where: {
-                destionationUserId: userId,
+                destinationUserId: userId,
                 status: 'pending',
               },
             });
@@ -53,26 +57,29 @@ export class EventsGateway implements OnModuleInit {
           for (const req of allPendingReq) {
             //get user and shift details
             try {
-              const user: user = await this.prismaService.user.findUnique({
+              const user: UserProfile =
+                await this.prismaService.userProfile.findUnique({
+                  where: {
+                    userId: req.senderId,
+                  },
+                });
+
+              const shift: shift = await this.prismaService.shift.findUnique({
                 where: {
-                  id: req.senderId,
+                  id: req.shiftId,
                 },
               });
-              const shift:shift = await this.prismaService.shift.findUnique({where:{
-                id:req.shiftId,
-              }});
-              const request:RequestDto = {
+              const request: RequestDto = {
                 ...req,
-                senderName:user.firstName,
-                senderLastName:user.lastName,
-                shiftStartTime:shift.shifttStartHour,
-                shiftEndTime:shift.shiftEndHour,
-              }     
+                senderName: user.firstName,
+                senderLastName: user.lastName,
+                shiftStartTime: shift.shiftStartHour,
+                shiftEndTime: shift.shiftEndHour,
+              };
               this.sendRequest(request);
             } catch (error) {
               console.log({ error });
             }
-       
           }
         }
       }
@@ -99,10 +106,10 @@ export class EventsGateway implements OnModuleInit {
   }
 
   sendRequest(request: RequestDto | userRequest) {
-    const destinationId = request.destionationUserId;
-    console.log("Send req destenationid : gateWay.101",{destinationId})
+    const destinationId = request.destinationUserId;
+    console.log('Send req destenationid : gateWay.101', { destinationId });
     const destinationSocket = this.userSocketMap[destinationId];
-    console.log("sending msg")
+    console.log('sending msg');
     if (destinationSocket) {
       //Case user is conected socket emit new request
       destinationSocket.emit('newRequest', request);

@@ -55,7 +55,7 @@ const DayViewComp = ({
       // console.log("useEffect Dayview : ", localShifts[0].userRef);
       // console.log(morning,noon,night,nightUser);
 
-      const shiftDate: Date = new Date(localShifts[0]?.shifttStartHour);
+      const shiftDate: Date = new Date(localShifts[0]?.shiftStartHour);
       const options = { weekday: "long" };
       setDayName(shiftDate.toLocaleString("en-us", options));
     }
@@ -112,7 +112,7 @@ const DayViewComp = ({
         isAnswered: false,
         requsetMsg: "",
         shiftId: shift.id,
-        shiftStartTime:shift.shifttStartHour ,
+        shiftStartTime:shift.shiftStartHour ,
         shiftEndTime:shift.shiftEndHour,
         senderName: authState?.user?.firstName,
         senderLastName: authState?.user?.lastName,

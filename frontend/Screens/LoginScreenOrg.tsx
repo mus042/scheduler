@@ -38,8 +38,8 @@ const LoginScreenOrg = () => {
     userEmail,
     facilityName,
     userPassword,
-    firstName,
-    lastName,
+      firstName,
+      lastName,
     reUserPassword,
   ]);
 
@@ -64,7 +64,13 @@ const LoginScreenOrg = () => {
     return isEmailValid;
   };
   const register = async () => {
-    const result = await onRegisterOrg!(userEmail, userPassword, facilityName);
+    const userProfile = {
+      firstName:firstName,
+      lastName: lastName,
+      phoneNumber:phoneNumber,
+    }
+    const result = await onRegisterOrg!(userEmail, userPassword, facilityName,userProfile);
+    
     if (result && result.error) {
       alert(result.msg);
     } else {

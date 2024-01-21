@@ -38,8 +38,8 @@ const WeeklyView = ({
 
   function compareShifts(a, b) {
 
-    const startHourA = new Date(a.shifttStartHour);
-    const startHourB = new Date(b.shifttStartHour);
+    const startHourA = new Date(a.shiftStartHour);
+    const startHourB = new Date(b.shiftStartHour);
     // startHourA.setHours(startHourA.getUTCHours());
     // startHourB.setHours(startHourB.getUTCHours());
     console.log({a},{b},{startHourA},{startHourB})
@@ -63,25 +63,26 @@ const WeeklyView = ({
       console.log({ shiftsData });
 
       for (let i = 0; i < shiftsData.length; i += 1) {
-        // const utcDate = new Date(shiftsData[i].shifttStartHour);
-        const dateOfShift:string = shiftsData[i].shifttStartHour.slice(0,10);
+        // const utcDate = new Date(shiftsData[i].shiftStartHour);
+        const dateOfShift:string = shiftsData[i].shiftStartHour?.slice(0,10);
         // console.log({ utcDate },{dateOfShift},{i});
-    
+        console.log(shiftsData[i])
+        console.log(shiftsData[i].shiftStartHour);
         const dayShifts: shift[] = [];
-        let dateToCheck =shiftsData[i].shifttStartHour.slice(0,10);//set the date from string
+        let dateToCheck =shiftsData[i].shiftStartHour?.slice(0,10);//set the date from string
         while (dateToCheck === dateOfShift && i < shiftsData.length) {
         
           dayShifts.push({ ...shiftsData[i] });
           i += 1;
           // console.log('while loop ',{i},dateToCheck === dateOfShift, dateToCheck,utcDate.getDay())
           if(i<shiftsData.length-1){
-            dateToCheck = shiftsData[i].shifttStartHour.slice(0,10);
             console.log({dateToCheck},dateToCheck);
+            dateToCheck = shiftsData[i].shiftStartHour?.slice(0,10);
           // if(dateToCheck.getUTCHours() === 1){   
           //   dateToCheck = new Date (dateToCheck.getTime() -1 );
           //   dateToCheck.setHours(dateToCheck.getHours()); 
           // }
-          // console.log(dateToChek,shiftsData[i].shifttStartHour);
+          // console.log(dateToChek,shiftsData[i].shiftStartHour);
           
         }
       }
@@ -116,7 +117,7 @@ const WeeklyView = ({
             shifts={shifts}
             isEdit={true}
             update={hadelUpdate}
-            viewType={scheduleInfo?.sceduleType}
+            viewType={scheduleInfo?.scheduleType}
           />
           
         )}

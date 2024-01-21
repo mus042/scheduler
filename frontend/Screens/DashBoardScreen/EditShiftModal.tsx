@@ -41,9 +41,9 @@ const localShift = shift.item? {...shift.item}:{...shift};
           <View style={styles.modalView}>
             <Text style={styles.modalText}> shift Day</Text>
 
-            <Text style={styles.text}>{localShift.shifttStartHour}</Text>
+            <Text style={styles.text}>{localShift.shiftStartHour}</Text>
 
-            <Text style={styles.text}>{localShift.shiftType}</Text>
+            <Text style={styles.text}>{localShift.ShiftTimeName}</Text>
 
             <Text style={styles.text}>{localShift.shiftEndHour}</Text>
 

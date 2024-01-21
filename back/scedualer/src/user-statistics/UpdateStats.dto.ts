@@ -7,7 +7,7 @@ export class UpdateStatsDto {
   morningShifts?: number;
   noonShift?: number;
   nightShifts?: number;
-  overTimerStep1?:number;
-  overTimeStep2?:number;
-  restDayHours?:number;
+  overTimerStep1?: number;
+  overTimeStep2?: number;
+  restDayHours?: number;
 }

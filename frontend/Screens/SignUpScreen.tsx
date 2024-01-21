@@ -47,12 +47,18 @@ const SignupScreen = ({ navigation }) => {
       alert(result.msg);
     }
   };
+  
   const register = async () => {
     console.log("on Register", { facilityId });
+    const userProfile = {
+      firstName:firstName,
+      lastName: lastName,
+      phoneNumber:phoneNumber,
+    }
     if (facilityId) {
       console.log({ facilityId });
-      const pnumber = Number(phoneNumber) 
-      const result = await onRegister!(userEmail, userPassword, facilityId,firstName,lastName,);
+      
+      const result = await onRegister!(userEmail, userPassword, facilityId,userProfile);
       console.log({ result });
       if (result && result.error) {
         alert(result.msg);

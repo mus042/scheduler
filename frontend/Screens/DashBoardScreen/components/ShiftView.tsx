@@ -81,7 +81,7 @@ const ShiftView = ({
       <Card mode="elevated" style={{ width: 240, margin: 5 }}>
         <Card.Title
           title={dayName}
-          subtitle={normalizeShiftDate(shifts[0].shifttStartHour)}
+          subtitle={normalizeShiftDate(shifts[0].shiftStartHour)}
           titleVariant="titleLarge"
           subtitleVariant="titleMedium"
           right={LeftContent}

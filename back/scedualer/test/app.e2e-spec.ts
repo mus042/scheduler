@@ -115,7 +115,7 @@
 //           userPreference: '0',
 //           shiftDate :startTime,
 //           shiftType :2,
-//           shifttStartHour :startTime,
+//           shiftStartHour :startTime,
 //           shiftEndHour:endTime,
 //         };
 //         return pactom.spec().post('/shifts/createShift/').withBody(dto).withHeaders({Authorization: 'Bearer $S{userAt}',
@@ -129,7 +129,7 @@
 //           userPreference: '0',
 //           shiftDate :startTime,
 //           shiftType :2,
-//           shifttStartHour :startTime,
+//           shiftStartHour :startTime,
 //           shiftEndHour:endTime,
           
 //         };

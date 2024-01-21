@@ -17,7 +17,7 @@ export class RequestDto {
   @IsEnum(requestStatus)
   @IsOptional()
   status?: requestStatus;
-  
+
   @IsNumber()
   senderId: number;
   @IsOptional()
@@ -27,7 +27,7 @@ export class RequestDto {
   @IsOptional()
   senderLastName?: string;
   @IsNumber()
-  destionationUserId: number;
+  destinationUserId: number;
 
   @IsBoolean()
   isAnswered: boolean;

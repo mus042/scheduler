@@ -21,10 +21,10 @@ const EditShiftAdmin = ({
       id: shiftToCahnge.id,
       createdAt: new Date(shiftToCahnge.createdAt),
       updatedAt: new Date(shiftToCahnge.createdAt),
-      shiftDate: new Date(shiftToCahnge.shiftDate),
-      shiftType: shiftToCahnge.shiftType,
+   
+      shiftTimeName: shiftToCahnge.shiftTimeName,
       typeOfShift: shiftToCahnge.typeOfShift,
-      shifttStartHour: new Date(shiftToCahnge.shifttStartHour),
+      shiftStartHour: new Date(shiftToCahnge.shiftStartHour),
       shiftEndHour: new Date(shiftToEdit.shiftEndHour),
       userId: shiftToCahnge.userId,
       userPreference: shiftToCahnge.userPreference,
@@ -47,7 +47,7 @@ const EditShiftAdmin = ({
       if (shiftToEdit) {
         setShift(convertToShift(shiftToEdit));
         console.log(shift);
-        console.log("shift: ,", shiftToEdit, typeof shift?.shifttStartHour);
+        console.log("shift: ,", shiftToEdit, typeof shift?.shiftStartHour);
        
       }
     };
@@ -56,11 +56,11 @@ const EditShiftAdmin = ({
 
   useEffect(() => {
     if (shift) {
-      const dayName = shift.shifttStartHour.toLocaleString(
+      const dayName = shift.shiftStartHour.toLocaleString(
         "en-us",
         options
       );
-      const startHourtmp = shift.shifttStartHour.toLocaleString(
+      const startHourtmp = shift.shiftStartHour.toLocaleString(
         "en-US",
         hourOptions
       );
@@ -99,7 +99,7 @@ const EditShiftAdmin = ({
             <View style={styles.modalView}>
               <Text style={styles.modalText}>
                 {" "}
-                {day} , {shift?.shifttStartHour.toLocaleDateString("en-us",hourOptions)} - {shift?.shiftEndHour.toLocaleDateString("en-us",hourOptions)}
+                {day} , {shift?.shiftStartHour.toLocaleDateString("en-us",hourOptions)} - {shift?.shiftEndHour.toLocaleDateString("en-us",hourOptions)}
               </Text>
               <Text>Edit Shift time </Text>
               <Text>Assigned: {user?.firstName}</Text>

@@ -1,9 +1,11 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "darwin"]
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  // output   = "../ERD.pdf"
 }
 
 datasource db {
@@ -16,7 +18,7 @@ enum typeOfShift {
   long
 }
 
-enum shiftType {
+enum shiftTimeClassification {
   morning
   noon
   noonCanceled
@@ -24,20 +26,12 @@ enum shiftType {
   other
 }
 
-enum typeOfUser {
-  headOfLocation
-  headOfShift
-  veteren
-  mid
-  new
-}
-
-enum Role {
+enum serverRole {
   admin
   user
 }
 
-enum shcheduleType {
+enum scheduleType {
   userSchedule
   systemSchedule
 }
@@ -45,52 +39,48 @@ enum shcheduleType {
 enum requestStatus {
   pending
   sent
-  recived
+  received
   seen
   replied
   approved
 }
 
 model shift {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-  shiftName String
-
-  shiftDate DateTime?
-
-  shiftType       shiftType
-  typeOfShift     typeOfShift? //short or long =  8 /12 
-  shifttStartHour DateTime?
-  shiftEndHour    DateTime?
-
-  role           String
+  id             Int             @id @default(autoincrement())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now())
+  
+  shiftName      String
+  typeOfShift    typeOfShift?
+  shiftTimeName shiftTimeClassification?
+  shiftStartHour DateTime?
+  shiftEndHour   DateTime?
+  
+  
   userId         Int?
-  userRef        user?   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userRef        user?           @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userPreference String?
-
-  scheduleId   Int?
-  schedule     schedule?     @relation(fields: [scheduleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  userRequests userRequest[]
+  scheduleId     Int?
+  shiftType      scheduleType
+  schedule       schedule?       @relation(fields: [scheduleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userRequests   userRequest[]
+  shiftRoles     UserShiftRole[]
 
   @@map("shift")
 }
 
 model schedule {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
-  scedualStart DateTime
-  scedualEnd   DateTime
-  sceduleType  shcheduleType
-  scedhuleDue  DateTime?
-
+  id                  Int                  @id @default(autoincrement())
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @default(now())
+  scheduleStart       DateTime
+  scheduleEnd         DateTime
+  scheduleType        scheduleType
+  scheduleDue         DateTime?
   userId              Int?
   shiftUserStatistics ShiftUserStatistic[]
   user                user?                @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-
-  shifts shift[]
+  shifts              shift[]
 
   @@map("schedule")
 }
@@ -99,26 +89,36 @@ model user {
   id                   Int                  @id @default(autoincrement())
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @default(now())
-  userRole             Role                 @default(user)
-  userLevel            Int?                 @default(1)
-  typeOfUser           typeOfUser           @default(new)
   email                String               @unique
   hash                 String
-  firstName            String?
-  lastName             String?
-  shiftUserStatistics  ShiftUserStatistic[]
+  userServerRole       serverRole           @default(user)
+  userLevel            Int?                 @default(1)
+  userProfile          UserProfile?
+  roleId               Int?
+  role                 Role?                @relation("UserRole", fields: [roleId], references: [id])
   shifts               shift[]
-  schedual             schedule[]
+  schedules            schedule[]
   userSentRequests     userRequest[]        @relation("SentRequests")
   userAcceptedRequests userRequest[]        @relation("AcceptedRequests")
-  facility             String?
-  orgId                Int?
-  organization         Organization?        @relation(fields: [orgId], references: [id])
+  facilityId           Int?
+  facility             Facility?            @relation(fields: [facilityId], references: [id])
+  assignedShiftRoles   UserShiftRole[]
+  shiftStatistics      ShiftUserStatistic[]
 
   @@map("users")
 }
 
-model Organization {
+model UserProfile {
+  id        Int     @id @default(autoincrement())
+  firstName String?
+  lastName  String?
+  phoneNumber String?
+  
+  user      user    @relation(fields: [userId], references: [id])
+  userId    Int     @unique
+}
+
+model Facility {
   id           Int            @id @default(autoincrement())
   name         String         @unique
   users        user[]
@@ -126,26 +126,24 @@ model Organization {
 }
 
 model userRequest {
-  id                 Int           @id @default(autoincrement())
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @default(now())
-  senderId           Int
-  senderUserRef      user?         @relation(name: "SentRequests", fields: [senderId], references: [id])
-  destionationUserId Int
-  acceptingUserRef   user?         @relation(name: "AcceptedRequests", fields: [destionationUserId], references: [id])
-  status             requestStatus @default(pending)
-  isAnswered         Boolean       @default(false)
-  requestAnswer      String?
-  requestAnswerMsg   String?
-  requestAnswerSeen  Boolean?
-  requsetMsg         String?
+  id                Int           @id @default(autoincrement())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @default(now())
+  senderId          Int
+  senderUserRef     user?         @relation(name: "SentRequests", fields: [senderId], references: [id])
+  destinationUserId Int
+  acceptingUserRef  user?         @relation(name: "AcceptedRequests", fields: [destinationUserId], references: [id])
+  status            requestStatus @default(pending)
+  isAnswered        Boolean       @default(false)
+  requestAnswer     String?
+  requestAnswerMsg  String?
+  requestAnswerSeen Boolean?
+  requestMsg        String?
+  isApproved        Boolean       @default(false)
+  shiftId           Int
+  shift             shift?        @relation(fields: [shiftId], references: [id], onDelete: Cascade)
 
-  isAprroved Boolean @default(false)
-
-  shiftId Int
-  shift   shift? @relation(fields: [shiftId], references: [id], onDelete: Cascade)
-
-  @@unique([senderId, destionationUserId, shiftId])
+  @@unique([senderId, destinationUserId, shiftId])
 }
 
 model ShiftUserStatistic {
@@ -167,52 +165,86 @@ model ShiftUserStatistic {
 }
 
 model ScheduleMold {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  id              Int             @id @default(autoincrement())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now())
+  name            String          @default("Default Settings")
+  description     String?
+  daysPerSchedule Int
+  selected        Boolean         @unique
+  facilityId      Int
+  facility        Facility        @relation(fields: [facilityId], references: [id])
+  shiftsTemplate  ShiftMold[]
+  scheduleTime    ScheduleTime?   @relation("ScheduleTimeRelation", fields: [scheduleTimeId], references: [id])
+  scheduleTimeId  Int?            @unique
+  restDays        ScheduleTime?   @relation("RestDays", fields: [restDaysId], references: [id])
+  restDaysId      Int?            @unique
+  // requiredRoles   RoleShiftMold[]
+}
 
-  name             String  @default("deafult Settings")
-  description      String?
-  startDay         Int // Day of the week as an integer (0 = Sunday, 1 = Monday, etc.)
-  startHour        String // Time as a string, e.g., "14:00"
-  endDay           Int
-  endHour          String
-  daysPerSchedule  Int
-  selected         Boolean @unique
-  restDayStartDay  Int
-  restDayStartHour String
-  restDayEndDay    Int
-  restDayEndHour   String
+model ScheduleTime {
+  id        Int    @id @default(autoincrement())
+  name      String?
+  startDay  Int
+  startHour Int 
+  startMinutes Int
+  endMinutes Int
+  endDay    Int
+  endHour   Int
 
-  organizationId Int
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  shiftsTemplate ShiftMold[]
+  scheduleMoldForScheduleTime ScheduleMold? @relation("ScheduleTimeRelation")
+  scheduleMoldForRestDays     ScheduleMold? @relation("RestDays")
 }
 
 model ShiftMold {
-  id         Int              @id @default(autoincrement())
-  name       String
-  startHour  String
-  endHour    String
-  day        Int
-  schedule   ScheduleMold     @relation(fields: [scheduleId], references: [id])
-  scheduleId Int
-  userPrefs  UserPreference[]
+  id            Int              @id @default(autoincrement())
+  name          String
+  startHour     String
+  endHour       String
+  day           Int
+  schedule      ScheduleMold     @relation(fields: [scheduleId], references: [id])
+  scheduleId    Int
+  userPrefs     UserPreference[]
+  RoleShiftMold RoleShiftMold[]
+}
+
+model RoleShiftMold {
+  shiftMoldId    Int
+  roleId         Int
+  shiftMold      ShiftMold     @relation(fields: [shiftMoldId], references: [id])
+  role           Role          @relation(fields: [roleId], references: [id])
+  // ScheduleMold   ScheduleMold? @relation(fields: [scheduleMoldId], references: [id])
+  scheduleMoldId Int?
+
+  @@id([shiftMoldId, roleId])
+}
+
+model UserShiftRole {
+  shiftId Int
+  roleId  Int
+  userId  Int
+  shift   shift @relation(fields: [shiftId], references: [id])
+  role    Role  @relation(fields: [roleId], references: [id])
+  user    user  @relation(fields: [userId], references: [id])
+
+  @@id([shiftId, roleId, userId])
+}
+
+model Role {
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  description     String?
+  shiftMolds      RoleShiftMold[]
+  userShiftRoles  UserShiftRole[]
+  users           user[]           @relation("UserRole")
+  userPreferences UserPreference[]
 }
 
 model UserPreference {
   id          Int       @id @default(autoincrement())
   shiftMoldId Int
   shiftMold   ShiftMold @relation(fields: [shiftMoldId], references: [id])
-  rankId      Int // Reference to the Rank model
-  rank        Rank      @relation(fields: [rankId], references: [id])
+  roleId      Int
+  role        Role      @relation(fields: [roleId], references: [id])
   userCount   Int
-}
-
-model Rank {
-  id              Int              @id @default(autoincrement())
-  name            String           @unique
-  userPreferences UserPreference[]
-  // Add other fields related to ranks
-  // For example, description, privileges, etc.
 }

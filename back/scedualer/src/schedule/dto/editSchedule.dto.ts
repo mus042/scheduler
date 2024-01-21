@@ -1,15 +1,17 @@
-import { IsArray, IsDate, IsISO8601, IsNumber, IsString } from "class-validator"
+import {
+  IsArray,
+  IsDate,
+  IsISO8601,
+  IsNumber,
+  IsString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
-import { shift } from "@prisma/client";
+import { shift } from '@prisma/client';
 
-export class scheduleDto{
+export class scheduleDto {
+  @IsNumber()
+  scheduleId: number;
 
-    @IsNumber()
-    scheduleId :number
-
-    @IsArray()
-    
-    shiftsToUpdate: shift[] 
-
-    
+  @IsArray()
+  shiftsToUpdate: shift[];
 }

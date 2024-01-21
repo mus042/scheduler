@@ -195,7 +195,7 @@ const UserNextScheduleComp = ({
   
   </View>
 </View>
-              {nextSchedule?.data?.sceduleType === "userSchedule"
+              {nextSchedule?.data?.scheduleType === "userSchedule"
               &&(
                 <View
                   style={{ flex: 1, justifyContent: "center" ,flexDirection:'row' ,alignSelf:'center', margin:1}}

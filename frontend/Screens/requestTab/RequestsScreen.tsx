@@ -131,7 +131,7 @@ useEffect(()=>{
             let tmpDate:Date = new Date(numbers[2],numbers[0],numbers[1]);
             console.log({tmpDate});
             //try set day/month/year
-            if(tmpDate && tmpDate.getTime() === request.shift?.shifttStartHour.getTime()){
+            if(tmpDate && tmpDate.getTime() === request.shift?.shiftStartHour.getTime()){
               dateMatch.push({...request});
             }
             else{
@@ -156,7 +156,7 @@ useEffect(()=>{
               addFlag = true;
             }
             let tmpDate = new Date();
-            const tmpReq =request?.shift?.shifttStartHour && new Date(request.shift.shifttStartHour)
+            const tmpReq =request?.shift?.shiftStartHour && new Date(request.shift.shiftStartHour)
             console.log({tmpDate},{tmpReq})
             if( tmpDate && tmpReq){
               tmpDate.setDate(num);//try day of this month

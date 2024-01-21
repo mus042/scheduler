@@ -58,10 +58,10 @@ if(!localShift.id){
   return (
     <View style={styles.centeredView}>
         <View style={styles.modalView}>
-          <Text style={mainStyle.h3}>{getDayName(localShift.shifttStartHour)}, {localShift.shiftType} </Text>
-      <Text style={mainStyle.h4}> {normalizeShiftDate(localShift.shifttStartHour)}</Text>
+          <Text style={mainStyle.h3}>{getDayName(localShift.shiftStartHour)}, {localShift.shiftTimeName} </Text>
+      <Text style={mainStyle.h4}> {normalizeShiftDate(localShift.shiftStartHour)}</Text>
         <Text style={mainStyle.h5}>{localShift.typeOfShift}</Text>
-        <Text style={mainStyle.h5}>{normalizeShiftTime(localShift.shifttStartHour)} - {normalizeShiftTime(localShift.shiftEndHour)}</Text>
+        <Text style={mainStyle.h5}>{normalizeShiftTime(localShift.shiftStartHour)} - {normalizeShiftTime(localShift.shiftEndHour)}</Text>
       {isEdit &&  <Pressable onPress={editShift}>
             <View>
   <Text>Edit</Text>
