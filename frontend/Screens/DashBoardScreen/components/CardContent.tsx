@@ -13,45 +13,50 @@ const CardContent = ({name,shift,user,handelAskReplace})=>{
 
     //To Add shift roles map 
     const AssigndComp = ()=>{
-
+console.log(shift.shiftRoles)
         return(
+         <View>
+           {shift.shiftRoles && shift.shiftRoles.map((shiftRole,index)=> (
+            <View key={index}>
             <View>
-            <View>
-            <Text variant="labelLarge">
-              Assiged: {shift.userRef?.lastName}{", "}
-              {shift.userRef?.firstName}
-            </Text>
-          </View>
-          {(user?.id === shift?.userId ||
-            user?.userRole === "admin") && (
-            <View style={{flexDirection:'row',minHeight:10,maxHeight:20}}>
-              <Button
-                compact={true}
-                labelStyle={{margin:1,paddingRight:4}}
-                onPress={() => setfindReplaceVisible(!findReplaceVisible)}
-                icon="find-replace" mode="outlined"
-              >
-               find replacment 
-              </Button>
-              {findReplaceVisible && (
-                <FindReplacmentComp
-                  shift={shift}
-                  handelFindReplace={handelAskReplace}
-                />
-              )}
-              {
-              user?.userRole === "admin" && (
-                  <IconButton icon="circle-edit-outline"
-                  iconColor={MD3Colors.error50}
-                  size={20}
-                  style={{margin:0,padding:0,alignSelf:'center',}}
-  
-                  onPress={() => console.log('Pressed')} />
-              )
-              }
-              
+          
+              <Text variant="labelLarge">
+                {shiftRole.role.name} Assiged: {shiftRole.user?.userProfile?.lastName}{", "}
+                {shiftRole.user?.userProfile?.firstName}
+              </Text>
             </View>
-          )}
+            {(user?.id === shift?.userId ||
+              user?.userRole === "admin") && (
+              <View style={{flexDirection:'row',minHeight:10,maxHeight:20}}>
+                <Button
+                  compact={true}
+                  labelStyle={{margin:1,paddingRight:4}}
+                  onPress={() => setfindReplaceVisible(!findReplaceVisible)}
+                  icon="find-replace" mode="outlined"
+                >
+                 find replacment 
+                </Button>
+                {findReplaceVisible && (
+                  <FindReplacmentComp
+                    shift={shift}
+                    handelFindReplace={handelAskReplace}
+                  />
+                )}
+                {
+                user?.userRole === "admin" && (
+                    <IconButton icon="circle-edit-outline"
+                    iconColor={MD3Colors.error50}
+                    size={20}
+                    style={{margin:0,padding:0,alignSelf:'center',}}
+    
+                    onPress={() => console.log('Pressed')} />
+                )
+                }
+                
+              </View>
+            )}
+            </View>
+           ))}
           
         </View>
         )

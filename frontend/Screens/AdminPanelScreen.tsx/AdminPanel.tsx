@@ -16,6 +16,8 @@ import UserCurrentSchedule from "../DashBoardScreen/components/UserCurrentSchedu
 import { shift, scheduleData } from "../../App";
 import SystemNextSchedule from "./SystemNextSchedule";
 import { mainStyle } from "../../utils/mainStyles";
+import UserItem from "./UserItem";
+import UsersPanel from "./UsersPanel";
 
 const AdminPanel = () => {
   // TODO
@@ -27,14 +29,37 @@ const AdminPanel = () => {
   //edit shift -  as admin
   //edit schedule -
 
-  const [allUsers, setAllUsers] = useState();
+  const [allUsers, setAllUsers] = useState<any[]>();
   const [currentSchedule, setCurrentSchedule] = useState<scheduleData>();
   const [nextSystemSchedule, setNextSystemSchedul] = useState<scheduleData>();
   const [emptyShifts , setEmptyShifts] = useState<shift[]>();
   const [createdSched, setcreatedSched] = useState();
- 
+  const [userToEdit,setUserToEdit] = useState();
+  const [rolesArr,setRolesArr] = useState();
+  const [massegeBoardMsgs,setMassegeBoardMsgs] = useState();//ToAdd
+  
   useEffect(() => {
-    const allUsers = async () => await getAllUsers();
+    //get the roles and set state 
+    const setAllRoles = async()=>{
+      try {
+        const tmpRolesArr = await axios.get(`${API_URL}roles/allRoles`)
+        if(tmpRolesArr.data){
+          console.log({tmpRolesArr})
+         setRolesArr(tmpRolesArr.data);
+        }
+        } catch (error) {
+        console.log("error at all roles ",{error})
+      }
+
+    }
+    setAllRoles();
+    
+  }, [])
+  
+
+
+  useEffect(() => {
+    
     const getCurrentSched = async () => {
       const sched = await axios.get(`${API_URL}schedule/getCurrentSchedule `);
       const scheduleData: scheduleData = { ...sched.data };
@@ -44,7 +69,12 @@ const AdminPanel = () => {
     };
     getCurrentSched();
   }, []);
+  useEffect(() => {
+    // const allUsers = async () => await getAllUsers();
+    getAllUsers()
 
+  }, [])
+  
   useEffect(() => {
     const getNextSystemSched = async () => {
       const sched = await axios.get(
@@ -88,19 +118,11 @@ console.log(tmpSched);
     };
 
     return (
-      <>
+      < View style={{flex:1}}>
         <Pressable style={styles.button} onPress={handelPress}>
           <Text>Create new Schedule for next week</Text>
         </Pressable>
-        <View>
-          {createdSched && (
-            <FlatList
-              data={createdSched}
-              renderItem={(item) => <Text>{item.id}</Text>}
-            />
-          )}
-        </View>
-      </>
+      </View>
     );
   };
   const createNewSysSchedule = async (startDate: Date) => {
@@ -115,44 +137,24 @@ console.log(tmpSched);
     }
   };
 
-  const addUser = async (email, password, firstName, lastName) => {
-    console.log({ email, password, firstName, lastName });
+  const addUser = async (email, password, firstName, lastName ,roleId,userId) => {
+    console.log({ email, password, firstName, lastName,userId });
     try {
-      return await axios.post(`${API_URL}auth/addUserAsAdmin`, {
-        email,
+      return await axios.post(`${API_URL}users/editUserAsAdmin`, {
+       userId,
+       email,
         password,
-        firstName,
-        lastName,
+        roleId:roleId,
+        userProfile:{firstName,
+        lastName,},
+        
       });
     } catch (error) {
       return { error: true, msg: (error as any).response.data.msg };
     }
   };
 
-  const editUser = async (
-    email: string,
-    userId: number,
-    firstName: string,
-    lastName: string
-  ) => {
-    //To change backend object dto
-    try {
-      console.log({ userId }, email, firstName);
-      const dto = {
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-      };
 
-      console.log({ dto });
-      return await axios.post(`${API_URL}users/editUserAsAdmin/`, {
-        userId: userId,
-        dto: dto,
-      });
-    } catch (error) {
-      return { error: true, msg: (error as any).response.data.msg };
-    }
-  };
 
   const getAllUsers = async () => {
     try {
@@ -166,11 +168,6 @@ console.log(tmpSched);
     }
   };
 
-  const editUserComponent = (userToEdit: user) => {
-    //get user to edit ,
-
-    return <>userDetailsComp(userToEdit,editUser,true);</>;
-  };
   function newScheduleComp() {
     const [nextSchedule, setNextSchedule] = useState();
 
@@ -219,129 +216,46 @@ console.log(tmpSched);
   }
   function usersSchedulesComp() {}
 
-  function userDetailsComp(user, onSubmit, isEdit) {
-    const [email, setEmail] = useState(user?.email ? user.email : "");
-    const [password, setPassword] = useState(!isEdit && "");
-    const [name, setName] = useState(
-      user ? (user.firstName !== null ? user.firstName : "") : ""
-    );
-    const [lastName, setLastName] = useState(
-      user ? (user.lastName !== null ? user.lastName : "") : ""
-    );
+  const editUser=async (email, userId, firstName, lastName ,roleId) => {
+    console.log({ email, userId, firstName, lastName });
+    try {
+      return await axios.post(`${API_URL}users/editUserAsAdmin`, {
+        userId,
+        email,
+         roleId:roleId,
+         userProfile:{firstName,
+         lastName,},
+      });
+    } catch (error) {
+      return { error: true, msg: (error as any).response.data.msg };
+    }
+  };
 
-    // console.log(email, lastName);
 
-    const handleEmailChange = (text: string) => {
-      setEmail(text);
-    };
+  
 
-    const handlePasswordChange = (text: string) => {
-      setPassword(text);
-    };
-
-    const handleNameChange = (text: string) => {
-      setName(text);
-    };
-
-    const handleLastNameChange = (text: string) => {
-      setLastName(text);
-    };
-
-    const handleSubmit = () => {
-      const userId = user?.id;
-      console.log({ userId });
-      // const password = userId ;
-      onSubmit(email, userId ? userId : password, name, lastName);
-
-      if (!isEdit) {
-        // Reset the form
-        setEmail("");
-        setPassword("");
-        setName("");
-        setLastName("");
-      }
-    };
-
-    return (
-      <View style={styles.container}>
-        <Text style={mainStyle.h3}>Add user</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={handleEmailChange}
-        />
-        {!isEdit && (
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={handlePasswordChange}
-            secureTextEntry
-          />
-        )}
-        <TextInput
-          style={styles.input}
-          placeholder="Name"
-          value={name}
-          onChangeText={handleNameChange}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Last Name"
-          value={lastName}
-          onChangeText={handleLastNameChange}
-        />
-        <Button title="Submit" onPress={handleSubmit} />
-      </View>
-    );
-  }
-
-  function UserItem({ item, setEditUser }) {
-    return (
-      <>
-        <Pressable onPress={() => setEditUser(!editUser)}>
-          <Text>item.email</Text>
-          {editUser && userDetailsComp(item.item, editUser, true)}
-          {/* Component to show user next scheudle  */}
-        </Pressable>
-      </>
-    );
-  }
-  function allUsersComp() {
-    const [editUser, setEditUser] = useState(false);
-
-    return (
-      <>
-        <Pressable onPress={() => getAllUsers()}>
-          <Text>get all users</Text>
-        </Pressable>
-        {allUsers?.length > 0 && <Text>{allUsers[0].email}</Text>}
-        {allUsers?.length > 0 && (
-          <FlatList
-            data={allUsers}
-            renderItem={(item) => (
-              <UserItem item={item} setEditUser={setEditUser} />
-            )}
-            keyExtractor={(item) => item.id}
-          />
-        )}
-      </>
-    );
-  }
+  
 
   return (
 
     <ScrollView style={styles.mainContainer}>
-      <Text style={mainStyle.h3}>AdminPanel</Text>
+        <View style={{ flex: 1 }}>
+        <Text style={[mainStyle.h3, { textAlign: "center" }]}>
+          Admin panel
+        </Text>
+      </View>
       {/* <View {...panResponder.panHandlers}>
         <UserCurrentSchedule scheudle={currentSchedule} />
       </View>  */}
+       <View style={{ flex: 5 }}>
       <SystemNextSchedule nextSchedule={nextSystemSchedule} onDeleteSched={onDeleteSched}/>
-
+</View><View style={{flex:3}}>
       <CreateNewScheduleComp />
+      
+      </View>
       {/* <View>{userDetailsComp(null, addUser, false)}</View> */}
-      <View>{allUsersComp()}</View>
+      <View style={{flex:3,minHeight:200}}> <UsersPanel users={allUsers} editUser={editUser} roles={rolesArr} />
+    </View>
     </ScrollView>
    
   );
@@ -351,7 +265,10 @@ export default AdminPanel;
 
 const styles = StyleSheet.create({
   mainContainer: {
-    maxWidth: "98%",
+    maxWidth: 1200,
+    minWidth: 300,
+    // justifyContent: "center",
+    flexDirection: "column",
   },
   button: {
     borderRadius: 20,
@@ -363,8 +280,9 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 16,
+    // justifyContent: "center",
+    // paddingHorizontal: 16,
+
     borderColor: "black",
     borderWidth: 1,
   },

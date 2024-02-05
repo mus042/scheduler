@@ -38,9 +38,9 @@ export class UserController {
 
   @Roles('admin')
   @Post('editUserAsAdmin')
-  editUserAsAdmin(@Body() { userId, dto }) {
-    console.log({ dto }, userId);
-    return this.userService.editUserAsAdmin(userId, dto);
+  editUserAsAdmin(@Body() dto) {
+    console.log({ dto },);
+    return this.userService.editUserAsAdmin(dto);
   }
   @Roles('admin')
   @Get('allUsers')

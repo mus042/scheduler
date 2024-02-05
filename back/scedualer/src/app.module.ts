@@ -9,6 +9,7 @@ import { UserRequestModule } from './user-request/user-request.module';
 import { EventsModule } from './events/events.module';
 
 import { UserStatisticsModule } from './user-statistics/user-statistics.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UserStatisticsModule } from './user-statistics/user-statistics.module';
     UserRequestModule,
     EventsModule,
     UserStatisticsModule,
+    RolesModule,
   ],
   controllers: [],
   providers: [],

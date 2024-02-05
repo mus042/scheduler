@@ -112,6 +112,7 @@ const DayViewComp = ({
         isAnswered: false,
         requsetMsg: "",
         shiftId: shift.id,
+        requestAnswerMsg:'',
         shiftStartTime:shift.shiftStartHour ,
         shiftEndTime:shift.shiftEndHour,
         senderName: authState?.user?.firstName,
@@ -148,8 +149,8 @@ const DayViewComp = ({
       return (
         <View>
           <Text>
-            {item.userRef?.firstName},{item.userRef?.lastName} ,
-            {item.userRef?.id}
+            {item.shiftRoles?.user.firstName},{item.shiftRoles?.user.lastName} ,
+            {item.shiftRoles?.userId}
           </Text>
           <View>
             <Pressable onPress={() => handelAskReplace(item.userRef?.id)}>

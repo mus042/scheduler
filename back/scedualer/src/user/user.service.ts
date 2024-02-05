@@ -25,7 +25,12 @@ export class UserService {
   }
   async getAllUsers() {
     try {
-      const users: user[] = await this.prisma.user.findMany();
+      const users: user[] = await this.prisma.user.findMany(
+        {include:{
+          userProfile:true,
+          role:true,
+        }}
+      );
 
       users?.forEach((element) => {
         delete element.hash;
@@ -37,19 +42,32 @@ export class UserService {
     }
   }
 
-  async editUserAsAdmin(userId, dto) {
-    console.log(userId, { dto });
-    const id = userId;
+  async editUserAsAdmin( dto) {
+    console.log(dto.userId, { dto });
+    const id = dto.userId;
     try {
       const user = await this.prisma.user.update({
         where: {
           id: id,
+     
         },
         data: {
-          ...dto,
+          roleId:dto.roleId,
+         
         },
       });
       delete user.hash;
+console.log({dto});
+      if(dto.userProfile){
+        //try update the userprofile 
+        const profile = await this.prisma.userProfile.update({where:{
+          userId:user.id,
+        },data:{
+          ...dto.userProfile
+        }
+
+      });      console.log({profile})
+      }
       return user;
     } catch (error) {
       console.log(error);

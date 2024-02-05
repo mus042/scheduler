@@ -1,4 +1,4 @@
-import { IsEAN, IsEmail, IsOptional, IsString, isEmail } from 'class-validator';
+import { IsEAN, IsEmail, IsNumber, IsOptional, IsString, isEmail } from 'class-validator';
 
 export class EditUserDto {
   @IsEmail()
@@ -11,4 +11,7 @@ export class EditUserDto {
   @IsString()
   @IsOptional()
   lastName?: string;
+
+  @IsNumber()
+  roleId:number;
 }

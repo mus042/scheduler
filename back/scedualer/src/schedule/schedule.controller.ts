@@ -13,6 +13,7 @@ import {
   ParseArrayPipe,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 
 import { ScheduleService } from './schedule.service';
@@ -46,9 +47,9 @@ export class SchedulerController {
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
   @Get('getSelctedScheduleMold')
-  getSelctedScheduleMold(@Param() orgId: number) {
-    console.log(orgId);
-    return this.ScheduleService.getSelctedScheduleMold(orgId);
+  getSelctedScheduleMold(@Query('facilityId') facilityId) {
+    console.log("facilityID",{facilityId});
+    return this.ScheduleService.getSelctedScheduleMold(Number(facilityId));
   }
 
   @Roles('user', 'admin')
@@ -113,7 +114,7 @@ export class SchedulerController {
   @HttpCode(HttpStatus.OK)
   @Post('createSchedule')
   createSchedule(@Body() scheduleDto) {
-    console.log({ scheduleDto });
+    console.log("schecdcont ", { scheduleDto });
     return this.ScheduleService.createSystemSchedule(scheduleDto);
   }
   @Roles('admin')
@@ -123,7 +124,7 @@ export class SchedulerController {
     // Extract scheduleId from path
     console.log('schedule id in controller', scheduleId, typeof scheduleId);
     const idInt: number = parseInt(scheduleId, 10);
-    return this.ScheduleService.deleteSchedule(idInt);
+    return this.ScheduleService.deleteAllSchedules();
   }
   @Roles('admin', 'user')
   @HttpCode(HttpStatus.OK)

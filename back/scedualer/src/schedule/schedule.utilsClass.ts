@@ -259,6 +259,8 @@ export class ScheduleUtil {
     //check if user has no shift on the same day
     //check if user dont have shift befor and after
     //case first or second shift of the week , should fetch the week befor last shift if exsit
+    
+    
     const morningTime = 6;
     console.log(shift);
     //To Add - get shifts from the db insted of geting them from object

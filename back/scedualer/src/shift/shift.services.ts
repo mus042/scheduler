@@ -220,6 +220,9 @@ export class ShiftService {
   async getAllShiftsByScheduleId(scheduleId: number) {
     //return shifts array of all the shifts under scheduleId
     const id: number = scheduleId;
+    console.log({scheduleId},"scheudule id")
+    console.log("scheudule id")
+    console.log("scheudule id")
     try {
       const shifts = await this.prisma.shift.findMany({
         where: {
@@ -228,7 +231,12 @@ export class ShiftService {
           },
         },
         include: {
-          userRef: true,
+          userRef:true,
+          shiftRoles:{
+           include: {
+            user:{include:{userProfile:true}},
+            role:true,
+          }},
         },
       });
       // console.log({ shifts });

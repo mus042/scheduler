@@ -88,7 +88,7 @@ const ShiftView = ({
         />
         <Card.Content>
           <View>
-        {shifts.map((shiftToCard)=><CardContent shift={shiftToCard} name={shiftToCard.shiftType} user={user}  handelAskReplace={handelFindReplace}/>)}
+        {shifts.map((shiftToCard, index)=><CardContent key={index} shift={shiftToCard} name={shiftToCard.shiftTimeName} user={user}  handelAskReplace={handelFindReplace}/>)}
              </View>
         </Card.Content>
         <Card.Actions>

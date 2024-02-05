@@ -56,17 +56,20 @@ const SystemNextSchedule = ({
     <View style={styles.container}>
       <Text>Sytem NextScheduleComp</Text>
       {localNextSched && (
-        <View style={styles.scheduleContainer}>
+        <View >
           {nextSchedule !== null && (
-            <View>
+            <View >
             <WeeklyView
               scheduleInfo={nextSchedule?.data}
               shifts={scheduleShifts}
               update={null}
             />
-              <Button compact onPress={() => onDeleteSched()}  >
+<View style={{flex:1}}>
+              <Button compact onPress={() => onDeleteSched()} style={{backgroundColor:'red'}} >
           Delete This Schedule
         </Button>
+
+        </View>
             </View>
           )}
         </View>
@@ -80,8 +83,7 @@ export default SystemNextSchedule;
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: "red",
-    maxWidth: "100%",
+    flex:1,
   },
   item: {
     backgroundColor: "#f9c2ff",
@@ -93,6 +95,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   scheduleContainer: {
-    flex:1
+    flex:5
   },
 });

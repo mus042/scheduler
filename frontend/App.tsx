@@ -90,7 +90,7 @@ export type user = {
   userLevel: number;
   typeOfUser: "new";
   email: string;
-  orgId?: number;
+  facilityId?: number;
   firstName: string | null;
   lastName: string | null;
 };
@@ -110,7 +110,15 @@ export type shift = {
   userPreference: string | null;
   scheduleId: number | null;
   userRef: user | null | undefined;
+  shiftRoles: shiftRole| undefined;
 };
+type shiftRole = { 
+   id?: number , 
+   userId?: number,
+   shiftId?:number , 
+   name?:string,
+   user: user, 
+}
 const BellIconWithBadge = ({ onPress, badgeCount }) => {
   const theme = useTheme();
   return (
@@ -304,40 +312,49 @@ export default function App() {
 
 export function Layout() {
   const { authState, onLogout } = userAuth();
-  const [settingsSet, setSettingsSet] = useState<boolean>(true);
+  const [settingsSet, setSettingsSet] = useState<boolean>(false);
   const theme = useTheme();
-
+  const [isLoading, setIsLoading] = useState(false);
   // fetch server-side settings
   const checkServerSettings = async () => {
+    if(authState?.user?.facilityId){
     try {
+      console.log("facilityId",authState?.user?.facilityId,)
       // Call your server API to check settings for admin users
+     
       const response = await axios.get(
         `${API_URL}schedule/getSelctedScheduleMold`,
         {
           params: {
-            orgId: authState?.user?.orgId,
+            facilityId:authState.user.facilityId,
           },
         }
       );
       const data = response.data;
       console.log({ response });
       console.log("settings not set ", { data });
-      // Assuming the server response has a 'settingsSet' field indicating whether settings are set
       setSettingsSet(data.id ? true : false);
-    } catch (error) {
+     }
+     catch (error) {
       console.error("Error fetching server settings:", error);
+      setSettingsSet(false)
     }
+  }
   };
-
-  useEffect(() => {
+  
+  useEffect( () => {
     // Check server settings only if the user is authenticated and is an admin
+    
+
     if (authState?.authenticated && authState.user?.userServerRole === "admin") {
+      console.log({authState}) 
       checkServerSettings();
     }
   }, [authState?.authenticated, authState?.user?.userServerRole]);
 
+  
   const SetScreen = () => {
-    return (
+ return (
       <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <SettingsScreen setSettingsShow={setSettingsSet} />
       </View>
@@ -346,12 +363,15 @@ export function Layout() {
   const MyDrawerWithSetRoute = ({ navigation }) => {
     return <MyDrawer onLogout={onLogout} />;
   };
+  // if (isLoading && authState?.authenticated) {
+  //   return (<View><Text>Loading</Text></View>);
+  // }
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Stack.Navigator>
         {authState?.authenticated ? (
           // Check if settings are set before rendering the drawer
-          settingsSet ? (
+          settingsSet === true ? (
             <Stack.Screen
               name="HomeScreen"
               component={MyDrawerWithSetRoute}
@@ -362,7 +382,7 @@ export function Layout() {
           ) : (
             // Render a loading or error screen if settings are not set
             <Stack.Screen
-              name="Settings Not Set Screen"
+              name="Settings"
               component={SetScreen}
             />
           )

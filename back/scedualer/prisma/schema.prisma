@@ -171,7 +171,7 @@ model ScheduleMold {
   name            String          @default("Default Settings")
   description     String?
   daysPerSchedule Int
-  selected        Boolean         @unique
+  selected        Boolean
   facilityId      Int
   facility        Facility        @relation(fields: [facilityId], references: [id])
   shiftsTemplate  ShiftMold[]
@@ -180,7 +180,10 @@ model ScheduleMold {
   restDays        ScheduleTime?   @relation("RestDays", fields: [restDaysId], references: [id])
   restDaysId      Int?            @unique
   // requiredRoles   RoleShiftMold[]
+
+ 
 }
+
 
 model ScheduleTime {
   id        Int    @id @default(autoincrement())
