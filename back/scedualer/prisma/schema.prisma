@@ -223,16 +223,16 @@ model RoleShiftMold {
 }
 
 model UserShiftRole {
+  id      Int    @id @default(autoincrement()) // Add a primary key for the model
   shiftId Int
   roleId  Int
-  userId  Int
-  shift   shift @relation(fields: [shiftId], references: [id])
-  role    Role  @relation(fields: [roleId], references: [id])
-  user    user  @relation(fields: [userId], references: [id])
+  userId  Int?   // Make userId optional
+  shift   shift  @relation(fields: [shiftId], references: [id])
+  role    Role   @relation(fields: [roleId], references: [id])
+  user    user?  @relation(fields: [userId], references: [id]) 
 
-  @@id([shiftId, roleId, userId])
+  @@unique([shiftId, roleId, userId], name: "userShiftRoleUniqueConstraint") // Enforce uniqueness for non-null userIds
 }
-
 model Role {
   id              Int              @id @default(autoincrement())
   name            String           @unique

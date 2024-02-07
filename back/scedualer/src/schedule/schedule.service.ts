@@ -918,10 +918,10 @@ export class ScheduleService {
         shiftMold.endHour - shiftMold.startHour > 10 ? 'long' : 'short', //TOFIX -- dynemic by hours
       shiftStartHour: startDate,
       shiftEndHour: endDate,
-      shiftName: shiftMold.shiftName, 
+      shiftName: shiftMold.shiftName,
       shiftRoles: {
         create: shiftMold.userPrefs.map((role) => {
-          return {  roleId: role.roleId, role: role.role };
+          return { roleId: role.roleId, role: role.role };
         }),
       },
     };
@@ -1328,7 +1328,6 @@ export class ScheduleService {
     console.log('Create sys schedule service 903', dto);
     //Get current mold
     const currentMold = await this.getSelctedScheduleMold(dto.facilityId);
-
     if (currentMold === false) {
       throw new ForbiddenException('907 sched service currentmold ');
     }
@@ -1367,50 +1366,75 @@ export class ScheduleService {
     //for every role - assign the users.
     for (const [key, shiftsByRole] of Object.entries(schedulesShiftsByRole)) {
       console.log(
-          'for each shift in schedule by role. shift:',
-          { shiftsByRole },
-          '::1284,roleId: ',
-          { key },
-        );
-        //get shifts of users with matching roles
-        //Get all avileble users schedules from users list if it exist, else all users.
-        const filterdUserScheduleShifts: Record<number, shift>[] =
-          await this.getAllUsersForSchedule(
-            normelizedStartDate,
-            undefined,
-            Number(key),
-          );
-        //  console.log({avilebleUserShifts});
-        if (!filterdUserScheduleShifts) {
-          throw new ForbiddenException('907 sched service currentmold ');
-        }
-        // console.log({ filterdUserScheduleShifts }, { shiftsByRole });
-        //assign shifts of shiftByRole
-        const assigndShifts = this.assignScheduleShifts(
-          shiftsByRole,
-          filterdUserScheduleShifts,
-          emptyShifts,
+        'for each shift in schedule by role. shift:',
+        { shiftsByRole },
+        '::1284,roleId: ',
+        { key },
+      );
+      //get shifts of users with matching roles
+      //Get all avileble users schedules from users list if it exist, else all users.
+      const filterdUserScheduleShifts: Record<number, shift>[] =
+        await this.getAllUsersForSchedule(
+          normelizedStartDate,
+          undefined,
           Number(key),
         );
-
-
-        this.printAssigedShifts(assigndShifts.assigend);
-        // this.printAssigedShifts(assigndShifts.unAssigend);
-        console.log(" ---- NOT ASSIGEND ---- ",assigndShifts.unAssigend ,);
-
-
-      
-
-       
-        //creart shifts in db + shiftUserRole table \
+      //  console.log({avilebleUserShifts});
+      if (!filterdUserScheduleShifts) {
+        throw new ForbiddenException('907 sched service currentmold ');
       }
-    ;
-    console.log("empty shcedule :",{emptyShifts},Object.values(emptyShifts).length);
+      // console.log({ filterdUserScheduleShifts }, { shiftsByRole });
+      //assign shifts of shiftByRole
+      const assigndShifts = this.assignScheduleShifts(
+        shiftsByRole,
+        filterdUserScheduleShifts,
+        emptyShifts,
+        Number(key),
+      );
+
+      this.printAssigedShifts(assigndShifts.assigend);
+      // this.printAssigedShifts(assigndShifts.unAssigend);
+      console.log(' ---- NOT ASSIGEND ---- ', assigndShifts.unAssigend);
+
+      //higher roles can be assiged to lower roles empty posiostions? if yes try assigen .
+
+      //if 24h scedule and unassiged shifts - try to change the day role shift to 12
+      const longShiftsEnabeld = true;
+      if (assigndShifts.unAssigend.length > 0) {
+        if (longShiftsEnabeld) {
+          for (const shift of assigndShifts.unAssigend) {
+            //for each unassiged shift - get other shifts of the same day and role ,
+            console.log("shift.roles",shift.shift.shiftRoles,shift.shift.shiftStartHour.toDateString())
+            const dayShifts = Object.entries(emptyShifts).filter(
+              ([key, dayShift]) =>
+                key.includes(shift.shift.shiftStartHour.toString().substring(5, 16)),
+            );
+            console.log(
+              'day shifts : ',
+              { dayShifts },
+              'Length: ',
+              dayShifts.length,
+            );
+            //for role missing in shift , check other shifts
+            shift.shift.shiftRoles.create.forEach((role) => {
+              console.log('role', { role });
+            });
+          }
+        }
+      }
+      //if still no unassiged shift role , try to
+    }
+    //creart shifts in db + shiftUserRole table \
+    console.log(
+      'empty shcedule :',
+      { emptyShifts },
+      Object.values(emptyShifts).length,
+    );
     for (const shift of Object.values(emptyShifts)) {
       // Update shiftName based on shiftTimeName
-      console.log("creating shift: ",{shift},Object.values(emptyShifts));
-      
-      const {...tmpShift} = {...shift}
+      console.log('creating shift: ', { shift }, Object.values(emptyShifts));
+
+      const { ...tmpShift } = { ...shift };
       tmpShift.shiftName = shift.shiftTimeName.toString();
       tmpShift.shiftTimeName = shift.shiftTimeName;
       // Filter out roles where userId is -1 and reassign\
@@ -1419,25 +1443,24 @@ export class ScheduleService {
           tmpShift.shiftRoles.create.splice(i, 1);
         }
       }
- 
+
       const createdShift = await this.prisma.shift.create({
-        data:{
-          shiftName:tmpShift.shiftName,
-          shiftType:tmpShift.shiftType,
-          shiftStartHour:tmpShift.shiftStartHour,
-          shiftEndHour:tmpShift.shiftEndHour,
-          shiftTimeName:tmpShift.shiftTimeName,
-          shiftRoles:tmpShift.shiftRoles,
-          typeOfShift:tmpShift.typeOfShift,
-          scheduleId:tmpShift.scheduleId,
+        data: {
+          shiftName: tmpShift.shiftName,
+          shiftType: tmpShift.shiftType,
+          shiftStartHour: tmpShift.shiftStartHour,
+          shiftEndHour: tmpShift.shiftEndHour,
+          shiftTimeName: tmpShift.shiftTimeName,
+          shiftRoles: tmpShift.shiftRoles,
+          typeOfShift: tmpShift.typeOfShift,
+          scheduleId: tmpShift.scheduleId,
         },
       });
-      
-  }
+    }
   }
 
   printAssigedShifts(assigendShifts: SystemShiftDTO[]) {
-    console.log("shifts lengthe:  ",assigendShifts.length)
+    console.log('shifts lengthe:  ', assigendShifts.length);
     assigendShifts.forEach((shift) => {
       console.log('--------------------');
       console.log('Date: ', shift.shiftStartHour.toUTCString());
