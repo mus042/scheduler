@@ -55,8 +55,12 @@ const SystemNextSchedule = ({
   return (
     <View style={styles.container}>
       <Text>Sytem NextScheduleComp</Text>
+      <View style={{flex:1}}>
+              <Button compact onPress={() => onDeleteSched()} style={{backgroundColor:'red'}} >
+          Delete This Schedule
+        </Button> </View>
       {localNextSched && (
-        <View >
+        <View style={{flex:8}} >
           {nextSchedule !== null && (
             <View >
             <WeeklyView
@@ -64,13 +68,10 @@ const SystemNextSchedule = ({
               shifts={scheduleShifts}
               update={null}
             />
-<View style={{flex:1}}>
-              <Button compact onPress={() => onDeleteSched()} style={{backgroundColor:'red'}} >
-          Delete This Schedule
-        </Button>
+
 
         </View>
-            </View>
+           
           )}
         </View>
       )}
