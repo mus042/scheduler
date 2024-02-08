@@ -23,10 +23,15 @@ export class UserService {
       throw new ForbiddenException('user not fond ');
     }
   }
-  async getAllUsers() {
+  async getAllUsers(facilityId) {
     try {
+      console.log({facilityId})
       const users: user[] = await this.prisma.user.findMany(
-        {include:{
+        {
+          where:{
+          facilityId: facilityId,
+        },
+          include:{
           userProfile:true,
           role:true,
         }}

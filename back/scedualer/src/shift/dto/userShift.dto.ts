@@ -1,6 +1,6 @@
 import {
   UserPreference,
-  UserShiftRole,
+
   scheduleType,
   shift,
   shiftTimeClassification,

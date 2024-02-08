@@ -1,6 +1,7 @@
 import {
+  Role,
   UserPreference,
-  UserShiftRole,
+
   scheduleType,
   shift,
   shiftTimeClassification,
@@ -50,7 +51,6 @@ export class ShiftDto {
   scheduleId?: number;
   @IsEnum(scheduleType)
   shiftType: scheduleType;
-
-  shiftRoles?: any[];
+  shiftRole?: Role | object;
   userPref?: UserPreference;
 }

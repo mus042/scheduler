@@ -55,8 +55,7 @@ model shift {
   shiftTimeName shiftTimeClassification?
   shiftStartHour DateTime?
   shiftEndHour   DateTime?
-  
-  
+
   userId         Int?
   userRef        user?           @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userPreference String?
@@ -64,7 +63,8 @@ model shift {
   shiftType      scheduleType
   schedule       schedule?       @relation(fields: [scheduleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userRequests   userRequest[]
-  shiftRoles     UserShiftRole[]
+  shiftRoleId     Int?
+  shiftRole Role? @relation(fields: [shiftRoleId],references: [id])
 
   @@map("shift")
 }
@@ -81,7 +81,8 @@ model schedule {
   shiftUserStatistics ShiftUserStatistic[]
   user                user?                @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   shifts              shift[]
-
+facilityId           Int?
+facility             Facility?            @relation(fields: [facilityId], references: [id])
   @@map("schedule")
 }
 
@@ -100,9 +101,9 @@ model user {
   schedules            schedule[]
   userSentRequests     userRequest[]        @relation("SentRequests")
   userAcceptedRequests userRequest[]        @relation("AcceptedRequests")
-  facilityId           Int?
-  facility             Facility?            @relation(fields: [facilityId], references: [id])
-  assignedShiftRoles   UserShiftRole[]
+ facilityId           Int?
+facility             Facility?            @relation(fields: [facilityId], references: [id])
+ // assignedShiftRoles   UserShiftRole[]
   shiftStatistics      ShiftUserStatistic[]
 
   @@map("users")
@@ -123,6 +124,7 @@ model Facility {
   name         String         @unique
   users        user[]
   scheduleMold ScheduleMold[]
+  schedules schedule[]
 }
 
 model userRequest {
@@ -222,23 +224,25 @@ model RoleShiftMold {
   @@id([shiftMoldId, roleId])
 }
 
-model UserShiftRole {
-  id      Int    @id @default(autoincrement()) // Add a primary key for the model
-  shiftId Int
-  roleId  Int
-  userId  Int?   // Make userId optional
-  shift   shift  @relation(fields: [shiftId], references: [id])
-  role    Role   @relation(fields: [roleId], references: [id])
-  user    user?  @relation(fields: [userId], references: [id]) 
+// model UserShiftRole {
+//   id      Int    @id @default(autoincrement()) // Add a primary key for the model
+//   shiftId Int
+//   roleId  Int
+//   userId  Int?   // Make userId optional
+//   shift   shift  @relation(fields: [shiftId], references: [id])
+//   role    Role   @relation(fields: [roleId], references: [id])
+//   user    user?  @relation(fields: [userId], references: [id]) 
+//   roleStartHour DateTime?
+//   roleEndHour DateTime?
 
-  @@unique([shiftId, roleId, userId], name: "userShiftRoleUniqueConstraint") // Enforce uniqueness for non-null userIds
-}
+//   @@unique([shiftId, roleId, userId], name: "userShiftRoleUniqueConstraint") // Enforce uniqueness for non-null userIds
+// }
 model Role {
   id              Int              @id @default(autoincrement())
   name            String           @unique
   description     String?
   shiftMolds      RoleShiftMold[]
-  userShiftRoles  UserShiftRole[]
+  sysShifts       shift[]
   users           user[]           @relation("UserRole")
   userPreferences UserPreference[]
 }

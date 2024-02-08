@@ -29,7 +29,7 @@ export class ShiftService {
   async creatShift(userId: number, dto: ShiftDto) {
     try {
       console.log({ dto });
-      const shift = dto.shiftRoles
+       const shift = dto.shiftRole
         ? await this.prisma.shift.create({
             data: {
               userId: userId,
@@ -41,13 +41,13 @@ export class ShiftService {
               shiftEndHour: dto.shiftEndHour,
               typeOfShift: dto.typeOfShift,
               scheduleId: dto.scheduleId,
-              shiftRoles: {
-                create: dto.shiftRoles.map((role) => ({
-                  roleId: role.roleId,
-                  userId: role.userId,
-                  scheduleId: dto.scheduleId,
-                })),
-              },
+              // shiftRoles: {
+              //   create: dto.shiftRoles.map((role) => ({
+              //     roleId: role.roleId,
+              //     userId: role.userId,
+              //     scheduleId: dto.scheduleId,
+              //   })),
+              // },
             },
           })
         : await this.prisma.shift.create({
@@ -232,11 +232,7 @@ export class ShiftService {
         },
         include: {
           userRef:true,
-          shiftRoles:{
-           include: {
-            user:{include:{userProfile:true}},
-            role:true,
-          }},
+       
         },
       });
       // console.log({ shifts });

@@ -55,25 +55,25 @@ export class SchedulerController {
   @Roles('user', 'admin')
   @HttpCode(HttpStatus.OK)
   @Get('getNextSchedule')
-  getNextScheduleUser(@GetUser('id') userId: number) {
+  getNextScheduleUser(@GetUser('id','facilityId') userId: number, facilityId: number) {
     console.log('next schedule for user call', { userId });
-    return this.ScheduleService.getNextScheduleForUser(userId);
+    return this.ScheduleService.getNextScheduleForUser(userId,facilityId);
   }
 
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
   @Get('getNextScheduleAsAdmin')
-  getNextScheduleUserAsAdmin(@Param() userId: number) {
+  getNextScheduleUserAsAdmin(@Param() userId: number,@GetUser('facilityId') facilityId: number) {
     console.log(userId);
-    return this.ScheduleService.getNextScheduleForUser(userId);
+    return this.ScheduleService.getNextScheduleForUser(userId,facilityId);
   }
 
   @Roles('user', 'admin')
   @HttpCode(HttpStatus.OK)
   @Get('getNextSystemSchedule')
-  getNextScheduleSystem() {
-    console.log('next sys schde');
-    return this.ScheduleService.getNextSystemSchedule();
+  getNextScheduleSystem(@GetUser('facilityId') facilityId: number) {
+    console.log('next sys schde',{facilityId},"facilitId");
+    return this.ScheduleService.getNextSystemSchedule(facilityId);
   }
   @Roles('user', 'admin')
   @HttpCode(HttpStatus.OK)
@@ -85,7 +85,7 @@ export class SchedulerController {
   @Roles('user', 'admin')
   @HttpCode(HttpStatus.OK)
   @Post('cnScheduleFU')
-  cnScheduleFU(@GetUser('id') userId: number, @Body() dto: scheduleDto) {
+  cnScheduleFU(@GetUser('id','facilityId') userId: number ,facilityId: number, @Body() dto: scheduleDto) {
     console.log('schedual controler ');
     const startDate = new Date(dto.scedualStart);
     const endDate = new Date(dto.scedualStart.getDate() + 7);
@@ -94,6 +94,7 @@ export class SchedulerController {
       scedualEnd: endDate,
       scedualDue: dto.scedualDue,
       userId: userId,
+      facilityId:facilityId
     };
     return this.ScheduleService.createSchedualeForUser(schedDto);
   }

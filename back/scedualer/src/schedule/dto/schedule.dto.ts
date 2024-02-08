@@ -23,4 +23,7 @@ export class scheduleDto {
   @Type(() => Date)
   @IsDate()
   scedualDue?: Date;
+
+  @IsNumber()
+  facilityId: number
 }

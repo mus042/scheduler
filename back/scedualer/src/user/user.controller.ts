@@ -44,7 +44,7 @@ export class UserController {
   }
   @Roles('admin')
   @Get('allUsers')
-  getAllusers() {
-    return this.userService.getAllUsers();
+  getAllusers(@GetUser('facilityId') facilityId: number) {
+    return this.userService.getAllUsers(facilityId);
   }
 }

@@ -1,7 +1,7 @@
 import {
     Role,
   UserPreference,
-  UserShiftRole,
+ 
   scheduleType,
   shift,
   shiftTimeClassification,
@@ -42,12 +42,11 @@ export class SystemShiftDTO {
 
   @IsOptional()
   shiftMoldId?: number;
-
+  shiftRole: Role | object;
   @IsOptional()
   @IsNumber()
   scheduleId?: number;
   @IsEnum(scheduleType)
   shiftType: scheduleType;
 
-  shiftRoles?: {create:[{userId:number , roleId:number , role:Role , shiftId:number,userPreference:string}]};
-}
+  }

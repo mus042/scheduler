@@ -135,7 +135,7 @@ export class ScheduleUtil {
     if (currentDate.getDay() >= 3) {
       // If it's Wednesday or later, add days to reach the Sunday after next
       const daysUntilNextSunday = 7 - currentDate.getDay();
-      const daysToAdd = daysUntilNextSunday + 7; // Additional 7 days to get to the Sunday after next
+      const daysToAdd = daysUntilNextSunday; // Additional 7 days to get to the Sunday after next
       adjusted = new Date(
         currentDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000,
       );
@@ -254,118 +254,118 @@ export class ScheduleUtil {
     );
     return { shiftBefore, shiftAfter };
   }
-  isShiftpossible(shift: shift | ShiftDto, schedule: ShiftDto[] | schedule) {
-    //Check if possible to place a shift in schedule
-    //check if user has no shift on the same day
-    //check if user dont have shift befor and after
-    //case first or second shift of the week , should fetch the week befor last shift if exsit
+  // isShiftpossible(shift: shift | ShiftDto, schedule: ShiftDto[] | schedule) {
+  //   //Check if possible to place a shift in schedule
+  //   //check if user has no shift on the same day
+  //   //check if user dont have shift befor and after
+  //   //case first or second shift of the week , should fetch the week befor last shift if exsit
     
     
-    const morningTime = 6;
-    console.log(shift);
-    //To Add - get shifts from the db insted of geting them from object
-    const scheduleShifts: ShiftDto[] = Array.isArray(schedule)
-      ? schedule
-      : schedule.shifts;
+  //   const morningTime = 6;
+  //   console.log(shift);
+  //   //To Add - get shifts from the db insted of geting them from object
+  //   const scheduleShifts: ShiftDto[] = Array.isArray(schedule)
+  //     ? schedule
+  //     : schedule.shifts;
 
-    // Sort the array by shiftStartHour in ascending order
-    // console.log(schedule.shift ,{scheduleShifts} );
-    scheduleShifts.sort(
-      (a, b) => a.shiftStartHour.getTime() - b.shiftStartHour.getTime(),
-    );
+  //   // Sort the array by shiftStartHour in ascending order
+  //   // console.log(schedule.shift ,{scheduleShifts} );
+  //   scheduleShifts.sort(
+  //     (a, b) => a.shiftStartHour.getTime() - b.shiftStartHour.getTime(),
+  //   );
 
-    const shiftIndexInSched: number = scheduleShifts.findIndex(
-      (schedShift: shift) =>
-        schedShift.shiftStartHour.getTime() === shift.shiftStartHour.getTime(),
-    );
-    console.log({ shiftIndexInSched }, 'shift index in the schedule ');
-    if (shiftIndexInSched >= 0) {
-      //found index
-      console.log(
-        'check days befor  after is shift possible ,  ',
-        { shift },
-        { shiftIndexInSched },
-      );
-      //check the shifts befor and after
-      if (
-        shiftIndexInSched < 1 ||
-        shiftIndexInSched === scheduleShifts.length - 1
-      ) {
-        //case the index is 0 \ last one in arr
-        if (shiftIndexInSched < 1) {
-          console.log(
-            'user 0',
-            shift.userId !== scheduleShifts[shiftIndexInSched + 1]?.userId &&
-              shift.userId !== scheduleShifts[shiftIndexInSched + 2]?.userId,
-          );
-          return (
-            shift.userId !== scheduleShifts[shiftIndexInSched + 1]?.userId &&
-            shift.userId !== scheduleShifts[shiftIndexInSched + 2]?.userId
-          );
-        } else {
-          console.log(
-            ' Last index ',
-            scheduleShifts[shiftIndexInSched],
-            scheduleShifts[shiftIndexInSched - 1]?.userId,
-            shift.userId !== scheduleShifts[shiftIndexInSched - 2]?.userId,
-          );
-          return (
-            shift.userId !== scheduleShifts[shiftIndexInSched - 1]?.userId &&
-            shift.userId !== scheduleShifts[shiftIndexInSched - 2]?.userId
-          );
-        }
-      }
-      //
+  //   const shiftIndexInSched: number = scheduleShifts.findIndex(
+  //     (schedShift: shift) =>
+  //       schedShift.shiftStartHour.getTime() === shift.shiftStartHour.getTime(),
+  //   );
+  //   console.log({ shiftIndexInSched }, 'shift index in the schedule ');
+  //   if (shiftIndexInSched >= 0) {
+  //     //found index
+  //     console.log(
+  //       'check days befor  after is shift possible ,  ',
+  //       { shift },
+  //       { shiftIndexInSched },
+  //     );
+  //     //check the shifts befor and after
+  //     if (
+  //       shiftIndexInSched < 1 ||
+  //       shiftIndexInSched === scheduleShifts.length - 1
+  //     ) {
+  //       //case the index is 0 \ last one in arr
+  //       if (shiftIndexInSched < 1) {
+  //         console.log(
+  //           'user 0',
+  //           shift.userId !== scheduleShifts[shiftIndexInSched + 1]?.userId &&
+  //             shift.userId !== scheduleShifts[shiftIndexInSched + 2]?.userId,
+  //         );
+  //         return (
+  //           shift.userId !== scheduleShifts[shiftIndexInSched + 1]?.userId &&
+  //           shift.userId !== scheduleShifts[shiftIndexInSched + 2]?.userId
+  //         );
+  //       } else {
+  //         console.log(
+  //           ' Last index ',
+  //           scheduleShifts[shiftIndexInSched],
+  //           scheduleShifts[shiftIndexInSched - 1]?.userId,
+  //           shift.userId !== scheduleShifts[shiftIndexInSched - 2]?.userId,
+  //         );
+  //         return (
+  //           shift.userId !== scheduleShifts[shiftIndexInSched - 1]?.userId &&
+  //           shift.userId !== scheduleShifts[shiftIndexInSched - 2]?.userId
+  //         );
+  //       }
+  //     }
+  //     //
 
-      //case index in the middile
-      const shiftBefore =
-        shift.userId !== scheduleShifts[shiftIndexInSched - 1]?.userId;
-      const shiftAfter =
-        shift.userId !== scheduleShifts[shiftIndexInSched + 1]?.userId;
+  //     //case index in the middile
+  //     const shiftBefore =
+  //       shift.userId !== scheduleShifts[shiftIndexInSched - 1]?.userId;
+  //     const shiftAfter =
+  //       shift.userId !== scheduleShifts[shiftIndexInSched + 1]?.userId;
 
-      console.log(
-        { shift },
-        scheduleShifts[shiftIndexInSched + 1]?.userId,
-        scheduleShifts[shiftIndexInSched - 1]?.userId,
-        { shiftBefore },
-        { shiftAfter },
-      );
-      if (shiftBefore === false || shiftAfter === false) {
-        console.log('not allowd ');
-        return false;
-      }
-      console.log(
-        'if shift possible ',
-        { shift },
-        'shift time ',
-        shift.shiftStartHour,
-      );
-      //in case morning shift - check if night is not assigned to same user
-      console.log(
-        shift.shiftStartHour.getHours() === morningTime,
-        shift.shiftStartHour.getHours(),
-      );
-      if (shift.shiftTimeName === 'morning') {
-        const sameDayShift =
-          shift.userId === scheduleShifts[shiftIndexInSched + 2].userId;
-        if (sameDayShift) {
-          console.log('same day shift  < 11 ');
-          return false;
-        }
-      } else if (shift.shiftTimeName === 'night') {
-        //in case night shift
-        console.log('samw day shift > 15');
-        const sameDayShift =
-          shift.userId === scheduleShifts[shiftIndexInSched - 2]?.userId;
-        if (sameDayShift) {
-          console.log('not allowed');
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
-  }
+  //     console.log(
+  //       { shift },
+  //       scheduleShifts[shiftIndexInSched + 1]?.userId,
+  //       scheduleShifts[shiftIndexInSched - 1]?.userId,
+  //       { shiftBefore },
+  //       { shiftAfter },
+  //     );
+  //     if (shiftBefore === false || shiftAfter === false) {
+  //       console.log('not allowd ');
+  //       return false;
+  //     }
+  //     console.log(
+  //       'if shift possible ',
+  //       { shift },
+  //       'shift time ',
+  //       shift.shiftStartHour,
+  //     );
+  //     //in case morning shift - check if night is not assigned to same user
+  //     console.log(
+  //       shift.shiftStartHour.getHours() === morningTime,
+  //       shift.shiftStartHour.getHours(),
+  //     );
+  //     if (shift.shiftTimeName === 'morning') {
+  //       const sameDayShift =
+  //         shift.userId === scheduleShifts[shiftIndexInSched + 2].userId;
+  //       if (sameDayShift) {
+  //         console.log('same day shift  < 11 ');
+  //         return false;
+  //       }
+  //     } else if (shift.shiftTimeName === 'night') {
+  //       //in case night shift
+  //       console.log('samw day shift > 15');
+  //       const sameDayShift =
+  //         shift.userId === scheduleShifts[shiftIndexInSched - 2]?.userId;
+  //       if (sameDayShift) {
+  //         console.log('not allowed');
+  //         return false;
+  //       }
+  //     }
+  //     return true;
+  //   }
+  //   return false;
+  // }
 
   checkIfBreakBetweenShifts = (firstShift: Date, secondShift: Date) => {
     //Will subtract the ti,e btween and check if Bigger then 8
@@ -377,309 +377,309 @@ export class ScheduleUtil {
     console.log({ result }, { firstShift, secondShift });
     return result;
   };
-  async fillSchedule(emptySchedule: ShiftDto[], usersShifts: shift[][]) {
-    //search for each shift possible user and sign user to shift ;
-    //apply rules :
-    // user must have 8 hours between shifts
-    // user must have at least 3 shifts a week
-    //only one shift between friday  14 - suterday 2
-    const scheduleToFill: ShiftDto[] = emptySchedule;
-    const noUsersToAssigndShift: ShiftDto[] = [];
-    let backTracking: number = 0;
-    for (let i = 0; i < scheduleToFill.length; i++) {
-      const emptyShift: ShiftDto = scheduleToFill[i];
-      let canceledShift: ShiftDto;
-      if (
-        (emptyShift.userId === undefined ||
-          emptyShift.userPreference === '4') &&
-        emptyShift.shiftTimeName !== 'noonCanceled' &&
-        emptyShift.typeOfShift !== 'long'
-      ) {
-        //Search For Possible users for a empty shift
-        const possibleUsersToAssign: ShiftDto[] =
-          this.searchPossibleUsersForShift(
-            emptyShift.shiftStartHour,
-            usersShifts,
-          );
+  // async fillSchedule(emptySchedule: ShiftDto[], usersShifts: shift[][]) {
+  //   //search for each shift possible user and sign user to shift ;
+  //   //apply rules :
+  //   // user must have 8 hours between shifts
+  //   // user must have at least 3 shifts a week
+  //   //only one shift between friday  14 - suterday 2
+  //   const scheduleToFill: ShiftDto[] = emptySchedule;
+  //   const noUsersToAssigndShift: ShiftDto[] = [];
+  //   let backTracking: number = 0;
+  //   for (let i = 0; i < scheduleToFill.length; i++) {
+  //     const emptyShift: ShiftDto = scheduleToFill[i];
+  //     let canceledShift: ShiftDto;
+  //     if (
+  //       (emptyShift.userId === undefined ||
+  //         emptyShift.userPreference === '4') &&
+  //       emptyShift.shiftTimeName !== 'noonCanceled' &&
+  //       emptyShift.typeOfShift !== 'long'
+  //     ) {
+  //       //Search For Possible users for a empty shift
+  //       const possibleUsersToAssign: ShiftDto[] =
+  //         this.searchPossibleUsersForShift(
+  //           emptyShift.shiftStartHour,
+  //           usersShifts,
+  //         );
 
-        // let shiftindex:number = -1;
-        const possibleForShift: shift[] = [];
-        possibleUsersToAssign.map((shift: shift, index: number) => {
-          const ispos = this.isShiftpossible(shift, scheduleToFill);
-          if (ispos === true) {
-            // console.log('shift selcted', { shift });
-            if (this.userShiftCount[shift.userId] === undefined) {
-              this.userShiftCount[shift.userId] = 0;
-            }
-            possibleForShift.push({ ...shift });
-          }
-        });
-        // console.log({possibleForShift});
-        if (possibleForShift.length !== 0) {
-          const selctedShift: ShiftDto = this.selcetShiftFromList(
-            possibleForShift,
-            emptyShift,
-          );
-          // console.log({ selctedShift });
-          if (selctedShift) {
-            const assessNextShift = () => {
-              if (i < scheduleToFill.length - 1) {
-                const possibleUsersToAssignNext: ShiftDto[] =
-                  this.searchPossibleUsersForShift(
-                    scheduleToFill[i + 1].shiftStartHour,
-                    usersShifts,
-                  );
-                //get next shift options, check if it has other options then selcted
-                const filterdArr: ShiftDto[] = possibleUsersToAssignNext.filter(
-                  (shift) => shift.userId !== selctedShift.userId,
-                );
+  //       // let shiftindex:number = -1;
+  //       const possibleForShift: shift[] = [];
+  //       possibleUsersToAssign.map((shift: shift, index: number) => {
+  //         const ispos = this.isShiftpossible(shift, scheduleToFill);
+  //         if (ispos === true) {
+  //           // console.log('shift selcted', { shift });
+  //           if (this.userShiftCount[shift.userId] === undefined) {
+  //             this.userShiftCount[shift.userId] = 0;
+  //           }
+  //           possibleForShift.push({ ...shift });
+  //         }
+  //       });
+  //       // console.log({possibleForShift});
+  //       if (possibleForShift.length !== 0) {
+  //         const selctedShift: ShiftDto = this.selcetShiftFromList(
+  //           possibleForShift,
+  //           emptyShift,
+  //         );
+  //         // console.log({ selctedShift });
+  //         if (selctedShift) {
+  //           const assessNextShift = () => {
+  //             if (i < scheduleToFill.length - 1) {
+  //               const possibleUsersToAssignNext: ShiftDto[] =
+  //                 this.searchPossibleUsersForShift(
+  //                   scheduleToFill[i + 1].shiftStartHour,
+  //                   usersShifts,
+  //                 );
+  //               //get next shift options, check if it has other options then selcted
+  //               const filterdArr: ShiftDto[] = possibleUsersToAssignNext.filter(
+  //                 (shift) => shift.userId !== selctedShift.userId,
+  //               );
 
-                if (filterdArr.length <= 1) {
-                  //backtrack to shift assigned
-                  const index = this.getShiftIndex(
-                    selctedShift,
-                    possibleForShift,
-                  );
-                  possibleForShift.splice(index, 1);
-                  // console.log({ possibleForShift });
-                  backTracking += 1;
-                  return false;
-                }
-              }
-              return true;
-            };
-            console.log(
-              selctedShift.userId,
-              this.userShiftCount[selctedShift.userId],
-            );
-            if (
-              selctedShift.userId > 0 &&
-              this.userShiftCount[selctedShift.userId] < 6
-            ) {
-              if (assessNextShift()) {
-                this.userShiftCount[selctedShift.userId] += 1;
-                scheduleToFill[i] = {
-                  userId: selctedShift.userId,
-                  // shiftDate: selctedShift.shiftDate,
-                  shiftEndHour: selctedShift.shiftEndHour,
-                  shiftStartHour: selctedShift.shiftStartHour,
-                  shiftType: selctedShift.shiftType,
-                  typeOfShift: selctedShift.typeOfShift,
-                  userPreference: selctedShift.userPreference,
-                  scheduleId: scheduleToFill[0].scheduleId,
-                  // typeOfUser: selctedShift.userRef.typeOfUser,
-                };
-              } else {
-                console.log({ assessNextShift });
-                const otherPossible = possibleForShift.filter(
-                  (shift: shift) => shift.id !== selctedShift.id,
-                );
+  //               if (filterdArr.length <= 1) {
+  //                 //backtrack to shift assigned
+  //                 const index = this.getShiftIndex(
+  //                   selctedShift,
+  //                   possibleForShift,
+  //                 );
+  //                 possibleForShift.splice(index, 1);
+  //                 // console.log({ possibleForShift });
+  //                 backTracking += 1;
+  //                 return false;
+  //               }
+  //             }
+  //             return true;
+  //           };
+  //           console.log(
+  //             selctedShift.userId,
+  //             this.userShiftCount[selctedShift.userId],
+  //           );
+  //           if (
+  //             selctedShift.userId > 0 &&
+  //             this.userShiftCount[selctedShift.userId] < 6
+  //           ) {
+  //             if (assessNextShift()) {
+  //               this.userShiftCount[selctedShift.userId] += 1;
+  //               scheduleToFill[i] = {
+  //                 userId: selctedShift.userId,
+  //                 // shiftDate: selctedShift.shiftDate,
+  //                 shiftEndHour: selctedShift.shiftEndHour,
+  //                 shiftStartHour: selctedShift.shiftStartHour,
+  //                 shiftType: selctedShift.shiftType,
+  //                 typeOfShift: selctedShift.typeOfShift,
+  //                 userPreference: selctedShift.userPreference,
+  //                 scheduleId: scheduleToFill[0].scheduleId,
+  //                 // typeOfUser: selctedShift.userRef.typeOfUser,
+  //               };
+  //             } else {
+  //               console.log({ assessNextShift });
+  //               const otherPossible = possibleForShift.filter(
+  //                 (shift: shift) => shift.id !== selctedShift.id,
+  //               );
 
-                if (otherPossible.length > 1) {
-                  const newSelcetShift: ShiftDto = this.selcetShiftFromList(
-                    otherPossible,
-                    emptyShift,
-                  );
-                  console.log({ newSelcetShift });
-                  if (newSelcetShift && newSelcetShift.userId !== undefined) {
-                    scheduleToFill[i] = {
-                      userId: newSelcetShift.userId,
-                      // shiftDate: newSelcetShift.shiftDate,
-                      shiftEndHour: newSelcetShift.shiftEndHour,
-                      shiftStartHour: newSelcetShift.shiftStartHour,
-                      shiftType: newSelcetShift.shiftType,
-                      userPreference: newSelcetShift.userPreference,
-                      scheduleId: scheduleToFill[0].scheduleId,
-                      // typeOfUser: newSelcetShift.userRef.typeOfUser,
-                    };
-                  } else {
-                  }
-                  this.userShiftCount[selctedShift.userId] += 1;
-                  scheduleToFill[i] = {
-                    userId: selctedShift.userId,
-                    // shiftDate: selctedShift.shiftDate,
-                    shiftEndHour: selctedShift.shiftEndHour,
-                    shiftStartHour: selctedShift.shiftStartHour,
-                    shiftType: selctedShift.shiftType,
-                    userPreference: selctedShift.userPreference,
-                    scheduleId: scheduleToFill[0].scheduleId,
-                    // typeOfUser: selctedShift.userRef.typeOfUser,
-                  };
-                }
-              }
-            } else if (
-              selctedShift.userId > 0 &&
-              possibleUsersToAssign.length === 1
-            ) {
-              console.log(' try replace shift ', { selctedShift });
-              //search all user shifts in schedule
-              const userOtherShifts: ShiftDto[] = scheduleToFill.filter(
-                (otherShift: shift) =>
-                  otherShift.userId === selctedShift.userId,
-              );
-              const posibleShiftsReplace: ShiftDto[] = [];
-              //check if other user can replace
-              userOtherShifts.forEach((shift: shift, index: number) => {
-                const possibleUser: ShiftDto[] =
-                  this.searchPossibleUsersForShift(
-                    shift.shiftStartHour,
-                    usersShifts,
-                  );
-                possibleUser.forEach((shiftOption: shift) => {
-                  if (
-                    shift.userId !== shiftOption.userId &&
-                    this.userShiftCount[shiftOption.userId] < 6
-                  ) {
-                    const shiftBefore: boolean =
-                      i >= 1
-                        ? shiftOption.userId !== scheduleToFill[i - 1].userId
-                        : true;
-                    const shiftAfter: boolean =
-                      i < scheduleToFill.length - 1
-                        ? shiftOption.userId !== scheduleToFill[i + 1].userId
-                        : true;
-                    if (shiftBefore && shiftAfter) {
-                      posibleShiftsReplace.push({ ...shiftOption });
-                    }
-                  }
-                });
-              });
-              console.log({ posibleShiftsReplace });
-              //if other user replace other shift and push current shift to user
-              if (posibleShiftsReplace.length > 0) {
-                const selctedReplaceShift: ShiftDto = this.selcetShiftFromList(
-                  posibleShiftsReplace,
-                  emptyShift,
-                );
-                //replace shift and update count
-                const shiftToReaplceIndex: number = this.getShiftIndex(
-                  selctedReplaceShift,
-                  scheduleToFill,
-                );
-                scheduleToFill[shiftToReaplceIndex] = {
-                  userId: selctedReplaceShift.userId,
-                  // shiftDate: selctedReplaceShift.shiftDate,
-                  shiftEndHour: selctedReplaceShift.shiftEndHour,
-                  shiftStartHour: selctedReplaceShift.shiftStartHour,
-                  shiftType: selctedReplaceShift.shiftType,
-                  userPreference: selctedReplaceShift.userPreference,
-                  scheduleId: scheduleToFill[0].scheduleId,
-                  // typeOfUser: selctedReplaceShift.userRef.typeOfUser,
-                };
-                this.userShiftCount[selctedReplaceShift.userId] += 1;
-                this.userShiftCount[selctedShift.userId] -= 1;
-                possibleForShift.push({
-                  id: selctedShift.id,
-                  userId: selctedShift.userId,
-                  shiftName: selctedShift.shiftName,
-                  shiftTimeName: selctedShift.shiftTimeName,
-                  createdAt: selctedShift.createdAt,
-                  updatedAt: selctedShift.updatedAt,
-                  typeOfShift: selctedShift.typeOfShift,
-                  shiftEndHour: selctedShift.shiftEndHour,
-                  shiftStartHour: selctedShift.shiftStartHour,
-                  shiftType: selctedShift.shiftType,
-                  userPreference: selctedShift.userPreference,
-                  scheduleId: scheduleToFill[0].scheduleId,
-                  userRef: selctedShift.userRef,
-                });
-                backTracking += 1;
-                console.log(
-                  'backtrack',
-                  { backTracking },
-                  { selctedReplaceShift },
-                );
-              }
-              //if no reaplce user for other shift try to cancelle user shift with 2 shifts a day
-            } else if (
-              selctedShift.userId > 0 &&
-              this.userShiftCount[selctedShift.userId] === 6
-            ) {
-              // try to cancele one other shift
-              //find other shifts by user , check if possible to make two a day
-              //make two a day if possible. notice - if morning shift is missing - chack night shift as well samr for morning
-              console.log('too many shifts try to cancelle one ');
-              const userOtherShifts: ShiftDto[] = scheduleToFill.filter(
-                (shift: ShiftDto) => shift.userId === selctedShift.userId,
-              );
+  //               if (otherPossible.length > 1) {
+  //                 const newSelcetShift: ShiftDto = this.selcetShiftFromList(
+  //                   otherPossible,
+  //                   emptyShift,
+  //                 );
+  //                 console.log({ newSelcetShift });
+  //                 if (newSelcetShift && newSelcetShift.userId !== undefined) {
+  //                   scheduleToFill[i] = {
+  //                     userId: newSelcetShift.userId,
+  //                     // shiftDate: newSelcetShift.shiftDate,
+  //                     shiftEndHour: newSelcetShift.shiftEndHour,
+  //                     shiftStartHour: newSelcetShift.shiftStartHour,
+  //                     shiftType: newSelcetShift.shiftType,
+  //                     userPreference: newSelcetShift.userPreference,
+  //                     scheduleId: scheduleToFill[0].scheduleId,
+  //                     // typeOfUser: newSelcetShift.userRef.typeOfUser,
+  //                   };
+  //                 } else {
+  //                 }
+  //                 this.userShiftCount[selctedShift.userId] += 1;
+  //                 scheduleToFill[i] = {
+  //                   userId: selctedShift.userId,
+  //                   // shiftDate: selctedShift.shiftDate,
+  //                   shiftEndHour: selctedShift.shiftEndHour,
+  //                   shiftStartHour: selctedShift.shiftStartHour,
+  //                   shiftType: selctedShift.shiftType,
+  //                   userPreference: selctedShift.userPreference,
+  //                   scheduleId: scheduleToFill[0].scheduleId,
+  //                   // typeOfUser: selctedShift.userRef.typeOfUser,
+  //                 };
+  //               }
+  //             }
+  //           } else if (
+  //             selctedShift.userId > 0 &&
+  //             possibleUsersToAssign.length === 1
+  //           ) {
+  //             console.log(' try replace shift ', { selctedShift });
+  //             //search all user shifts in schedule
+  //             const userOtherShifts: ShiftDto[] = scheduleToFill.filter(
+  //               (otherShift: shift) =>
+  //                 otherShift.userId === selctedShift.userId,
+  //             );
+  //             const posibleShiftsReplace: ShiftDto[] = [];
+  //             //check if other user can replace
+  //             userOtherShifts.forEach((shift: shift, index: number) => {
+  //               const possibleUser: ShiftDto[] =
+  //                 this.searchPossibleUsersForShift(
+  //                   shift.shiftStartHour,
+  //                   usersShifts,
+  //                 );
+  //               possibleUser.forEach((shiftOption: shift) => {
+  //                 if (
+  //                   shift.userId !== shiftOption.userId &&
+  //                   this.userShiftCount[shiftOption.userId] < 6
+  //                 ) {
+  //                   const shiftBefore: boolean =
+  //                     i >= 1
+  //                       ? shiftOption.userId !== scheduleToFill[i - 1].userId
+  //                       : true;
+  //                   const shiftAfter: boolean =
+  //                     i < scheduleToFill.length - 1
+  //                       ? shiftOption.userId !== scheduleToFill[i + 1].userId
+  //                       : true;
+  //                   if (shiftBefore && shiftAfter) {
+  //                     posibleShiftsReplace.push({ ...shiftOption });
+  //                   }
+  //                 }
+  //               });
+  //             });
+  //             console.log({ posibleShiftsReplace });
+  //             //if other user replace other shift and push current shift to user
+  //             if (posibleShiftsReplace.length > 0) {
+  //               const selctedReplaceShift: ShiftDto = this.selcetShiftFromList(
+  //                 posibleShiftsReplace,
+  //                 emptyShift,
+  //               );
+  //               //replace shift and update count
+  //               const shiftToReaplceIndex: number = this.getShiftIndex(
+  //                 selctedReplaceShift,
+  //                 scheduleToFill,
+  //               );
+  //               scheduleToFill[shiftToReaplceIndex] = {
+  //                 userId: selctedReplaceShift.userId,
+  //                 // shiftDate: selctedReplaceShift.shiftDate,
+  //                 shiftEndHour: selctedReplaceShift.shiftEndHour,
+  //                 shiftStartHour: selctedReplaceShift.shiftStartHour,
+  //                 shiftType: selctedReplaceShift.shiftType,
+  //                 userPreference: selctedReplaceShift.userPreference,
+  //                 scheduleId: scheduleToFill[0].scheduleId,
+  //                 // typeOfUser: selctedReplaceShift.userRef.typeOfUser,
+  //               };
+  //               this.userShiftCount[selctedReplaceShift.userId] += 1;
+  //               this.userShiftCount[selctedShift.userId] -= 1;
+  //               possibleForShift.push({
+  //                 id: selctedShift.id,
+  //                 userId: selctedShift.userId,
+  //                 shiftName: selctedShift.shiftName,
+  //                 shiftTimeName: selctedShift.shiftTimeName,
+  //                 createdAt: selctedShift.createdAt,
+  //                 updatedAt: selctedShift.updatedAt,
+  //                 typeOfShift: selctedShift.typeOfShift,
+  //                 shiftEndHour: selctedShift.shiftEndHour,
+  //                 shiftStartHour: selctedShift.shiftStartHour,
+  //                 shiftType: selctedShift.shiftType,
+  //                 userPreference: selctedShift.userPreference,
+  //                 scheduleId: scheduleToFill[0].scheduleId,
+  //                 userRef: selctedShift.userRef,
+  //               });
+  //               backTracking += 1;
+  //               console.log(
+  //                 'backtrack',
+  //                 { backTracking },
+  //                 { selctedReplaceShift },
+  //               );
+  //             }
+  //             //if no reaplce user for other shift try to cancelle user shift with 2 shifts a day
+  //           } else if (
+  //             selctedShift.userId > 0 &&
+  //             this.userShiftCount[selctedShift.userId] === 6
+  //           ) {
+  //             // try to cancele one other shift
+  //             //find other shifts by user , check if possible to make two a day
+  //             //make two a day if possible. notice - if morning shift is missing - chack night shift as well samr for morning
+  //             console.log('too many shifts try to cancelle one ');
+  //             const userOtherShifts: ShiftDto[] = scheduleToFill.filter(
+  //               (shift: ShiftDto) => shift.userId === selctedShift.userId,
+  //             );
 
-              userOtherShifts.forEach(async (shift: ShiftDto) => {
-                let flag = false;
-                if (!flag) {
-                  const newSchedule = await this.twoShiftsADay(
-                    shift.shiftStartHour,
-                    scheduleToFill,
-                    usersShifts,
-                  );
-                  flag = newSchedule?.length > 0;
-                  this.userShiftCount[shift.userId] = flag
-                    ? this.userShiftCount[shift.userId] - 1
-                    : this.userShiftCount[shift.userId];
+  //             userOtherShifts.forEach(async (shift: ShiftDto) => {
+  //               let flag = false;
+  //               if (!flag) {
+  //                 const newSchedule = await this.twoShiftsADay(
+  //                   shift.shiftStartHour,
+  //                   scheduleToFill,
+  //                   usersShifts,
+  //                 );
+  //                 flag = newSchedule?.length > 0;
+  //                 this.userShiftCount[shift.userId] = flag
+  //                   ? this.userShiftCount[shift.userId] - 1
+  //                   : this.userShiftCount[shift.userId];
 
-                  newSchedule?.forEach((shifToUpdate: ShiftDto) => {
-                    const shiftIndex: number = scheduleToFill.findIndex(
-                      (shift: ShiftDto) =>
-                        shift.shiftStartHour.getTime() ===
-                        shifToUpdate.shiftStartHour.getTime(),
-                    );
-                    console.log({ shiftIndex });
-                    if (shiftIndex >= 0) {
-                      scheduleToFill[shiftIndex] = { ...shifToUpdate };
-                    }
+  //                 newSchedule?.forEach((shifToUpdate: ShiftDto) => {
+  //                   const shiftIndex: number = scheduleToFill.findIndex(
+  //                     (shift: ShiftDto) =>
+  //                       shift.shiftStartHour.getTime() ===
+  //                       shifToUpdate.shiftStartHour.getTime(),
+  //                   );
+  //                   console.log({ shiftIndex });
+  //                   if (shiftIndex >= 0) {
+  //                     scheduleToFill[shiftIndex] = { ...shifToUpdate };
+  //                   }
 
-                    console.log('shifts alterd', { newSchedule });
-                  });
-                }
-              });
-              console.log('no shift selected');
-            }
-          }
-        }
-      }
-      if (
-        scheduleToFill[i].userId === undefined &&
-        scheduleToFill[i].shiftTimeName !== 'noonCanceled'
-      ) {
-        noUsersToAssigndShift.push({ ...emptyShift });
-      }
-    }
+  //                   console.log('shifts alterd', { newSchedule });
+  //                 });
+  //               }
+  //             });
+  //             console.log('no shift selected');
+  //           }
+  //         }
+  //       }
+  //     }
+  //     if (
+  //       scheduleToFill[i].userId === undefined &&
+  //       scheduleToFill[i].shiftTimeName !== 'noonCanceled'
+  //     ) {
+  //       noUsersToAssigndShift.push({ ...emptyShift });
+  //     }
+  //   }
 
-    noUsersToAssigndShift.forEach(async (shift) => {
-      console.log('no users to assign 2 shifts a day try ');
-      const shifts = await this.twoShiftsADay(
-        shift.shiftStartHour,
-        scheduleToFill,
-        usersShifts,
-      );
+  //   noUsersToAssigndShift.forEach(async (shift) => {
+  //     console.log('no users to assign 2 shifts a day try ');
+  //     const shifts = await this.twoShiftsADay(
+  //       shift.shiftStartHour,
+  //       scheduleToFill,
+  //       usersShifts,
+  //     );
 
-      if (shifts?.length > 0) {
-        shifts.forEach((shiftToUpdate: ShiftDto) => {
-          const index: number = scheduleToFill.findIndex(
-            (update) =>
-              (update.shiftStartHour.getTime() ===
-                shiftToUpdate.shiftStartHour.getTime() &&
-                shiftToUpdate.typeOfShift === 'long') ||
-              (update.shiftEndHour.getTime() ===
-                shiftToUpdate.shiftEndHour.getTime() &&
-                shiftToUpdate.typeOfShift === 'long'),
-          );
+  //     if (shifts?.length > 0) {
+  //       shifts.forEach((shiftToUpdate: ShiftDto) => {
+  //         const index: number = scheduleToFill.findIndex(
+  //           (update) =>
+  //             (update.shiftStartHour.getTime() ===
+  //               shiftToUpdate.shiftStartHour.getTime() &&
+  //               shiftToUpdate.typeOfShift === 'long') ||
+  //             (update.shiftEndHour.getTime() ===
+  //               shiftToUpdate.shiftEndHour.getTime() &&
+  //               shiftToUpdate.typeOfShift === 'long'),
+  //         );
 
-          if (index >= 0) {
-            scheduleToFill[index] = { ...shiftToUpdate };
-          }
-        });
+  //         if (index >= 0) {
+  //           scheduleToFill[index] = { ...shiftToUpdate };
+  //         }
+  //       });
 
-        // console.log({shifts})
-      }
-    });
-    // console.log({ scheduleToFill });
-    const emptyShifts = scheduleToFill.filter(
-      (shift: ShiftDto) => shift.userPreference === '0',
-    );
-    console.log(this.userShiftCount);
-    // console.log({emptyShifts})
-    return { scheduleToFill, emptyShifts };
-  }
+  //       // console.log({shifts})
+  //     }
+  //   });
+  //   // console.log({ scheduleToFill });
+  //   const emptyShifts = scheduleToFill.filter(
+  //     (shift: ShiftDto) => shift.userPreference === '0',
+  //   );
+  //   console.log(this.userShiftCount);
+  //   // console.log({emptyShifts})
+  //   return { scheduleToFill, emptyShifts };
+  // }
   getShiftIndex(shift: ShiftDto, shiftArr) {
     shiftArr.forEach((shiftToCheck: shift, index: number) => {
       if (
