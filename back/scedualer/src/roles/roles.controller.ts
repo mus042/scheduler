@@ -3,6 +3,7 @@ import { JwtGuard } from 'src/auth/Guard';
 import { RoleGuard } from 'src/auth/role/role.guard';
 import { Roles } from 'src/auth/roles/roles.decorator';
 import { RolesService } from './roles.service';
+import { GetUser } from 'src/Decorator';
 
 
 
@@ -17,8 +18,9 @@ export class RolesController {
 
     @Roles('admin',)
   @Get('allRoles')
-  getAllRoles() {
-    return this.rolesService.getAllRoles();
+  getAllRoles(@GetUser('facilityId') facilityId: number) {
+    //All Roles for spacific facility 
+    return this.rolesService.getAllRoles(facilityId);
   }
 
   @Roles('admin', 'user')

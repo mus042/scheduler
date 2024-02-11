@@ -25,6 +25,7 @@ export class SystemShiftDTO {
   createdAt?: Date;
   updatedAt?: Date;
 
+    userId?:number;
   @IsString()
   shiftName?: string;
   @IsString()

@@ -18,16 +18,16 @@ const EditPrefDayView = ({ dayName, date, dayShifts, updateShifts }) => {
     noon: string;
     night: string;
   }>({
-    morning: dayShifts[0].userPreference,
-    noon: dayShifts[1].userPreference,
-    night: dayShifts[2].userPreference,
+    morning: dayShifts[0]?.userPreference,
+    noon: dayShifts[1]?.userPreference,
+    night: dayShifts[2]?.userPreference,
   });
 
   useEffect(() => {
     setLocalPref({
-      morning: dayShifts[0].userPreference,
-      noon: dayShifts[1].userPreference,
-      night: dayShifts[2].userPreference,
+      morning: dayShifts[0]?.userPreference,
+      noon: dayShifts[1]?.userPreference,
+      night: dayShifts[2]?.userPreference,
     });
   }, [dayShifts]);
 

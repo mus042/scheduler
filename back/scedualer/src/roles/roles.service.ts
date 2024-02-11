@@ -11,9 +11,11 @@ export class RolesService {
 
 
 
-      async getAllRoles(){
+      async getAllRoles(facilityId:number){
         try {
-            const allRoles = this.prisma.role.findMany();
+            const allRoles = this.prisma.role.findMany({where:{
+                facilityId:facilityId
+            }});
             return allRoles;
         } catch (error) {
             console.log({error})

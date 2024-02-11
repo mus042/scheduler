@@ -122,6 +122,7 @@ model UserProfile {
 model Facility {
   id           Int            @id @default(autoincrement())
   name         String         @unique
+  Roles       Role[]
   users        user[]
   scheduleMold ScheduleMold[]
   schedules schedule[]
@@ -241,6 +242,8 @@ model Role {
   id              Int              @id @default(autoincrement())
   name            String           @unique
   description     String?
+  facilityId    Int
+facility         Facility         @relation(fields: [facilityId], references: [id])
   shiftMolds      RoleShiftMold[]
   sysShifts       shift[]
   users           user[]           @relation("UserRole")

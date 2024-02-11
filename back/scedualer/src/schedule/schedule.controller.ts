@@ -114,9 +114,9 @@ export class SchedulerController {
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
   @Post('createSchedule')
-  createSchedule(@Body() scheduleDto) {
+  createSchedule(@Body() scheduleDto,@GetUser('facilityId') facilityId: number) {
     console.log("schecdcont ", { scheduleDto });
-    return this.ScheduleService.createSystemSchedule(scheduleDto);
+    return this.ScheduleService.createSystemSchedule({...scheduleDto,facilityId});
   }
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
