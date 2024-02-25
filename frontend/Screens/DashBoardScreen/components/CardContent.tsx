@@ -7,23 +7,26 @@ import FindReplacmentComp from './FindReplacmentComp';
 
 const CardContent = ({name,shift,user,handelAskReplace})=>{
     const[findReplaceVisible,setfindReplaceVisible] = useState(false);
-   
+   console.log({shift})
     
 
 
     //To Add shift roles map 
     const AssigndComp = ()=>{
-console.log(shift.shiftRoles)
+console.log(shift)
         return(
          <View>
-           {shift.shiftRoles && shift.shiftRoles.map((shiftRole,index)=> (
-            <View key={index}>
+           {shift && shift.map((shiftRole,index)=> (
+            shiftRole.shiftTimeName !== 'noonCanceled' && <View key={index}>
             <View>
           
               <Text variant="labelLarge">
-                {shiftRole.role.name} Assiged: {shiftRole.user?.userProfile?.lastName}{", "}
-                {shiftRole.user?.userProfile?.firstName}
-              </Text>
+                {shiftRole.shiftName } Assiged: {shiftRole.userRef?.userProfile.lastName}{", "}
+                {shiftRole.userRef?.userProfile.firstName}
+              </Text> 
+               <Text variant='labelMedium'>
+                {shiftRole.shiftStartHour.substring(11,16)} - {shiftRole.shiftEndHour.substring(11,16)}
+               </Text>
             </View>
             {(user?.id === shift?.userId ||
               user?.userRole === "admin") && (
@@ -75,10 +78,10 @@ console.log(shift.shiftRoles)
       <Text variant="titleMedium" style={{ textAlign: "center" }}>
         {name},
       </Text>
-      <Text variant="labelLarge" style={{ textAlign:"center",alignItems:'flex-end',alignSelf:'flex-end', }}>
+      {/* <Text variant="labelLarge" style={{ textAlign:"center",alignItems:'flex-end',alignSelf:'flex-end', }}>
         {normalizeShiftTime(shift.shiftStartHour)} -{" "}
         {normalizeShiftTime(shift.shiftEndHour)}
-      </Text>
+      </Text> */}
     </View>
     <View>
       <View

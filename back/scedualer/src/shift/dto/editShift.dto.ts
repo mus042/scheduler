@@ -13,4 +13,6 @@ export class EditShiftDto {
 
   @IsString()
   userPreference: string;
+
+  shiftType: "user"|"system"
 }

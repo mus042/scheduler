@@ -1,4 +1,4 @@
-import { UserPreference, shift, typeOfShift, user } from '@prisma/client';
+import { UserPreference, typeOfShift, user } from '@prisma/client';
 import {
   IsEnum,
   IsNumber,

@@ -41,6 +41,7 @@ const UserNextScheduleComp = ({
       console.log("useEffect 16 ", { nextSchedule });
       const days = dueDateSchedule();
       setDaysToSubmit(days);
+      nextSchedule.data.scheduleType = 'user';
       setLocalNextSched(nextSchedule.data);
       if (typeof nextSchedule.shifts === "object") {
         console.log("object to arr ");
@@ -177,6 +178,7 @@ const UserNextScheduleComp = ({
                   scheduleInfo={nextSchedule?.data}
                   shifts={scheduleShifts}
                   update={handleUpdate}
+                  type={"user"}
                 />
                 </View>               
                  <View style={{flex:1,margin:3,}}>
@@ -195,7 +197,7 @@ const UserNextScheduleComp = ({
   
   </View>
 </View>
-              {nextSchedule?.data?.scheduleType === "userSchedule"
+              {nextSchedule?.data?.isLocked !== undefined
               &&(
                 <View
                   style={{ flex: 1, justifyContent: "center" ,flexDirection:'row' ,alignSelf:'center', margin:1}}

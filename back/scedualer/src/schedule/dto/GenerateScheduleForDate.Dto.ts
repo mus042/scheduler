@@ -8,7 +8,7 @@ import {
   IsString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { shift, user } from '@prisma/client';
+import {  user } from '@prisma/client';
 
 export class generateScheduleForDateDto {
   @Type(() => Date)

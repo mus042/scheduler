@@ -67,6 +67,7 @@ const SystemNextSchedule = ({
               scheduleInfo={nextSchedule?.data}
               shifts={scheduleShifts}
               update={null}
+              type={'systemSchedule'}
             />
 
 

@@ -9,7 +9,8 @@ import { serverToClientEvents } from './types/events';
 import {
   PrismaClient,
   UserProfile,
-  shift,
+  systemShift,
+  userShift,
   user,
   userRequest,
 } from '@prisma/client';
@@ -64,7 +65,7 @@ export class EventsGateway implements OnModuleInit {
                   },
                 });
 
-              const shift: shift = await this.prismaService.shift.findUnique({
+              const shift: systemShift = await this.prismaService.systemShift.findUnique({
                 where: {
                   id: req.shiftId,
                 },

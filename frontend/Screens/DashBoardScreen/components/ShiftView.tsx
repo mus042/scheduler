@@ -30,24 +30,39 @@ const ShiftView = ({
   const [localShift, setShift] = useState<shift[]>();
   const [shiftUser, setUser] = useState<user>();
   const [findReplaceVisible, setfindReplaceVisible] = useState(false);
-
+  const [systemShifts,setSystemShifts] = useState<Record<string, shift[]>>();
   const user = userAuth()?.authState?.user ?? null;
 
   useEffect(() => {
     //Update Shift and user
-    console.log({ shifts });
+    console.log('shift view shift',{ shifts });
     if (shifts) {
+      //if system schedule - group same time shifts together by shiftTimeName
+      if (viewType === 'systemSchedule') {
+        const groupedShifts = shifts.reduce((acc: Record<string, shift[]>, shift: shift) => {
+          // Initialize the array if this is the first shift of its kind
+          if (!acc[shift.shiftTimeName]) {
+            acc[shift.shiftTimeName] = [];
+          }
+      
+          // Add the shift to the array for its shiftTimeName
+          acc[shift.shiftTimeName].push(shift);
+      
+          return acc;
+        }, {});
+        console.log("grouped shifts ",{groupedShifts});
+        setSystemShifts({...groupedShifts})
+      }
       setShift([...shifts]);
-
       // if (shifts.userRef) {
       //   // console.log(shift.userRef);
       //   setUser(shift.userRef);
       // }
     }
   }, [shifts]);
-  const shiftContainerStyle = () => {
-    return localShift?.userId === null ? styles.noUser : null;
-  };
+  // const shiftContainerStyle = () => {
+  //   return localShift?.userId === null ? styles.noUser : null;
+  // };
 
   const handelFindReplace = async (shift: shift | undefined) => {
     console.log("find replace ", shift, shift?.id);
@@ -88,7 +103,8 @@ const ShiftView = ({
         />
         <Card.Content>
           <View>
-        {shifts.map((shiftToCard, index)=><CardContent key={index} shift={shiftToCard} name={shiftToCard.shiftTimeName} user={user}  handelAskReplace={handelFindReplace}/>)}
+        {/* {shifts.map((shiftToCard, index)=><CardContent key={index} shift={shiftToCard} name={shiftToCard.shiftTimeName} user={user}  handelAskReplace={handelFindReplace}/>)} */}
+        {systemShifts && Object.entries(systemShifts).map(([key, values])=><CardContent key={key} shift={values} name={values[0].shiftTimeName} user={user}  handelAskReplace={handelFindReplace}/>)}
              </View>
         </Card.Content>
         <Card.Actions>

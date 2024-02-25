@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RequestDto } from './dto/request.dto';
-import { UserProfile, shift, user, userRequest } from '@prisma/client';
+import { UserProfile, systemShift, user, userRequest } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
 import { request } from 'http';
 import { Socket } from 'socket.io';
@@ -49,7 +49,7 @@ export class UserRequestService {
           lastName: true,
         },
       });
-      const shift: shift = await this.prisma.shift.findUnique({
+      const shift: systemShift = await this.prisma.systemShift.findUnique({
         where: {
           id: result.shiftId,
         },

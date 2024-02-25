@@ -1,4 +1,3 @@
-import { shift } from '@prisma/client';
 
 export class UpdateStatsDto {
   id?: number;

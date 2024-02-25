@@ -23,9 +23,10 @@ export class UserStatisticsController {
   ) {
     const scehdId: number = parseInt(scheduleId);
     console.log('user statistic for schedule', { userId }, { scehdId });
-    return this.UserStatisticsService.getStatisticsForUserSchedule(
+    return this.UserStatisticsService.getStatisticsForUserOrSystemSchedule(
       userId,
       scehdId,
+      true,
     );
   }
   @Roles('admin', 'user')

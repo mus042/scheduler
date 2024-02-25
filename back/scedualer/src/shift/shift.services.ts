@@ -1,13 +1,13 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ShiftDto, shiftMoldDto } from './dto';
+import { ShiftDto, SystemShiftDTO, shiftMoldDto } from './dto';
 import { AuthDto } from '../auth/dto/';
 import {
   ScheduleMoldPayload,
   ScheduleTime,
   ShiftUserStatistic,
-  scheduleType,
-  shift,
+  userShift,
+  systemShift,
   user,
 } from '@prisma/client';
 import { EditShiftDto } from './dto/editShift.dto';
@@ -26,14 +26,13 @@ export class ShiftService {
    * @memberof ShiftService
    */
 
-  async creatShift(userId: number, dto: ShiftDto) {
+  async creatShift(userId: number, dto: ShiftDto,shiftType) {
     try {
       console.log({ dto });
-       const shift = dto.shiftRole
-        ? await this.prisma.shift.create({
+       const shift = shiftType === 'user'
+        ? await this.prisma.userShift.create({
             data: {
               userId: userId,
-              shiftType: dto.shiftType,
               shiftName: dto.shiftName ? dto.shiftName : dto.shiftType,
               userPreference: dto.userPreference,
               shiftTimeName: dto.shiftTimeName,
@@ -41,19 +40,11 @@ export class ShiftService {
               shiftEndHour: dto.shiftEndHour,
               typeOfShift: dto.typeOfShift,
               scheduleId: dto.scheduleId,
-              // shiftRoles: {
-              //   create: dto.shiftRoles.map((role) => ({
-              //     roleId: role.roleId,
-              //     userId: role.userId,
-              //     scheduleId: dto.scheduleId,
-              //   })),
-              // },
             },
           })
-        : await this.prisma.shift.create({
+        : await this.prisma.systemShift.create({
             data: {
               userId: userId,
-              shiftType: dto.shiftType,
               shiftName: dto.shiftName ? dto.shiftName : dto.shiftType,
               userPreference: dto.userPreference,
               shiftTimeName: dto.shiftTimeName,
@@ -70,17 +61,17 @@ export class ShiftService {
     }
   }
 
-  async creatNoUserShift(dto: ShiftDto) {
+  async creatNoUserSystemShift(dto: ShiftDto) {
     //try create new shift
     try {
       console.log({ ShiftDto });
-      const shift = await this.prisma.shift.create({
+      const shift = await this.prisma.systemShift.create({
         data: {
           userId: dto.userId,
           shiftTimeName: dto.shiftTimeName,
           shiftName: dto.shiftName || dto.shiftType + '_' + dto.typeOfShift,
           userPreference: dto.userPreference,
-          shiftType: dto.shiftType,
+          shiftRoleId:dto.shiftRoleId,
           shiftStartHour: dto.shiftStartHour,
           shiftEndHour: dto.shiftEndHour,
           typeOfShift: dto.typeOfShift,
@@ -94,14 +85,14 @@ export class ShiftService {
     }
   }
 
-  async editShift(dto: EditShiftDto) {
+  async editUserShift(dto: EditShiftDto) {
     if (Number(dto.userPreference) > 3 || Number(dto.userPreference) < 0) {
-      console.log('true');
       throw new ForbiddenException('userPref number is bigger then alowed');
     }
     try {
       console.log('edit shift ', { dto });
-      const shift = await this.prisma.shift.update({
+
+      const shift =  await this.prisma.userShift.update({
         where: {
           id: dto.shiftId,
         },
@@ -123,7 +114,7 @@ export class ShiftService {
     //update shift - Replace the user for existing shift, return new shift
     try {
       console.log({ shiftInfo }, shiftInfo.shift.id);
-      const formershfit = await this.prisma.shift.findUnique({
+      const formershfit = await this.prisma.userShift.findUnique({
         where: { id: shiftInfo.shift.id },
         select: {
           userId: true,
@@ -135,7 +126,8 @@ export class ShiftService {
       // Update the userId of the shift record
       const userId = shiftInfo.newUser;
       const shiftId = shiftInfo.shift.id;
-      const updatedShift: shift = await this.prisma.shift.update({
+      //get user Prefrence for this shift tima **TOADD*
+      const updatedShift: userShift = await this.prisma.systemShift.update({
         where: {
           id: shiftId,
         },
@@ -144,54 +136,54 @@ export class ShiftService {
         },
       });
 
-      //get usersshifts Stats and update them
-      const originalUserShiftStats =
-        await this.prisma.shiftUserStatistic.findUnique({
-          where: {
-            userId_scheduleId: {
-              userId: originalUserId,
-              scheduleId: shiftInfo.schedualId,
-            },
-          },
-        });
-      //change count
-      if (shiftInfo.shiftType === 'morning') {
-        originalUserShiftStats.morningShifts =
-          originalUserShiftStats.morningShifts - 1;
-      } else if (shiftInfo.shiftType === 'noon') {
-        originalUserShiftStats.noonShifts =
-          originalUserShiftStats.noonShifts - 1;
-      } else if (shiftInfo.shiftType === 'night') {
-        originalUserShiftStats.nightShifts =
-          originalUserShiftStats.nightShifts - 1;
-      }
-      const updateOriginalUserStat: UsershiftStats = {
-        ...originalUserShiftStats,
-      };
-      const newUserShiftStats = await this.prisma.shiftUserStatistic.findUnique(
-        {
-          where: {
-            userId_scheduleId: {
-              userId: shiftInfo.newUser,
-              scheduleId: shiftInfo.schedualId,
-            },
-          },
-        },
-      );
-      //change count
-      if (shiftInfo.shiftType === 'morning') {
-        originalUserShiftStats.morningShifts =
-          originalUserShiftStats.morningShifts - 1;
-      } else if (shiftInfo.shiftType === 'noon') {
-        originalUserShiftStats.noonShifts =
-          originalUserShiftStats.noonShifts - 1;
-      } else if (shiftInfo.shiftType === 'night') {
-        originalUserShiftStats.nightShifts =
-          originalUserShiftStats.nightShifts - 1;
-      }
-      const updateNewUserStat: UsershiftStats = {
-        ...originalUserShiftStats,
-      };
+      // //get usersshifts Stats and update them
+      // const originalUserShiftStats =
+      //   await this.prisma.shiftUserStatistic.findUnique({
+      //     where: {
+      //       userId_scheduleId: {
+      //         userId: originalUserId,
+      //         scheduleId: shiftInfo.schedualId,
+      //       },
+      //     },
+      //   });
+      // //change count
+      // if (shiftInfo.shiftType === 'morning') {
+      //   originalUserShiftStats.morningShifts =
+      //     originalUserShiftStats.morningShifts - 1;
+      // } else if (shiftInfo.shiftType === 'noon') {
+      //   originalUserShiftStats.noonShifts =
+      //     originalUserShiftStats.noonShifts - 1;
+      // } else if (shiftInfo.shiftType === 'night') {
+      //   originalUserShiftStats.nightShifts =
+      //     originalUserShiftStats.nightShifts - 1;
+      // }
+      // const updateOriginalUserStat: UsershiftStats = {
+      //   ...originalUserShiftStats,
+      // };
+      // const newUserShiftStats = await this.prisma.shiftUserStatistic.findUnique(
+      //   {
+      //     where: {
+      //       userId_scheduleId: {
+      //         userId: shiftInfo.newUser,
+      //         scheduleId: shiftInfo.schedualId,
+      //       },
+      //     },
+      //   },
+      // );
+      // //change count
+      // if (shiftInfo.shiftType === 'morning') {
+      //   originalUserShiftStats.morningShifts =
+      //     originalUserShiftStats.morningShifts - 1;
+      // } else if (shiftInfo.shiftType === 'noon') {
+      //   originalUserShiftStats.noonShifts =
+      //     originalUserShiftStats.noonShifts - 1;
+      // } else if (shiftInfo.shiftType === 'night') {
+      //   originalUserShiftStats.nightShifts =
+      //     originalUserShiftStats.nightShifts - 1;
+      // }
+      // const updateNewUserStat: UsershiftStats = {
+      //   ...originalUserShiftStats,
+      // };
 
       return updatedShift;
     } catch (error) {
@@ -199,11 +191,17 @@ export class ShiftService {
       return {};
     }
   }
-  async getAllShiftsByUserId(userId: number) {
+  async getAllShiftsByUserId(userId: number , shiftType:"user"|"system") {
     if (userId) {
       const id: number = userId;
       try {
-        const shifts = await this.prisma.shift.findMany({
+        const shifts = shiftType==='user' ?await this.prisma.userShift.findMany({
+          where: {
+            userId: {
+              equals: id,
+            },
+          },
+        }):await this.prisma.systemShift.findMany({
           where: {
             userId: {
               equals: id,
@@ -217,14 +215,14 @@ export class ShiftService {
       }
     }
   }
-  async getAllShiftsByScheduleId(scheduleId: number) {
+  async getAllUserShiftsByScheduleId(scheduleId: number) {
     //return shifts array of all the shifts under scheduleId
     const id: number = scheduleId;
     console.log({scheduleId},"scheudule id")
     console.log("scheudule id")
     console.log("scheudule id")
     try {
-      const shifts = await this.prisma.shift.findMany({
+      const shifts = await this.prisma.userShift.findMany({
         where: {
           scheduleId: {
             equals: id,
@@ -245,11 +243,50 @@ export class ShiftService {
       console.log(eror);
     }
   }
-
-  async getShiftById(shiftId: number) {
+  async getAllSystemShiftsByScheduleId(scheduleId: number) {
+    //return shifts array of all the shifts under scheduleId
+    const id: number = scheduleId;
+    console.log({scheduleId},"scheudule id")
+    console.log("scheudule id")
+    console.log("scheudule id")
+    try {
+      const shifts = await this.prisma.systemShift.findMany({
+        where: {
+          scheduleId: {
+            equals: id,
+          },
+        },
+        include: {
+          userRef:{
+            select: {
+              email: true,
+              userProfile: true, // Ensure userProfile is correctly related and queryable
+            },
+          },
+       
+        },
+      });
+      // console.log({ shifts });
+      shifts.forEach((element) => {
+        delete element.userRef?.hash;
+      });
+      // console.log({ shifts }, typeof shifts);
+      return shifts;
+    } catch (eror) {
+      console.log(eror);
+    }
+  }
+  async getShiftById(shiftId: number,shiftType:"user"|"system") {
     //return shift by unique shiftId
     try {
-      const shift: shift = await this.prisma.shift.findUnique({
+      const shift: userShift | systemShift = shiftType === 'user'? await this.prisma.userShift.findUnique({
+        where: {
+          id: shiftId,
+        },
+        include: {
+          userRef: true,
+        },
+      }):await this.prisma.userShift.findUnique({
         where: {
           id: shiftId,
         },
@@ -270,7 +307,7 @@ export class ShiftService {
         : {};
       userRef.id && delete userRef.hash;
 
-      const shiftDto: ShiftDto = { ...shift, userRef };
+      const shiftDto: ShiftDto = { ...shift, userRef ,shiftType:shiftType };
       return shiftDto;
     } catch (eror) {
       console.log({ eror });
@@ -281,9 +318,13 @@ export class ShiftService {
     }
   }
 
-  async deleteShiftById(shiftId: number) {
+  async deleteShiftById(shiftId: number,shiftType:string) {
     try {
-      const shift = await this.prisma.shift.delete({
+      const shift = shiftType === 'user' ? await this.prisma.systemShift.delete({
+        where: {
+          id: shiftId,
+        },
+      }):await this.prisma.systemShift.delete({
         where: {
           id: shiftId,
         },
@@ -297,42 +338,6 @@ export class ShiftService {
       throw new ForbiddenException(eror);
     }
   }
-
-  //This function is replacved by the next one
-  // async getShiftByDateScheduleId(dateofShift: Date, scheduleId: number) {
-  //   //return a shift of scedualId and Date
-  //   //To cheack if work
-  //   // console.log({editShiftByDateDto});
-  //   try {
-  //     const shiftDate = new Date(dateofShift);
-  //     // console.log({dateofShift,scheduleId})
-  //     const shift = await this.prisma.shift.findFirst({
-  //       //change to find uniqe
-  //       where: {
-  //         scheduleId: {
-  //           equals: scheduleId,
-  //         },
-  //         shiftDate: {
-  //           equals: shiftDate,
-  //         },
-  //       },
-  //     });
-  //     const userRef: user = await this.prisma.user.findUnique({
-  //       where: {
-  //         id: shift.userId,
-  //       },
-  //     });
-  //     delete userRef.hash;
-  //     const shiftDto: ShiftDto = { ...shift, userRef };
-  //     return shiftDto;
-  //   } catch (eror) {
-  //     console.log({ eror });
-  //     if (eror.code === 'P2025') {
-  //       throw new ForbiddenException('shift not fond ');
-  //     }
-  //     throw new ForbiddenException(eror);
-  //   }
-  // }
 
   /**
    * @description return first shift for param and date.
@@ -364,7 +369,7 @@ export class ShiftService {
         },
       };
 
-      const shift = await this.prisma.shift.findFirst({
+      const shift = await this.prisma.userShift.findFirst({
         where: whereClause,
         include: {
           userRef: true, // Include the user reference if needed
@@ -382,14 +387,17 @@ export class ShiftService {
     }
   }
 
-  async getShiftByDateSchedType(shiftDate: Date, schedtype: scheduleType) {
+  async getShiftByDateSchedType(shiftDate: Date, shiftType: 'system' | 'user') {
     try {
-      const shift: shift = await this.prisma.shift.findFirst({
+      const shift: userShift | systemShift = shiftType === 'user'? await this.prisma.userShift.findFirst({
         where: {
           shiftStartHour: shiftDate,
-          shiftType: schedtype,
         },
-      });
+      }): await this.prisma.userShift.findFirst({
+        where: {
+          shiftStartHour: shiftDate,
+        },
+      });;
       return shift;
     } catch (eror) {
       console.log(eror);
@@ -397,12 +405,12 @@ export class ShiftService {
     }
   }
   async updateShiftById(
-    oldShift: shift | ShiftDto,
-    newShift: shift | ShiftDto,
+    oldShift: userShift |systemShift | ShiftDto,
+    newShift: userShift |systemShift | ShiftDto,
   ) {
-    let updatedShift: shift = undefined;
+    let updatedShift: userShift |systemShift  = undefined;
     try {
-      updatedShift = await this.prisma.shift.update({
+      updatedShift =  await this.prisma.userShift.update({
         where: {
           id: oldShift.id,
         },
@@ -410,7 +418,7 @@ export class ShiftService {
           shiftStartHour: newShift.shiftStartHour,
           shiftEndHour: newShift.shiftEndHour,
           userId: newShift.userId,
-          shiftType: newShift.shiftType,
+         
         },
       });
       return updatedShift;
@@ -425,19 +433,18 @@ export class ShiftService {
    * @returns {*}
    * @memberof ShiftService
    */
-  async getNextShift(userId: number) {
+  async getNextSystemShift(userId: number) {
     const currentDate = new Date();
     console.log({ currentDate });
     try {
       console.log('nextShift');
       const currentDate = new Date(); // Make sure currentDate is defined and holds the current date-time
-      const nextShift = await this.prisma.shift.findFirst({
+      const nextShift = await this.prisma.systemShift.findFirst({
         where: {
           shiftStartHour: {
             gt: currentDate, // Filter for shifts that have a startTime greater than the current date and time
           },
           userId: userId, // Filter for shifts that belong to the given userId
-          shiftType: 'systemSchedule',
         },
         include: {
           userRef: true,
@@ -448,7 +455,7 @@ export class ShiftService {
       });
 
       nextShift?.userRef && delete nextShift.userRef.hash;
-      const shiftDto: ShiftDto = { ...nextShift };
+      const shiftDto: ShiftDto = { ...nextShift,shiftType:'system' };
       return shiftDto;
     } catch (error) {
       console.error(error);
@@ -456,26 +463,6 @@ export class ShiftService {
   }
   async updateUserForShift(shiftId: number, newUserId: number) {}
 
-  classifyShiftTypeForStats(shiftStart: Date, shiftEnd: Date) {
-    if (!shiftStart) {
-      throw new ForbiddenException('Date unexpcted');
-    } else {
-      if (shiftStart.getHours() >= 5 && shiftStart.getHours() < 13) {
-        return 'morning';
-      } else if (
-        shiftStart.getHours() >= 13 &&
-        shiftStart.getHours() <= 21 &&
-        shiftEnd.getHours() <= 24
-      ) {
-        return 'noon';
-      } else {
-        return 'night';
-      }
-    }
-  }
-  getShiftTypeName(shift) {
-    //Return the shift type by shiftTypeId;
-  }
 
   /**
    * @description Check if shift is in the res day hours.

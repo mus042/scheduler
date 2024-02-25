@@ -2,8 +2,7 @@ import {
     Role,
   UserPreference,
  
-  scheduleType,
-  shift,
+  
   shiftTimeClassification,
   typeOfShift,
   user,
@@ -20,14 +19,15 @@ import {
 export class SystemShiftDTO {
   @IsOptional()
   @IsNumber()
-  id?: number;
+  id?: number; 
+  tmpId?:number;
   @IsOptional()
   createdAt?: Date;
   updatedAt?: Date;
 
     userId?:number;
   @IsString()
-  shiftName?: string;
+  shiftName: string;
   @IsString()
   shiftStartHour: Date;
   @IsString()
@@ -43,11 +43,11 @@ export class SystemShiftDTO {
 
   @IsOptional()
   shiftMoldId?: number;
-  shiftRole: Role | object;
+  shiftRole:{ id: number; name: string; description: string; facilityId: number; roleId?:number,role?:{name:string,id:number}} ;
   @IsOptional()
   @IsNumber()
   scheduleId?: number;
-  @IsEnum(scheduleType)
-  shiftType: scheduleType;
+  @IsString()
+  shiftType: "user"|"system";
 
   }

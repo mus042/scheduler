@@ -23,7 +23,7 @@ const DayViewComp = ({
   shifts: shift[] | undefined | any;
   update: any;
   isEdit: boolean | undefined;
-  viewType: "systemSchedule" | "userSchedule" | undefined;
+  viewType: "systemSchedule" | "user" | undefined;
 }) => {
   const [localShifts, setlocalShifts] = useState<shift[]>();
   const [editDay, setEdit] = useState(isEdit !== undefined ? !isEdit:false);
@@ -52,7 +52,7 @@ const DayViewComp = ({
   useEffect(() => {
     // console.log("view Type ", viewType, { localShifts });
     if (localShifts) {
-      // console.log("useEffect Dayview : ", localShifts[0].userRef);
+      console.log("useEffect Dayview : ",{viewType}, {localShifts});
       // console.log(morning,noon,night,nightUser);
 
       const shiftDate: Date = new Date(localShifts[0]?.shiftStartHour);
@@ -76,7 +76,7 @@ const DayViewComp = ({
  
   const handelEditShift = (shift: shift | undefined) => {
     if(shift){
-    if (viewType === "userSchedule") {
+    if (viewType === "user") {
       // edit prefernce for future schedule
       if(localShifts){
         const index = localShifts.findIndex((localShift)=> localShift.id === shift?.id )
@@ -149,8 +149,7 @@ const DayViewComp = ({
       return (
         <View>
           <Text>
-            {item.shiftRoles?.user.firstName},{item.shiftRoles?.user.lastName} ,
-            {item.shiftRoles?.userId}
+            Cahnge 
           </Text>
           <View>
             <Pressable onPress={() => handelAskReplace(item.userRef?.id)}>
@@ -188,7 +187,7 @@ const DayViewComp = ({
     <View style={styles.centeredView}>
       {localShifts && (
         <View style={[styles.modalView,]}>
-          {viewType === 'userSchedule' && <EditPrefDayView dayName={dayName.split(',')[0]} date={dayName.split(',')[1]} dayShifts={localShifts} updateShifts={updateShifts}/>}
+          {viewType === 'user' && <EditPrefDayView dayName={dayName.split(',')[0]} date={dayName.split(',')[1]} dayShifts={localShifts} updateShifts={updateShifts}/>}
           {viewType === 'systemSchedule' && (
   <>
     <ShiftView shifts={localShifts} viewType={'systemSchedule'} dayName={dayName.split(',')[0]} />

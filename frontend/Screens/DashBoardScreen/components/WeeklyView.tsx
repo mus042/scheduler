@@ -11,10 +11,12 @@ const WeeklyView = ({
   shifts,
   update,
   scheduleInfo,
+  type,
 }: {
   shifts: shift[] | undefined;
   update: any;
   scheduleInfo: scheduleInfo | undefined;
+  type: "systemSchedule" | "user" | undefined;
 }) => {
   
 
@@ -28,7 +30,7 @@ const WeeklyView = ({
     }
   }, [shifts]);
   useEffect(() => {
-    console.log("localShifts:", localShifts);
+    console.log("localShifts:", localShifts,{type});
   }, [localShifts]);
 
   const hadelUpdate = (arr) => {
@@ -50,39 +52,42 @@ const WeeklyView = ({
     }
     return 0;
   }
-
+ function comperShiftById (shiftA, shiftB){
+  return shiftA.id < shiftB.id ? -1 :1;
+ }
   const handelModalVisible = () => {
     setEditShiftModal(!editShiftModal);
   };
 
   const createWeeklyView = (shiftsData: shift[]) => {
-    console.log({ shiftsData }, Object.keys(shiftsData).length > 0);
+    console.log({ shiftsData },"type of weekly view ",{type}, Object.keys(shiftsData).length > 0);
     if (Object.keys(shiftsData).length > 0) {
       const weekArr: shift[][] = [];
-      shiftsData.sort(compareShifts);
-      console.log({ shiftsData });
+     type ==='systemSchedule'?shiftsData.sort(compareShifts): shiftsData.sort(compareShifts);
+      console.log('sorted shifts data ',{ shiftsData });
 
       for (let i = 0; i < shiftsData.length; i += 1) {
         // const utcDate = new Date(shiftsData[i].shiftStartHour);
         const dateOfShift:string = shiftsData[i].shiftStartHour?.slice(0,10);
         // console.log({ utcDate },{dateOfShift},{i});
-        console.log(shiftsData[i])
-        console.log(shiftsData[i].shiftStartHour);
+   
+        console.log("shifts data at i ",{shiftsData},shiftsData[i].shiftStartHour,"type of starthour : ", typeof shiftsData[i].shiftStartHour);
         const dayShifts: shift[] = [];
         let dateToCheck =shiftsData[i].shiftStartHour?.slice(0,10);//set the date from string
+        console.log("date to check ",{dateToCheck})
         while (dateToCheck === dateOfShift && i < shiftsData.length) {
         
           dayShifts.push({ ...shiftsData[i] });
           i += 1;
           // console.log('while loop ',{i},dateToCheck === dateOfShift, dateToCheck,utcDate.getDay())
           if(i<shiftsData.length-1){
-            console.log({dateToCheck},dateToCheck);
+            console.log({dateToCheck},);
             dateToCheck = shiftsData[i].shiftStartHour?.slice(0,10);
           // if(dateToCheck.getUTCHours() === 1){   
           //   dateToCheck = new Date (dateToCheck.getTime() -1 );
           //   dateToCheck.setHours(dateToCheck.getHours()); 
           // }
-          // console.log(dateToChek,shiftsData[i].shiftStartHour);
+          console.log({dateToCheck},shiftsData[i].shiftStartHour);
           
         }
       }
@@ -117,7 +122,7 @@ const WeeklyView = ({
             shifts={shifts}
             isEdit={true}
             update={hadelUpdate}
-            viewType={scheduleInfo?.scheduleType}
+            viewType={type}
           />
           
         )}

@@ -1,8 +1,7 @@
 import {
   UserPreference,
 
-  scheduleType,
-  shift,
+
   shiftTimeClassification,
   typeOfShift,
   user,
@@ -48,8 +47,8 @@ export class ShiftDto {
   @IsOptional()
   @IsNumber()
   scheduleId?: number;
-  @IsEnum(scheduleType)
-  shiftType: scheduleType;
+  
+  shiftType: "user"|"system";
 
   userPref?: UserPreference;
 }

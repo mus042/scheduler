@@ -72,13 +72,13 @@ export type userRequest = {
 };
 
 export type scheduleInfo = {
-  id: number | undefined;
+  id?: number | undefined;
   createdAt: Date | undefined;
   updatedAt: Date | undefined;
-
+  isLocked?: boolean  | undefined;
   scedualStart: Date | undefined;
   scedualEnd: Date | undefined;
-  scheduleType: "systemSchedule" | "userSchedule" | undefined;
+  scheduleType: "systemSchedule" | "user" | undefined;
 
   userId?: number | undefined;
 };
@@ -110,15 +110,9 @@ export type shift = {
   userPreference: string | null;
   scheduleId: number | null;
   userRef: user | null | undefined;
-  shiftRoles: shiftRole| undefined;
+  roleId?: number | null
 };
-type shiftRole = { 
-   id?: number , 
-   userId?: number,
-   shiftId?:number , 
-   name?:string,
-   user: user, 
-}
+
 const BellIconWithBadge = ({ onPress, badgeCount }) => {
   const theme = useTheme();
   return (

@@ -1,11 +1,10 @@
 import {
   PrismaClient,
-  schedule,
-  shift,
+  systemShift,
+  userShift,
   typeOfShift,
   ScheduleMold,
   ScheduleMoldPayload,
-  scheduleType,
   shiftTimeClassification,
 } from '@prisma/client';
 import { ShiftDto } from '../shift/dto';
@@ -23,109 +22,109 @@ export class ScheduleUtil {
     private ShiftService: ShiftService,
   ) {}
 
-  getLeastOptionsForShift(
-    emptySchedule: ShiftDto[],
-    usersSchedules: shift[][],
-  ) {
-    const option3users = { shiftTime: undefined, numOfOptions: undefined };
-    const option2Users = { shiftTime: undefined, numOfOptions: undefined };
-    const option1Users = { shiftTime: undefined, numOfOptions: undefined };
+  // getLeastOptionsForShift(
+  //   emptySchedule: ShiftDto[],
+  //   usersSchedules: userShift[][],
+  // ) {
+  //   const option3users = { shiftTime: undefined, numOfOptions: undefined };
+  //   const option2Users = { shiftTime: undefined, numOfOptions: undefined };
+  //   const option1Users = { shiftTime: undefined, numOfOptions: undefined };
 
-    const minUsers = { shiftTime: 0, min: 0 };
+  //   const minUsers = { shiftTime: 0, min: 0 };
 
-    emptySchedule.forEach((emptyshift: ShiftDto) => {
-      option3users[emptyshift.shiftStartHour.getTime()] = 0;
-      option2Users[emptyshift.shiftStartHour.getTime()] = 0;
-      option1Users[emptyshift.shiftStartHour.getTime()] = 0;
-      // options[emptyshift.shiftStartHour.getTime()] = emptyshift.shiftStartHour.getTime() ;
-      usersSchedules.forEach((userShifts: shift[]) => {
-        const filterd = userShifts.filter(
-          (userShift: shift) =>
-            userShift.shiftStartHour.getTime() ===
-            emptyshift.shiftStartHour.getTime(),
-        );
-        if (filterd.length > 0) {
-          if (filterd[0].userPreference === '1') {
-            option1Users[emptyshift.shiftStartHour.getTime()] += 1;
-          } else if (filterd[0].userPreference === '2') {
-            option2Users[emptyshift.shiftStartHour.getTime()] += 1;
-          } else if (filterd[0].userPreference === '3') {
-            option3users[emptyshift.shiftStartHour.getTime()] += 1;
-          }
-        }
-      });
-      // console.log({option3users})
-      // option3users[emptyshift.shiftStartHour.getTime()]  = count;
-      if (minUsers.min < option3users[emptyshift.shiftStartHour.getTime()]) {
-        // console.log({option3users})
-        minUsers.shiftTime = emptyshift.shiftStartHour.getTime();
-        minUsers.min = option3users[emptyshift.shiftStartHour.getTime()];
-      }
-    });
+  //   emptySchedule.forEach((emptyshift: ShiftDto) => {
+  //     option3users[emptyshift.shiftStartHour.getTime()] = 0;
+  //     option2Users[emptyshift.shiftStartHour.getTime()] = 0;
+  //     option1Users[emptyshift.shiftStartHour.getTime()] = 0;
+  //     // options[emptyshift.shiftStartHour.getTime()] = emptyshift.shiftStartHour.getTime() ;
+  //     usersSchedules.forEach((userShifts: shift[]) => {
+  //       const filterd = userShifts.filter(
+  //         (userShift: shift) =>
+  //           userShift.shiftStartHour.getTime() ===
+  //           emptyshift.shiftStartHour.getTime(),
+  //       );
+  //       if (filterd.length > 0) {
+  //         if (filterd[0].userPreference === '1') {
+  //           option1Users[emptyshift.shiftStartHour.getTime()] += 1;
+  //         } else if (filterd[0].userPreference === '2') {
+  //           option2Users[emptyshift.shiftStartHour.getTime()] += 1;
+  //         } else if (filterd[0].userPreference === '3') {
+  //           option3users[emptyshift.shiftStartHour.getTime()] += 1;
+  //         }
+  //       }
+  //     });
+  //     // console.log({option3users})
+  //     // option3users[emptyshift.shiftStartHour.getTime()]  = count;
+  //     if (minUsers.min < option3users[emptyshift.shiftStartHour.getTime()]) {
+  //       // console.log({option3users})
+  //       minUsers.shiftTime = emptyshift.shiftStartHour.getTime();
+  //       minUsers.min = option3users[emptyshift.shiftStartHour.getTime()];
+  //     }
+  //   });
 
-    const shift: ShiftDto = emptySchedule.find(
-      (emptyShift: ShiftDto) =>
-        emptyShift.shiftStartHour.getTime() === minUsers.shiftTime,
-    );
-    // console.log({ minUsers }, { shift });
-    return shift;
-  }
+  //   const shift: ShiftDto = emptySchedule.find(
+  //     (emptyShift: ShiftDto) =>
+  //       emptyShift.shiftStartHour.getTime() === minUsers.shiftTime,
+  //   );
+  //   // console.log({ minUsers }, { shift });
+  //   return shift;
+  // }
 
   getScheduleBeforForUser() {}
-  fillMinUserShifts(emptySchedule: ShiftDto[], usersSchedules: shift[][]) {
-    //get the shift with min user options. fill it with selcted shift
-    let localArr: ShiftDto[] = emptySchedule;
+  // fillMinUserShifts(emptySchedule: ShiftDto[], usersSchedules: shift[][]) {
+  //   //get the shift with min user options. fill it with selcted shift
+  //   let localArr: ShiftDto[] = emptySchedule;
 
-    for (let i = 0; i < 3; i++) {
-      const shiftTo = this.getLeastOptionsForShift(localArr, usersSchedules);
-      if (shiftTo) {
-        const index: number = emptySchedule.findIndex(
-          (shiftToSerach: ShiftDto) =>
-            shiftToSerach.shiftStartHour.getTime() ===
-            shiftTo.shiftStartHour.getTime(),
-        );
-        const possieShifts: ShiftDto[] = this.searchPossibleUsersForShift(
-          shiftTo.shiftStartHour,
-          usersSchedules,
-        );
-        if (possieShifts.length < 1) {
-          // console.log({ index }, { possieShifts });
-          //no possible shifts.
-          //consider handel no options for shift
-          // throw new ForbiddenException("there is no user to fill least users shift ")
-          localArr = localArr.filter(
-            (shift: ShiftDto) =>
-              shift.shiftStartHour.getTime() !==
-              shiftTo.shiftStartHour.getTime(),
-          );
-        } else {
-          const shift: ShiftDto = this.selcetShiftFromList(
-            possieShifts,
-            localArr[index],
-          );
-          // console.log({ shift });
-          emptySchedule[index] = {
-            userId: shift.userId,
-            // shiftDate: shift.shiftDate,
-            shiftEndHour: shift.shiftEndHour,
-            shiftStartHour: shift.shiftStartHour,
-            shiftType: shift.shiftType,
-            userPreference: shift.userPreference,
-            scheduleId: emptySchedule[0].scheduleId,
-            // typeOfUser: shift.userRef.typeOfUser,
-          };
-          localArr = localArr.filter(
-            (shift: shift) =>
-              shift.shiftStartHour.getTime() !==
-              shiftTo.shiftStartHour.getTime(),
-          );
-        }
+  //   for (let i = 0; i < 3; i++) {
+  //     const shiftTo = this.getLeastOptionsForShift(localArr, usersSchedules);
+  //     if (shiftTo) {
+  //       const index: number = emptySchedule.findIndex(
+  //         (shiftToSerach: ShiftDto) =>
+  //           shiftToSerach.shiftStartHour.getTime() ===
+  //           shiftTo.shiftStartHour.getTime(),
+  //       );
+  //       const possieShifts: ShiftDto[] = this.searchPossibleUsersForShift(
+  //         shiftTo.shiftStartHour,
+  //         usersSchedules,
+  //       );
+  //       if (possieShifts.length < 1) {
+  //         // console.log({ index }, { possieShifts });
+  //         //no possible shifts.
+  //         //consider handel no options for shift
+  //         // throw new ForbiddenException("there is no user to fill least users shift ")
+  //         localArr = localArr.filter(
+  //           (shift: ShiftDto) =>
+  //             shift.shiftStartHour.getTime() !==
+  //             shiftTo.shiftStartHour.getTime(),
+  //         );
+  //       } else {
+  //         const shift: ShiftDto = this.selcetShiftFromList(
+  //           possieShifts,
+  //           localArr[index],
+  //         );
+  //         // console.log({ shift });
+  //         emptySchedule[index] = {
+  //           userId: shift.userId,
+  //           // shiftDate: shift.shiftDate,
+  //           shiftEndHour: shift.shiftEndHour,
+  //           shiftStartHour: shift.shiftStartHour,
+  //           shiftType: shift.shiftType,
+  //           userPreference: shift.userPreference,
+  //           scheduleId: emptySchedule[0].scheduleId,
+  //           // typeOfUser: shift.userRef.typeOfUser,
+  //         };
+  //         localArr = localArr.filter(
+  //           (shift: shift) =>
+  //             shift.shiftStartHour.getTime() !==
+  //             shiftTo.shiftStartHour.getTime(),
+  //         );
+  //       }
 
-        // console.log(localArr)
-      }
-    }
-    return emptySchedule;
-  }
+  //       // console.log(localArr)
+  //     }
+  //   }
+  //   return emptySchedule;
+  // }
   setToNextDayOfWeek(targetDayOfWeek) {
     //Wil find the next date object until this day.
     const currentDate = new Date();
@@ -158,7 +157,7 @@ export class ScheduleUtil {
     endDate: Date,
     scheduleId: number,
     schedulMold: any | undefined,
-    type: scheduleType,
+    type: "user"|"system",
   ) {
     const shifts: ShiftDto[] = schedulMold.shiftsTemplate.map(
       (shift, index) => {
@@ -170,11 +169,9 @@ export class ScheduleUtil {
         const endDate = this.setToNextDayOfWeek(shift.day);
         endDate.setUTCHours(shift.endHour, 0, 0, 0);
         console.log({ startDate }, { endDate }, shift.startHour, shift.day);
-        if (type === 'systemSchedule') {
+        if (type === 'system') {
           const shiftsByRoles = shift.userPrefs.map((role) => {
-            //create shift for each mold role
-            console.log('Role in generate shhifts ', { role });
-            // roles
+          
             return {
               userPreference: '0',
               shiftDate: new Date(startDate),
@@ -191,12 +188,14 @@ export class ScheduleUtil {
         }
         const dto: ShiftDto = {
           userPreference: '0',
-          // shiftDate: new Date(startDate),
-          shiftType: type,
+          shiftType:'user',
           typeOfShift: 'short',
           shiftStartHour: new Date(startDate),
           shiftEndHour: new Date(endDate),
           scheduleId: scheduleId,
+          shiftTimeName:shift.shiftTimeName,
+          shiftName:shift.name,
+
         };
         console.log({ dto });
         return dto;
@@ -207,53 +206,53 @@ export class ScheduleUtil {
     return shifts;
   }
 
-  searchPossibleUsersForShift(shiftDate: Date, usersShifts: shift[][]) {
-    const possibleUsersForShift: ShiftDto[] = [];
-    //get all dates of shiftDate && scheduleid?
-    const date: Date = new Date(shiftDate);
-    //cheack all users Schedules for shifts with same date
-    usersShifts.map((userSched: shift[]) => {
-      userSched.map((userShift: shift) => {
-        if (this.userShiftCount[userShift.userId] === undefined) {
-          this.userShiftCount[userShift.userId] = 0;
-        }
-        if (
-          date.getTime() === userShift.shiftStartHour.getTime() &&
-          userShift.userPreference !== '3'
-        ) {
-          const possibleShift = { ...userShift };
-          possibleUsersForShift.push({ ...possibleShift });
-        }
-      });
-    });
-    if (possibleUsersForShift.length < 1) {
-    }
-    //consider seperating userPref 1\2 search .
-    // return possible users
-    return possibleUsersForShift;
-  }
-  async getShiftBeforAndAfter(shift: shift) {
-    const shiftBeforDate: Date = new Date(shift.shiftStartHour);
-    const shiftAfterDate: Date = new Date(shift.shiftStartHour);
-    shiftAfterDate.setHours(shiftAfterDate.getHours() + 8);
-    if (shiftAfterDate.getHours() >= 24) {
-      shiftAfterDate.setDate(shift.shiftStartHour.getDate() + 1);
-    }
-    shiftBeforDate.setHours(shiftBeforDate.getHours() - 8);
-    if (shiftBeforDate.getHours() < 0) {
-      shiftBeforDate.setDate(shift.shiftStartHour.getDate() - 1);
-    }
-    //get shift start with date and schedule type = systemSchecule
-    const shiftBefore: shift = await this.ShiftService.getShiftByDateSchedType(
-      shiftBeforDate,
-      scheduleType.systemSchedule,
-    );
-    const shiftAfter: shift = await this.ShiftService.getShiftByDateSchedType(
-      shiftAfterDate,
-      scheduleType.systemSchedule,
-    );
-    return { shiftBefore, shiftAfter };
-  }
+  // searchPossibleUsersForShift(shiftDate: Date, usersShifts: shift[][]) {
+  //   const possibleUsersForShift: ShiftDto[] = [];
+  //   //get all dates of shiftDate && scheduleid?
+  //   const date: Date = new Date(shiftDate);
+  //   //cheack all users Schedules for shifts with same date
+  //   usersShifts.map((userSched: shift[]) => {
+  //     userSched.map((userShift: shift) => {
+  //       if (this.userShiftCount[userShift.userId] === undefined) {
+  //         this.userShiftCount[userShift.userId] = 0;
+  //       }
+  //       if (
+  //         date.getTime() === userShift.shiftStartHour.getTime() &&
+  //         userShift.userPreference !== '3'
+  //       ) {
+  //         const possibleShift = { ...userShift };
+  //         possibleUsersForShift.push({ ...possibleShift });
+  //       }
+  //     });
+  //   });
+  //   if (possibleUsersForShift.length < 1) {
+  //   }
+  //   //consider seperating userPref 1\2 search .
+  //   // return possible users
+  //   return possibleUsersForShift;
+  // }
+  // async getShiftBeforAndAfter(shift: shift) {
+  //   const shiftBeforDate: Date = new Date(shift.shiftStartHour);
+  //   const shiftAfterDate: Date = new Date(shift.shiftStartHour);
+  //   shiftAfterDate.setHours(shiftAfterDate.getHours() + 8);
+  //   if (shiftAfterDate.getHours() >= 24) {
+  //     shiftAfterDate.setDate(shift.shiftStartHour.getDate() + 1);
+  //   }
+  //   shiftBeforDate.setHours(shiftBeforDate.getHours() - 8);
+  //   if (shiftBeforDate.getHours() < 0) {
+  //     shiftBeforDate.setDate(shift.shiftStartHour.getDate() - 1);
+  //   }
+  //   //get shift start with date and schedule type = systemSchecule
+  //   const shiftBefore: shift = await this.ShiftService.getShiftByDateSchedType(
+  //     shiftBeforDate,
+  //     scheduleType.systemSchedule,
+  //   );
+  //   const shiftAfter: shift = await this.ShiftService.getShiftByDateSchedType(
+  //     shiftAfterDate,
+  //     scheduleType.systemSchedule,
+  //   );
+  //   return { shiftBefore, shiftAfter };
+  // }
   // isShiftpossible(shift: shift | ShiftDto, schedule: ShiftDto[] | schedule) {
   //   //Check if possible to place a shift in schedule
   //   //check if user has no shift on the same day
@@ -367,16 +366,16 @@ export class ScheduleUtil {
   //   return false;
   // }
 
-  checkIfBreakBetweenShifts = (firstShift: Date, secondShift: Date) => {
-    //Will subtract the ti,e btween and check if Bigger then 8
+  // checkIfBreakBetweenShifts = (firstShift: Date, secondShift: Date) => {
+  //   //Will subtract the ti,e btween and check if Bigger then 8
 
-    const result: boolean =
-      firstShift > secondShift
-        ? (secondShift.getTime() - firstShift.getTime()) / 36e5 > 8
-        : (firstShift.getTime() - secondShift.getTime()) / 36e5 > 8;
-    console.log({ result }, { firstShift, secondShift });
-    return result;
-  };
+  //   const result: boolean =
+  //     firstShift > secondShift
+  //       ? (secondShift.getTime() - firstShift.getTime()) / 36e5 > 8
+  //       : (firstShift.getTime() - secondShift.getTime()) / 36e5 > 8;
+  //   console.log({ result }, { firstShift, secondShift });
+  //   return result;
+  // };
   // async fillSchedule(emptySchedule: ShiftDto[], usersShifts: shift[][]) {
   //   //search for each shift possible user and sign user to shift ;
   //   //apply rules :
@@ -680,68 +679,57 @@ export class ScheduleUtil {
   //   // console.log({emptyShifts})
   //   return { scheduleToFill, emptyShifts };
   // }
-  getShiftIndex(shift: ShiftDto, shiftArr) {
-    shiftArr.forEach((shiftToCheck: shift, index: number) => {
-      if (
-        shift.shiftStartHour.getTime() ===
-          shiftToCheck.shiftStartHour.getTime() &&
-        shift.userId === shiftToCheck.userId
-      ) {
-        return index;
-      }
-    });
-    return -1;
-  }
-  selcetShiftFromList(shiftOptions: ShiftDto[], emptyShift: ShiftDto) {
-    //This should pick a shift from a list.
-    //picking by number of shifts for user.
 
-    //if list is empty
-    if (shiftOptions.length < 1) {
-      return;
-    }
-    if (shiftOptions.length === 1) {
-      return shiftOptions[0];
-    }
+  // selcetShiftFromList(shiftOptions: ShiftDto[], emptyShift: ShiftDto) {
+  //   //This should pick a shift from a list.
+  //   //picking by number of shifts for user.
 
-    let maxShiftScore = { id: 0, rate: 0 };
-    const shiftsRating = { id: 0, rate: 0 };
-    // Variable to store the maximum rating
+  //   //if list is empty
+  //   if (shiftOptions.length < 1) {
+  //     return;
+  //   }
+  //   if (shiftOptions.length === 1) {
+  //     return shiftOptions[0];
+  //   }
 
-    // itterate throw the options
-    // console.log({ shiftOptions });
-    shiftOptions.forEach((shift: ShiftDto) => {
-      // const userTypeNeeded = emptyShift.userNeeded;
-      //  console.log({shift});
-      const userNumOfShifts: number = this.userShiftCount[shift.userId];
-      //init shift match rating
-      const userPref = parseInt(shift.userPreference);
-      // const userType = shift.userType;
-      // const userType = shift.userRef.typeOfUser;
+  //   let maxShiftScore = { id: 0, rate: 0 };
+  //   const shiftsRating = { id: 0, rate: 0 };
+  //   // Variable to store the maximum rating
 
-      const userLevel = shift.userRef.userLevel;
+  //   // itterate throw the options
+  //   // console.log({ shiftOptions });
+  //   shiftOptions.forEach((shift: ShiftDto) => {
+  //     // const userTypeNeeded = emptyShift.userNeeded;
+  //     //  console.log({shift});
+  //     const userNumOfShifts: number = this.userShiftCount[shift.userId];
+  //     //init shift match rating
+  //     const userPref = parseInt(shift.userPreference);
+  //     // const userType = shift.userType;
+  //     // const userType = shift.userRef.typeOfUser;
 
-      let shiftRating =
-        userPref === 1 ? 10 * userLevel : userPref === 2 ? 5 * userLevel : 0;
-      shiftRating =
-        userNumOfShifts > 0 ? shiftRating / userNumOfShifts : shiftRating;
-      shiftsRating[shift.id] = shiftRating;
-      console.log({ shiftRating });
-      // Update the maxRating if the current shift's rating is higher
-      if (shiftsRating[shift.id] > maxShiftScore.rate) {
-        maxShiftScore.rate = shiftRating;
-        maxShiftScore.id = shift.id;
-      }
-    });
-    // console.log(maxShiftScore.id);
+  //     const userLevel = shift.userRef.userLevel;
 
-    // console.log(shiftsRating[maxShiftScore.id]);
-    const selctedShift: ShiftDto[] = shiftOptions.filter(
-      (shift: shift) => shift.id === maxShiftScore.id,
-    );
-    // console.log({ selctedShift }, selctedShift[0]);
-    return selctedShift[0];
-  }
+  //     let shiftRating =
+  //       userPref === 1 ? 10 * userLevel : userPref === 2 ? 5 * userLevel : 0;
+  //     shiftRating =
+  //       userNumOfShifts > 0 ? shiftRating / userNumOfShifts : shiftRating;
+  //     shiftsRating[shift.id] = shiftRating;
+  //     console.log({ shiftRating });
+  //     // Update the maxRating if the current shift's rating is higher
+  //     if (shiftsRating[shift.id] > maxShiftScore.rate) {
+  //       maxShiftScore.rate = shiftRating;
+  //       maxShiftScore.id = shift.id;
+  //     }
+  //   });
+  //   // console.log(maxShiftScore.id);
+
+  //   // console.log(shiftsRating[maxShiftScore.id]);
+  //   const selctedShift: ShiftDto[] = shiftOptions.filter(
+  //     (shift: shift) => shift.id === maxShiftScore.id,
+  //   );
+  //   // console.log({ selctedShift }, selctedShift[0]);
+  //   return selctedShift[0];
+  // }
   async getUserprefForDate(
     shiftDate: Date,
 
@@ -749,7 +737,7 @@ export class ScheduleUtil {
   ) {
     let shiftPref: string;
 
-    const userShift: shift = await this.ShiftService.getUserShiftByParam(
+    const userShift: userShift = await this.ShiftService.getUserShiftByParam(
       shiftDate,
       { name: 'userid', value: userid },
     );
@@ -763,269 +751,5 @@ export class ScheduleUtil {
     return '-1';
   }
 
-  /**
-   * @description Accepet date of day, and schedule , try to change day shifts to 12h shift insted of 8 by cancelling noon
-   * @param {Date} dayToCheack
-   * @param {ShiftDto[]} schedule
-   * @param {ShiftDto[][]} usersShifts
-   * @returns {shift[]}
-   * @memberof ScheduleUtil
-   */
-  async twoShiftsADay(
-    dayToCheack: Date,
-    schedule: ShiftDto[],
-    usersShifts: ShiftDto[][],
-  ) {
-    if (schedule[0].typeOfShift !== 'long') {
-      const scheduleToFill: ShiftDto[] = [];
-      const time = new Date(dayToCheack);
-      const morningDate: Date = new Date(time);
-      morningDate.setHours(9, 0, 0, 0);
-      const noonDate: Date = new Date(morningDate);
-      noonDate.setHours(morningDate.getHours() + 8);
-      const nightDate: Date = new Date(noonDate);
-      nightDate.setHours(nightDate.getHours() + 8);
-      console.log('change to 2 shifts ', { morningDate }, schedule[0]);
-      const morningShift: ShiftDto = schedule.find(
-        (shift) => shift.shiftStartHour.getTime() === morningDate.getTime(),
-      );
-      const nightShift: ShiftDto = schedule.find(
-        (shift) => shift.shiftStartHour.getTime() === nightDate.getTime(),
-      );
-      const noonIndex: number = schedule.findIndex(
-        (shift: shift) => shift.shiftStartHour.getTime() === noonDate.getTime(),
-      );
-      const noonShift: ShiftDto = schedule.find(
-        (shift) => shift.shiftStartHour.getTime() === noonDate.getTime(),
-      );
 
-      console.log(
-        'change to 2 shifts ',
-        { time },
-        time.getHours(),
-        { morningShift },
-        { morningDate },
-        morningDate.getHours(),
-        schedule[2],
-      );
-      const morningAndNight: boolean =
-        morningShift &&
-        nightShift &&
-        noonShift &&
-        morningShift.typeOfShift !== 'long' &&
-        noonShift.typeOfShift !== 'long' &&
-        nightShift.typeOfShift !== 'long';
-      console.log(
-        { morningShift },
-        { noonShift },
-        { nightShift },
-        { morningAndNight },
-      );
-      if (morningAndNight) {
-        console.log({ time }, time.getHours());
-        if (time.getHours() === noonDate.getHours()) {
-          //noon shift missing
-
-          //check if mornign and night are assigned
-          const assignedOtherShifts: boolean =
-            morningShift.userId && nightShift.userId ? true : false;
-          //if there is possible for both assign new Hours of tje shifts /
-          console.log({ assignedOtherShifts });
-          if (assignedOtherShifts) {
-            const morninguserPref = await this.getUserprefForDate(
-              morningShift.shiftStartHour,
-              morningShift.userId,
-            );
-            const nightuserPref = await this.getUserprefForDate(
-              nightShift.shiftStartHour,
-              nightShift.userId,
-            );
-            console.log('uer prf', { nightuserPref }, { morninguserPref });
-            if (morninguserPref === '3' || nightuserPref === '3') {
-              return;
-            } else {
-              const newEndTime: Date = new Date(morningShift.shiftEndHour);
-              newEndTime.setHours(morningShift.shiftEndHour.getHours() + 4);
-              const morningShiftUserId: number = morningShift.userId;
-              scheduleToFill.push({
-                userPreference: morningShift.userPreference,
-                // shiftDate: new Date(morningShift.shiftDate.getTime()), // Create a new Date object for the shift date
-                userId: morningShiftUserId,
-                shiftTimeName: 'morning',
-                shiftType: 'systemSchedule',
-                typeOfShift: 'long',
-                shiftStartHour: new Date(morningShift.shiftStartHour.getTime()),
-                shiftEndHour: new Date(newEndTime),
-                scheduleId: morningShift.scheduleId,
-              });
-              scheduleToFill.push({
-                userPreference: '4',
-                // shiftDate: new Date(noonShift.shiftDate.getTime()), // Create a new Date object
-                shiftTimeName: 'noonCanceled',
-                shiftType: 'systemSchedule',
-                typeOfShift: 'long',
-                shiftStartHour: new Date(noonShift.shiftStartHour),
-                shiftEndHour: new Date(noonShift.shiftEndHour),
-                scheduleId: noonShift.scheduleId,
-              });
-              scheduleToFill.push({
-                userPreference: nightShift.userPreference,
-                // shiftDate: new Date(nightShift.shiftDate.getTime()), // Create a new Date object for the shift date
-                userId: nightShift.userId,
-                shiftTimeName: 'night',
-                shiftType: 'systemSchedule',
-                shiftStartHour: new Date(newEndTime.getTime()),
-                typeOfShift: 'long',
-                shiftEndHour: new Date(nightShift.shiftEndHour.getTime()),
-                scheduleId: nightShift.scheduleId,
-              });
-            }
-            // console.log('changes shifts time');
-          }
-        } // if(morninguserPref !== '3' && nightuserPref !== '3'){
-        else if (time.getHours() === morningDate.getHours()) {
-          console.log({ time });
-          console.log('morning shift');
-
-          if (
-            noonShift.userId !== undefined &&
-            nightShift.userId !== undefined
-          ) {
-            //check if noon user have night befor
-            if (
-              schedule[noonIndex].userId === schedule[noonIndex - 2]?.userId ||
-              nightShift.userId === schedule[noonIndex]?.userId
-            ) {
-              return;
-            }
-            morningShift.shiftEndHour.setHours(
-              morningShift.shiftEndHour.getHours() + 4,
-            );
-            morningShift.userId = noonShift.userId;
-            morningShift.userPreference = noonShift.userPreference;
-
-            noonShift.userId = undefined;
-
-            nightShift.shiftStartHour.setTime(
-              morningShift.shiftEndHour.getTime(),
-            );
-
-            scheduleToFill.push({
-              userPreference: morningShift.userPreference,
-              // shiftDate: new Date(morningShift.shiftDate.getTime()), // Create a new Date object for the shift date
-              userId: morningShift.userId,
-              typeOfShift: 'long',
-              shiftTimeName: 'morning',
-              shiftType: 'systemSchedule',
-              shiftStartHour: new Date(morningShift.shiftStartHour.getTime()),
-              shiftEndHour: new Date(morningShift.shiftEndHour),
-              scheduleId: morningShift.scheduleId,
-            });
-            scheduleToFill.push({
-              userPreference: '4',
-              // shiftDate: new Date(noonShift.shiftDate.getTime()), // Create a new Date object
-              shiftTimeName: 'noonCanceled',
-              typeOfShift: 'long',
-              userId: undefined,
-              shiftType: 'systemSchedule',
-              shiftStartHour: new Date(noonShift.shiftStartHour),
-              shiftEndHour: new Date(noonShift.shiftEndHour),
-              scheduleId: noonShift.scheduleId,
-            });
-            scheduleToFill.push({
-              userPreference: nightShift.userPreference,
-              // shiftDate: new Date(nightShift.shiftDate.getTime()), // Create a new Date object for the shift date
-              userId: nightShift.userId,
-              shiftTimeName: 'night',
-              shiftType: 'systemSchedule',
-              typeOfShift: 'long',
-              shiftStartHour: new Date(morningShift.shiftEndHour.getTime()),
-              shiftEndHour: new Date(nightShift.shiftEndHour.getTime()),
-              scheduleId: nightShift.scheduleId,
-            });
-            console.log({ scheduleToFill });
-          } else {
-            console.log('cant change to 2 shifts a day ');
-            return;
-          }
-        } else if (time.getHours() === nightDate.getHours()) {
-          console.log('nightshifttomove');
-          //check if mornign and night are assigned
-          const assignedOtherShifts: boolean =
-            morningShift.userId && noonShift.userId ? true : false;
-          //if there is possible for both assign new Hours of tje shifts /
-          console.log({ assignedOtherShifts });
-          if (assignedOtherShifts) {
-            const morninguserPref = await this.getUserprefForDate(
-              noonShift.shiftStartHour,
-
-              morningShift.userId,
-            );
-            const noonuserPref = await this.getUserprefForDate(
-              nightShift.shiftStartHour,
-
-              noonShift.userId,
-            );
-
-            console.log({ noonuserPref }, { morninguserPref });
-            if (morninguserPref !== '3' && noonuserPref !== '3') {
-              if (noonShift.userId === schedule[noonIndex + 2]?.userId) {
-                console.log(
-                  noonShift.userId === schedule[noonIndex + 2]?.userId,
-                );
-                return;
-              }
-              const newEndTime: Date = new Date(morningShift.shiftEndHour);
-              console.log('fill 2 shifts a day insted of empty njight');
-              newEndTime.setHours(morningShift.shiftEndHour.getHours() + 4);
-
-              scheduleToFill.push({
-                userPreference: morningShift.userPreference,
-                shiftTimeName: 'morning',
-                shiftType: 'systemSchedule',
-                userId: morningShift.userId,
-                typeOfShift: 'long',
-                shiftStartHour: new Date(morningShift.shiftStartHour.getTime()),
-                shiftEndHour: new Date(newEndTime),
-                scheduleId: morningShift.scheduleId,
-              });
-              scheduleToFill.push({
-                userPreference: '4',
-                // shiftDate: new Date(noonShift.shiftDate.getTime()), // Create a new Date object
-                shiftTimeName: 'noonCanceled',
-                shiftType: 'systemSchedule',
-                userId: undefined,
-                shiftStartHour: new Date(noonShift.shiftStartHour),
-                shiftEndHour: new Date(noonShift.shiftEndHour),
-                scheduleId: noonShift.scheduleId,
-              });
-              scheduleToFill.push({
-                userPreference: noonuserPref,
-                // shiftDate: new Date(nightShift.shiftDate.getTime()), // Create a new Date object for the shift date
-                userId: noonShift.userId,
-                shiftType: 'systemSchedule',
-                shiftTimeName: 'night',
-                typeOfShift: 'long',
-                shiftStartHour: new Date(newEndTime.getTime()),
-                shiftEndHour: new Date(nightShift.shiftEndHour.getTime()),
-                scheduleId: nightShift.scheduleId,
-              });
-              console.log('changes shifts time', { scheduleToFill });
-            } else {
-              console.log(
-                'cant move user pref',
-                { noonuserPref },
-                { morninguserPref },
-              );
-            }
-          }
-        }
-      }
-
-      // console.log({ emptyShifts });
-      console.log({ scheduleToFill });
-      // console.log(this.userShiftCount);
-      return scheduleToFill;
-    }
-  }
 }

@@ -12,7 +12,7 @@ import {
   ParseIntPipe,
   Param,
 } from '@nestjs/common';
-import { shift, user } from '@prisma/client';
+import { userShift,systemShift, user } from '@prisma/client';
 
 import { ShiftService } from './shift.services';
 import { ShiftDto } from './dto';
@@ -43,44 +43,44 @@ export class ShiftController {
      * @memberof ShiftController
      */
     console.log({ dto });
-    return this.shiftService.creatShift(userId, dto);
+    return this.shiftService.creatShift(userId, dto,dto.shiftType);
   }
 
   @Roles('user', 'admin')
   @HttpCode(HttpStatus.OK)
   @Post('editShift')
   editShift(@Body() dto: EditShiftDto) {
-    return this.shiftService.editShift(dto);
+    return this.shiftService.editUserShift(dto);
   }
 
   @Roles('user', 'admin')
   @HttpCode(HttpStatus.OK)
   @Get('getAllShifts')
-  getAllShifts(@Body() userId: any) {
-    return this.shiftService.getAllShiftsByUserId(userId.id);
+  getAllShifts(@Body() userId: any,shiftType:"system"|"user") {
+    return this.shiftService.getAllShiftsByUserId(userId.id,shiftType);
   }
 
   @Roles('user', 'admin')
   @HttpCode(HttpStatus.OK)
   @Get('getshiftById')
-  getShiftById(@Body() shift: shift | number) {
+  getShiftById(@Body() shift: userShift |systemShift| number,shiftType:'user'|'system') {
     if (typeof shift === 'number') {
-      return this.shiftService.getShiftById(shift);
+      return this.shiftService.getShiftById(shift,shiftType);
     }
-    return this.shiftService.getShiftById(shift.id);
+    return this.shiftService.getShiftById(shift.id,shiftType);
   }
 
   @Roles('user', 'admin')
   @HttpCode(HttpStatus.OK)
   @Get('getshiftByScheduleId')
   getshiftByScheduleId(@Body() scheduleId: number) {
-    return this.shiftService.getAllShiftsByScheduleId(scheduleId);
+    return this.shiftService.getAllUserShiftsByScheduleId(scheduleId);
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('deleteShiftById')
   deleteShiftById(@Body() shift: any) {
-    return this.shiftService.deleteShiftById(shift.id);
+    return this.shiftService.deleteShiftById(shift.id,'system');
   }
 
   @Roles('user', 'admin')
@@ -88,7 +88,7 @@ export class ShiftController {
   @Get('nextShift')
   getNextShift(@GetUser('id') userId: number) {
     console.log({ userId });
-    return this.shiftService.getNextShift(userId);
+    return this.shiftService.getNextSystemShift(userId);
   }
 
   @Roles('admin')

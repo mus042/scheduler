@@ -22,7 +22,7 @@ import { GetUser } from '../Decorator';
 import { EditShiftDto } from 'src/shift/dto/editShift.dto';
 import { EditShiftByDateDto, bulkShiftsToEditDto } from '../shift/dto';
 import { Type } from 'class-transformer';
-import { Role, ScheduleMold, schedule, shift, user } from '@prisma/client';
+import { Role, ScheduleMold, user } from '@prisma/client';
 import { generateScheduleForDateDto } from './dto/GenerateScheduleForDate.Dto';
 
 import { UserService } from '../user/user.service';
@@ -55,8 +55,8 @@ export class SchedulerController {
   @Roles('user', 'admin')
   @HttpCode(HttpStatus.OK)
   @Get('getNextSchedule')
-  getNextScheduleUser(@GetUser('id','facilityId') userId: number, facilityId: number) {
-    console.log('next schedule for user call', { userId });
+  getNextScheduleUser(@GetUser('id') userId: number,@GetUser('facilityId') facilityId: number) {
+    console.log('next schedule for user call', { userId },{facilityId});
     return this.ScheduleService.getNextScheduleForUser(userId,facilityId);
   }
 
@@ -96,6 +96,8 @@ export class SchedulerController {
       userId: userId,
       facilityId:facilityId
     };
+
+    console.log({facilityId},{schedDto})
     return this.ScheduleService.createSchedualeForUser(schedDto);
   }
 
@@ -121,11 +123,10 @@ export class SchedulerController {
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
   @Delete('deleteSchedule/:scheduleId')
-  deleteSchedule(@Param('scheduleId') scheduleId) {
+  deleteSchedule(@GetUser('facilityId') facilityId: number,) {
     // Extract scheduleId from path
-    console.log('schedule id in controller', scheduleId, typeof scheduleId);
-    const idInt: number = parseInt(scheduleId, 10);
-    return this.ScheduleService.deleteAllSchedules();
+
+    return this.ScheduleService.deleteAllSystemSchedules(facilityId);
   }
   @Roles('admin', 'user')
   @HttpCode(HttpStatus.OK)

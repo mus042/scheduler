@@ -75,6 +75,7 @@ if(scheudle){
               scheduleInfo={scheduleData}
               shifts={scheduleShifts}
               update={null}
+              type={'systemSchedule'}
             />
           )}
         </View>
