@@ -263,6 +263,11 @@ export class ShiftService {
               userProfile: true, // Ensure userProfile is correctly related and queryable
             },
           },
+          shiftRole:{
+            select:{
+              name:true,
+            }
+          }
        
         },
       });

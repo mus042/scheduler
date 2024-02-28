@@ -1,108 +1,130 @@
-import { StyleSheet,  View } from 'react-native'
-import React, { useState } from 'react'
+import { StyleSheet, View } from "react-native";
+import React, { useState } from "react";
+import {
+	ActivityIndicator,
+	Avatar,
+	Button,
+	Card,
+	IconButton,
+	MD2Colors,
+	MD3Colors,
+	Text,
+	useTheme,
+} from "react-native-paper";
+import { normalizeShiftTime } from "../../../utils/utils";
+import FindReplacmentComp from "./FindReplacmentComp";
+import SystemShift from "./SystemShift";
+import { FlatList } from "react-native-gesture-handler";
 
-import { ActivityIndicator, Avatar, Button, Card, IconButton, MD2Colors, MD3Colors, Text } from "react-native-paper";
-import { normalizeShiftTime } from '../../../utils/utils';
-import FindReplacmentComp from './FindReplacmentComp';
+const CardContent = ({ name, shift, user, handelAskReplace }) => {
+	const [findReplaceVisible, setfindReplaceVisible] = useState(false);
+	console.log({ shift }, "user", { user });
+	const theme = useTheme();
 
-const CardContent = ({name,shift,user,handelAskReplace})=>{
-    const[findReplaceVisible,setfindReplaceVisible] = useState(false);
-   console.log({shift})
+	//To Add shift roles map
+	const AssigndComp = () => {
+		console.log(shift);
+		return (
+			<View style={{ flex: 1,maxWidth:185 }}>
+
+				<FlatList
+					horizontal={true}
+					data={shift}
+          contentContainerStyle={{
+            flexGrow: 1,
+            maxWidth:100,
+            justifyContent: 'space-between',
+            alignItems: 'center', 
+            alignContent:'center',
     
+          }}
+					renderItem={(shiftRole) => (
+        
+						<SystemShift
+							item={shiftRole}
+							user={user}
+							handelAskReplace={handelAskReplace}
+						/>
+					)}
+					keyExtractor={(item) => item.id}
+				/>
+			</View>
+		);
+	};
+	const colorByTimeOfShift = (timeName) => {
+		return timeName === "morning"
+			? "lightcyan"
+			: timeName === "night"
+			? "lightgrey"
+			: "lightgoldenrodyellow";
+	};
+	return (
+		<View
+			style={{
+				flexDirection: "row",
+				backgroundColor: colorByTimeOfShift(name),
+				borderRadius: 10,
+				margin: 5,
+				width: 200,
+				justifyContent: "space-between",
+				maxWidth: 240,
+        minHeight:150,
+			}}
+		>
+			<View
+				style={{
+					flex: 1,
+					maxWidth: 5,
+					alignSelf: "center",
+					justifyContent: "space-between",
+					marginTop: 3,
+					marginRight: 7,
+				}}
+			>
+				{name === "morning" ? (
+					<IconButton
+						icon='white-balance-sunny'
+						iconColor={"deepskyblue"}
+						size={20}
+						style={{ margin: 0, padding: 0, alignSelf: "center" }}
+						onPress={() => console.log("Pressed")}
+					/>
+				) : name === "noon" || name === "noonCanceled"? (
+					<IconButton
+						icon='theme-light-dark'
+						iconColor='sandybrown'
+						size={20}
+						style={{ margin: 0, padding: 0, alignSelf: "center" }}
+						onPress={() => console.log("Pressed")}
+					/>
+				) : (
+					<IconButton
+						icon='weather-night'
+						iconColor='darkblue'
+						size={20}
+						style={{ margin: 0, padding: 0, alignSelf: "center" }}
+						onPress={() => console.log("Pressed")}
+					/>
+				)}
+			</View>
 
+			<View
+				style={{ flex: 6, maxWidth: 200, borderColor: theme.colors.onPrimary }}
+			>
+				<View
+					style={{
+						flex: 2,
+						flexDirection: "column",
+						width: 235,
+					}}
+				>
+					<AssigndComp />
+				</View>
+			</View>
+		</View>
+	);
+};
 
-    //To Add shift roles map 
-    const AssigndComp = ()=>{
-console.log(shift)
-        return(
-         <View>
-           {shift && shift.map((shiftRole,index)=> (
-            shiftRole.shiftTimeName !== 'noonCanceled' && <View key={index}>
-            <View>
-          
-              <Text variant="labelLarge">
-                {shiftRole.shiftName } Assiged: {shiftRole.userRef?.userProfile.lastName}{", "}
-                {shiftRole.userRef?.userProfile.firstName}
-              </Text> 
-               <Text variant='labelMedium'>
-                {shiftRole.shiftStartHour.substring(11,16)} - {shiftRole.shiftEndHour.substring(11,16)}
-               </Text>
-            </View>
-            {(user?.id === shift?.userId ||
-              user?.userRole === "admin") && (
-              <View style={{flexDirection:'row',minHeight:10,maxHeight:20}}>
-                <Button
-                  compact={true}
-                  labelStyle={{margin:1,paddingRight:4}}
-                  onPress={() => setfindReplaceVisible(!findReplaceVisible)}
-                  icon="find-replace" mode="outlined"
-                >
-                 find replacment 
-                </Button>
-                {findReplaceVisible && (
-                  <FindReplacmentComp
-                    shift={shift}
-                    handelFindReplace={handelAskReplace}
-                  />
-                )}
-                {
-                user?.userRole === "admin" && (
-                    <IconButton icon="circle-edit-outline"
-                    iconColor={MD3Colors.error50}
-                    size={20}
-                    style={{margin:0,padding:0,alignSelf:'center',}}
-    
-                    onPress={() => console.log('Pressed')} />
-                )
-                }
-                
-              </View>
-            )}
-            </View>
-           ))}
-          
-        </View>
-        )
-    }
-   
-    return(
-      <>
-      <View
-      style={{
-        borderBottomColor: "black",
-        borderBottomWidth: 1,
-        flexDirection: "row",
-        justifyContent:'space-between',
-      }}
-    >
-      <Text variant="titleMedium" style={{ textAlign: "center" }}>
-        {name},
-      </Text>
-      {/* <Text variant="labelLarge" style={{ textAlign:"center",alignItems:'flex-end',alignSelf:'flex-end', }}>
-        {normalizeShiftTime(shift.shiftStartHour)} -{" "}
-        {normalizeShiftTime(shift.shiftEndHour)}
-      </Text> */}
-    </View>
-    <View>
-      <View
-        style={{
-          flex: 1,
-          flexDirection: 'column',
-          width: 200,
-          alignContent: "center",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-       <AssigndComp />
+export default CardContent;
 
-
-      </View>
-    </View>
-    </>
-    )
-  }
-
-export default CardContent
-
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({});

@@ -16,8 +16,10 @@ const UserDetailsComp=({user, onSubmit, isEdit,roles}) =>{
     // console.log(email, lastName);
   useEffect(() => {
       const setUserDetails = ()=>{
+        console.log(user.role,"role id :",user.role.id)
          setLastName(user.userProfile.lastName);
          setName(user.userProfile.firstName);
+         setSelctedRole(user.role.id)
       }
       setUserDetails();
     }, [user?.userProfile])
@@ -60,13 +62,14 @@ const UserDetailsComp=({user, onSubmit, isEdit,roles}) =>{
   roles && roles.map((role) => {
     console.log('role', { role });
     return (
-      <View style={{ flexDirection: 'row', alignItems: 'center', margin: 10 }} key={role.id}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', margin: 10 }} key={role.id}>
         <RadioButton
+          
           value="text"
           status={selctedRole === role.id ? 'checked' : 'unchecked'}
           onPress={() => setSelctedRole(role.id)}
         />
-        <Text>{role.name}</Text> {/* Add Text component to display the role name */}
+        <Text>{role.name}</Text>
       </View>
     );
   })

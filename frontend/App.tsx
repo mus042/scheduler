@@ -111,6 +111,7 @@ export type shift = {
   scheduleId: number | null;
   userRef: user | null | undefined;
   roleId?: number | null
+  shiftRole?: object|null
 };
 
 const BellIconWithBadge = ({ onPress, badgeCount }) => {
@@ -311,8 +312,9 @@ export function Layout() {
   const [isLoading, setIsLoading] = useState(false);
   // fetch server-side settings
   const checkServerSettings = async () => {
-    if(authState?.user?.facilityId){
-    try {
+    if(authState?.user?.facilityId && authState.user.userServerRole === 'admin'){
+    console.log("user",authState.user.userServerRole)
+      try {
       console.log("facilityId",authState?.user?.facilityId,)
       // Call your server API to check settings for admin users
      
@@ -330,7 +332,7 @@ export function Layout() {
       setSettingsSet(data.id ? true : false);
      }
      catch (error) {
-      console.error("Error fetching server settings:", error);
+    
       setSettingsSet(false)
     }
   }
@@ -338,8 +340,6 @@ export function Layout() {
   
   useEffect( () => {
     // Check server settings only if the user is authenticated and is an admin
-    
-
     if (authState?.authenticated && authState.user?.userServerRole === "admin") {
       console.log({authState}) 
       checkServerSettings();
@@ -365,7 +365,7 @@ export function Layout() {
       <Stack.Navigator>
         {authState?.authenticated ? (
           // Check if settings are set before rendering the drawer
-          settingsSet === true ? (
+           authState.user?.userServerRole === 'user' || settingsSet === true ? (
             <Stack.Screen
               name="HomeScreen"
               component={MyDrawerWithSetRoute}
@@ -375,7 +375,7 @@ export function Layout() {
             />
           ) : (
             // Render a loading or error screen if settings are not set
-            <Stack.Screen
+            authState.user?.userServerRole === 'admin' && <Stack.Screen
               name="Settings"
               component={SetScreen}
             />

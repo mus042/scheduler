@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { dueDateSchedule, scheduleData, scheduleInfo, shift } from "../../App";
 import WeeklyView from "../DashBoardScreen/components/WeeklyView";
-import { Button } from "react-native-paper";
+import { ActivityIndicator, Button, MD2Colors } from "react-native-paper";
 import axios from "axios";
 
 const SystemNextSchedule = ({
@@ -47,7 +47,7 @@ const SystemNextSchedule = ({
     console.log("loading");
     return (
       <View>
-        <Text>Loading...</Text>
+        <ActivityIndicator animating={true} color={MD2Colors.red800} />
       </View>
     ); // Render a loading state while data is being fetched
   }
@@ -57,8 +57,11 @@ const SystemNextSchedule = ({
       <Text>Sytem NextScheduleComp</Text>
       <View style={{flex:1}}>
               <Button compact onPress={() => onDeleteSched()} style={{backgroundColor:'red'}} >
+        <Text>
           Delete This Schedule
-        </Button> </View>
+          </Text>
+        </Button>
+         </View>
       {localNextSched && (
         <View style={{flex:8}} >
           {nextSchedule !== null && (

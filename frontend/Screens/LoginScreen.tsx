@@ -88,13 +88,10 @@ const LoginScreen = ({ navigation }) => {
       backgroundColor: theme.colors.secondaryContainer,
       borderColor: theme.colors.onBackground,
       borderWidth: 2,
-      borderRadius: 20,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
       alignSelf: "center",
       width: 350,
       marginBottom: 10,
-      maxHeight: 50,
+      // maxHeight: 50,
     },
   });
   return (
@@ -108,9 +105,9 @@ const LoginScreen = ({ navigation }) => {
       <View style={styles.mainBox}>
         <View style={{ flex: 8,flexDirection: "row", }}>
           <View
-            style={{ flex: 1, alignSelf: "flex-end", alignItems: "center",justifyContent:'flex-end' }}
+            style={{ flex:5, alignSelf: "flex-end", alignItems: "center",justifyContent:'flex-end'}}
           >
-            <View style={{ flex: 1,justifyContent:'flex-end'}}>
+            <View style={{ flex: 5,justifyContent:'flex-end',}}>
               <TextInput
                 style={[styles.inputBox]}
                 label="Email"
@@ -135,7 +132,7 @@ const LoginScreen = ({ navigation }) => {
                 value={userPassword}
                 label="Password"
                 secureTextEntry={!showPassword}
-                underlineStyle={{ width: 300, marginLeft: 25 }}
+                // underlineStyle={{ width: 300, marginLeft: 25 }}
                 right={
                   <TextInput.Icon
                     icon={showPassword ? "eye-off" : "eye"}
@@ -156,7 +153,7 @@ const LoginScreen = ({ navigation }) => {
             </View>
             <View style={{ flex: 1, margin: 5, marginTop: 30 }}>
               <View
-                style={{ alignSelf: "center", justifyContent: "space-between" }}
+                style={{ flex:1 }}
               >
                 <Button
                   onPress={onLoginPress}

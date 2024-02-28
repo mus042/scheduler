@@ -38,14 +38,18 @@ export class UserStatisticsService {
         restDayHours: 0,
       };
       for (const tmpStat of result) {
+        if(tmpStat.systemScheduleId !== null){
+          console.log("stat : ",{tmpStat})
         stats.morningShifts += tmpStat.morningShifts;
         stats.noonShift += tmpStat.noonShifts;
         stats.nightShifts += tmpStat.nightShifts;
-        stats.overTimeStep2 += stats.overTimeStep2;
-        stats.overTimerStep1 += stats.overTimerStep1;
-        stats.restDayHours += stats.restDayHours;
+        stats.overTimeStep2 += tmpStat.overTimeStep2;
+        stats.overTimerStep1 += tmpStat.overTimeStep1;
+        stats.restDayHours += tmpStat.restDayHours;
       }
-      console.log({ stats });
+    }
+
+      console.log("all user Stats ",{ stats });
       return stats;
     } catch (error) {
       throw new ForbiddenException(error);
@@ -345,7 +349,7 @@ export class UserStatisticsService {
         overTimeStep1,
         overTimeStep2,
         restDayHours: 0, // Placeholder
-        userScheduleId:scheduleId,
+        systemScheduleId:scheduleId,
       });
     });
     const res = await this.prismaService.shiftUserStatistic.createMany({data:userStatsArray})

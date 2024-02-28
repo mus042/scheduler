@@ -40,7 +40,7 @@ const ShiftView = ({
       //if system schedule - group same time shifts together by shiftTimeName
       if (viewType === 'systemSchedule') {
         const groupedShifts = shifts.reduce((acc: Record<string, shift[]>, shift: shift) => {
-          // Initialize the array if this is the first shift of its kind
+    
           if (!acc[shift.shiftTimeName]) {
             acc[shift.shiftTimeName] = [];
           }
@@ -93,26 +93,30 @@ const ShiftView = ({
   ///return
   if (localShift) {
     return (
-      <Card mode="elevated" style={{ width: 240, margin: 5 }}>
+      <Card mode="elevated" style={{ width: 240, margin: 5,marginBottom:1 }}>
+        
         <Card.Title
           title={dayName}
           subtitle={normalizeShiftDate(shifts[0].shiftStartHour)}
-          titleVariant="titleLarge"
-          subtitleVariant="titleMedium"
+          titleVariant="headlineSmall"
+          subtitleVariant="labelMedium"
           right={LeftContent}
         />
         <Card.Content>
-          <View>
-        {/* {shifts.map((shiftToCard, index)=><CardContent key={index} shift={shiftToCard} name={shiftToCard.shiftTimeName} user={user}  handelAskReplace={handelFindReplace}/>)} */}
-        {systemShifts && Object.entries(systemShifts).map(([key, values])=><CardContent key={key} shift={values} name={values[0].shiftTimeName} user={user}  handelAskReplace={handelFindReplace}/>)}
+          <View style={{flex:1 ,}}>
+        {systemShifts && Object.entries(systemShifts).map(([key, values])=>
+        
+        <CardContent key={key} shift={values} name={values[0].shiftTimeName} user={user}  handelAskReplace={handelFindReplace}/>)
+        
+        }
              </View>
         </Card.Content>
-        <Card.Actions>
+        {/* <Card.Actions>
           <Button compact onPress={() => {}}>
             Cancel
           </Button>
           <Button onPress={() => {}}>Update</Button>
-        </Card.Actions>
+        </Card.Actions> */}
       </Card>
     );
   } else {

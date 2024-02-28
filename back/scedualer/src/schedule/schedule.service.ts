@@ -1165,65 +1165,7 @@ export class ScheduleService {
     return sameDayShift.length < 1;
   }
 
-  /**
-   * @description Return possible shifts for shiftToAssign.
-   * @param {*} shiftsToAssign
-   * @param {shift[][]} avilebleUserShifts
-   * @param {ShiftDto[]} emptySchedule
-   * @memberof ScheduleService
-   */
-  // getMatchingUsersRoles(
-  //   shiftToAssign: any,
-  //   avilebleUserShifts: Record<number, shift>[],
-  // ) {
-  //   //filter shifts to get only users with matching roles,
-  //   const matchingRoleUsersSchdule = avilebleUserShifts.filter(
-  //     (scheduleShifts: shift[]) =>
-  //       Object.values(scheduleShifts)[0].userRef.roleId ===
-  //       shiftToAssign[0].shiftRoles.create[0].roleId,
-  //   );
-  //   console.log('get match role, shiftToAssign :: 1075', { shiftToAssign });
-  //   return matchingRoleUsersSchdule;
-  // }
-  // findMinOptions(shiftsToSearch, userOptinalShifts: shift[][]) {
-  //   let minOptions = { shiftIdnex: -1, numOfOptions: -1 };
-  //   let shiftOptions: { shiftIndex: number; options: shift[] } = {
-  //     shiftIndex: 0,
-  //     options: [],
-  //   };
-  //   shiftsToSearch.forEach((shiftToFind, index) => {
-  //     console.log(
-  //       'Search for shift in schedule shifts ::1087',
-  //       { shiftToFind },
-  //       { userOptinalShifts },
-  //     );
-  //     const tmpOptions = [];
-  //     Object.values(userOptinalShifts).map((userShifts) => {
-  //       // console.log(userShifts, shiftToFind.shiftStartHour.getTime());
-  //       tmpOptions &&
-  //         tmpOptions.push(userShifts[shiftToFind.shiftStartHour.getTime()]);
-  //     });
-
-  //     // console.log(
-  //     //   { tmpOptions },
-  //     //   { index },
-  //     //   minOptions.numOfOptions > tmpOptions.length,
-  //     //   minOptions.numOfOptions,
-  //     //   tmpOptions.length,
-  //     // );
-  //     if (
-  //       minOptions.shiftIdnex === -1 ||
-  //       minOptions.numOfOptions > tmpOptions.length
-  //     ) {
-  //       minOptions.numOfOptions = tmpOptions.length;
-  //       minOptions.shiftIdnex = index;
-
-  //       shiftOptions = { shiftIndex: index, options: [...tmpOptions] };
-  //     }
-  //   });
-  //   console.log('shiftoptions  ::1112 ', { shiftOptions });
-  //   return shiftOptions;
-  // }
+ 
 
   assignScheduleShifts(scheduleAndShifts) {
     const noUserShifts = [];

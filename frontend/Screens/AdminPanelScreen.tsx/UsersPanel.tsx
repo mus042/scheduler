@@ -18,7 +18,7 @@ const UsersPanel = ({users,editUser,roles }) => {
       <View style={{flex:1}}>
     <Text >UsersPanel</Text>
     </View>
-    <View style={{flex:3,flexDirection:'column',minHeight:70,alignItems:'center'}}>
+    <View style={{flex:3,flexDirection:'column',minHeight:70,}}>
       <FlatList
           horizontal={true}
             data={users}

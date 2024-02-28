@@ -52,7 +52,6 @@ const UserItem = ({ item, setselectUser }) => {
             <Avatar.Text
           label={label}
          size={50}
-            
           />
           </View>
       
