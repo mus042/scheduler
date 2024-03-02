@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { FlatList, ScrollView, TextInput } from "react-native-gesture-handler";
-import axios from "axios";
+import axios, { all } from "axios";
 import { API_URL } from "../../app/context/AuthContext";
 import { user } from "../../App";
 import UserNextScheduleComp from "../DashBoardScreen/components/UserNextScheduleComp";
@@ -18,6 +18,7 @@ import SystemNextSchedule from "./SystemNextSchedule";
 import { mainStyle } from "../../utils/mainStyles";
 import UserItem from "./UserItem";
 import UsersPanel from "./UsersPanel";
+import Userbuble from "./components/Userbuble";
 
 const AdminPanel = () => {
 	// TODO
@@ -91,6 +92,40 @@ const AdminPanel = () => {
 	});
 
 	const CreateNewScheduleComp = () => {
+		const [selectedUsers, setSelectedUsers] = useState<user[]>([]);
+		const [submittedUsers, setSubmittedUsers] = useState<user[]>([]);
+		useEffect(() => {
+			if (allUsers) {
+				setSelectedUsers([...allUsers]);
+			}
+		}, [allUsers]);
+
+		useEffect(() => {
+			const fetchSubmittedUsers = async () => {
+				try {
+					const response = await axios.get(
+				`${API_URL}schedule/submittedUsers/`
+		);
+					const data = response.data;
+					// Assuming the response is an array of users
+					setSubmittedUsers(data);
+				} catch (error) {
+					console.error("Failed to fetch submitted users:", error);
+				}
+			};
+
+			fetchSubmittedUsers();
+		}, []);
+		const toggleUserSelection = (selectedUser: user) => {
+			if (selectedUsers.some((user) => user.id === selectedUser.id)) {
+				setSelectedUsers(
+					selectedUsers.filter((user) => user.id !== selectedUser.id)
+				);
+			} else {
+				setSelectedUsers([...selectedUsers, selectedUser]);
+			}
+		};
+
 		const currentDate = new Date(); //current time
 		const startDate = new Date(
 			currentDate.getTime() + (7 - currentDate.getDay()) * 24 * 60 * 60 * 1000
@@ -110,13 +145,35 @@ const AdminPanel = () => {
 		};
 
 		return (
-			<View style={{ flex: 1 }}>
+			<View style={{ flex: 1, flexDirection: "row" }}>
+				<View style={{ flex: 1 }}>
+					<FlatList
+						data={allUsers}
+						keyExtractor={(user) => user.id.toString()}
+						horizontal={true}
+						renderItem={({ item: user }) => (
+							<Pressable onPress={() => toggleUserSelection(user)}>
+								<Userbuble
+									user={user}
+									badgeContent={
+										selectedUsers.some((u) => u.id === user.id)
+											? "v"
+											: undefined
+									}
+									altText={"Me"}
+								/>
+							</Pressable>
+						)}
+					/>
+				</View>
+
 				<Pressable style={styles.button} onPress={handelPress}>
 					<Text>Create new Schedule for next week</Text>
 				</Pressable>
 			</View>
 		);
 	};
+
 	const createNewSysSchedule = async (startDate: Date) => {
 		try {
 			console.log({ startDate });

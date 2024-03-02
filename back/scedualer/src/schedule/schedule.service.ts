@@ -752,7 +752,7 @@ export class ScheduleService {
       throw new ForbiddenException(error.message);
     }
   }
-
+  async getSubmmitedUsers(){}
   /**
    * @description All users if provided that added prefernce to thier schedule shifts.
    * @param {Date} startingDate

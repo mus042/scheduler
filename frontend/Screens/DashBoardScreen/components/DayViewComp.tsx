@@ -227,7 +227,9 @@ export default DayViewComp;
 
 const styles = StyleSheet.create({
 	centeredView: {
-		width: 250,
+		width: 260,
+		minWidth:220,
+		maxWidth:360,
 		flex: 4,
 		justifyContent: "center",
 		alignItems: "center",

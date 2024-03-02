@@ -156,11 +156,11 @@ export default function DashboardScreen() {
       <View style={{ flex:9, }}>
         <UserCurrentSchedule scheudle={nextSystemSchedule} />
       </View>
-      <View style={{ flex: 9}}>
+      <View style={{ flex: 9,minHeight:700,}}>
         <UserCurrentSchedule scheudle={currentSchedule} />
       </View>
       {nextSchedule && (
-        <View style={{ flex: 6 }}>
+        <View style={{ flex: 8,minHeight:500}}>
           <UserNextScheduleComp
             nextSchedule={nextSchedule}
             update={handleUpdateUserPref}

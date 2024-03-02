@@ -6,6 +6,7 @@ import {
   Text,
   Pressable,
   View,
+  ImageBackground,
 } from "react-native";
 
 import { userAuth } from "../app/context/AuthContext";
@@ -48,6 +49,7 @@ const SignupScreen = ({ navigation }) => {
     }
   };
   
+  const backgroundSource = theme.dark ? require('../assets/sky2.jpeg') :require('../assets/sky3.jpeg')
   const register = async () => {
     console.log("on Register", { facilityId });
     const userProfile = {
@@ -101,25 +103,18 @@ const SignupScreen = ({ navigation }) => {
   const styles = StyleSheet.create({
     mainBox: {
       flex: 1,
-      // maxHeight: 650,
+      maxHeight: 550,
       minWidth: 100,
+      justifyContent:'flex-end',
     },
     inputBox: {
-      backgroundColor: theme.colors.secondaryContainer,
-      borderColor: theme.colors.onBackground,
-      borderWidth: 2,
-      borderRadius: 20,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      alignSelf: "center",
-      width: 300,
-
+    
+      backgroundColor: 'transparent',
+      borderBottomWidth: 2,
+      // alignSelf: "center",
+      width: 350, 
       marginBottom: 10,
-      maxHeight: 50,
-    },
-    underLine: {
-      width: 240,
-      marginLeft: 45,
+      // maxHeight: 50,
     },
   });
 
@@ -135,6 +130,14 @@ const SignupScreen = ({ navigation }) => {
         backgroundColor: theme.colors.background,
         flex: 1,
         justifyContent: "center",
+      }}
+    >
+           <ImageBackground
+      source={backgroundSource }
+      style={{
+        flex: 1,
+        justifyContent: 'center', 
+        alignItems: 'center', 
       }}
     >
       <View style={styles.mainBox}>
@@ -286,19 +289,20 @@ const SignupScreen = ({ navigation }) => {
             />
           </View>
           <View style={{ flex: 1, alignSelf: "center", marginTop: 30 }}>
+           
             <Button
-              onPress={register}
-              mode="elevated"
-              disabled={isValidForm}
-              icon="login"
-              style={{ borderRadius: 0 }}
-              contentStyle={{ flexDirection: "row-reverse", width: 350 }}
-              labelStyle={{ fontSize: 20, marginLeft: 3, padding: 2 }}
-              textColor={theme.colors.onBackground}
-              buttonColor={theme.colors.inversePrimary}
-            >
-              Sign Up
-            </Button>
+                  onPress={register}
+                  mode="elevated"
+                  disabled={isValidForm}
+                  icon="login"
+                  // style={{ borderRadius: 0 }}
+                  contentStyle={{ flexDirection: "row-reverse", width: 350 }}
+                  labelStyle={{ fontSize: 20, marginLeft: 3, padding: 2 }}
+                  textColor={theme.colors.onPrimary}
+                  buttonColor={theme.colors.primary}
+                >
+                  Sign Un
+                </Button>
           </View>
         </View>
         {/* <View
@@ -336,6 +340,7 @@ const SignupScreen = ({ navigation }) => {
           </View>
         </View> */}
       </View>
+      </ImageBackground>
     </SafeAreaView>
   );
 };

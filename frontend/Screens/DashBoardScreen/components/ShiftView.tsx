@@ -40,16 +40,19 @@ const ShiftView = ({
       //if system schedule - group same time shifts together by shiftTimeName
       if (viewType === 'systemSchedule') {
         const groupedShifts = shifts.reduce((acc: Record<string, shift[]>, shift: shift) => {
-    
-          if (!acc[shift.shiftTimeName]) {
-            acc[shift.shiftTimeName] = [];
+          // Determine the key for grouping
+          const groupName = shift.shiftTimeName === 'noonCanceled' ? 'noon' : shift.shiftTimeName;
+        
+          // Initialize the group array if it does not exist
+          if (!acc[groupName]) {
+              acc[groupName] = [];
           }
-      
-          // Add the shift to the array for its shiftTimeName
-          acc[shift.shiftTimeName].push(shift);
-      
+        
+          // Add the shift to the appropriate group
+          acc[groupName].push(shift);
+        
           return acc;
-        }, {});
+      }, {});
         console.log("grouped shifts ",{groupedShifts});
         setSystemShifts({...groupedShifts})
       }
@@ -93,7 +96,7 @@ const ShiftView = ({
   ///return
   if (localShift) {
     return (
-      <Card mode="elevated" style={{ width: 240, margin: 5,marginBottom:1 }}>
+      <Card mode="elevated" style={{flex:1,marginBottom:1,maxWidth:250, }}>
         
         <Card.Title
           title={dayName}

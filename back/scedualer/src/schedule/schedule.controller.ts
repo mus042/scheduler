@@ -112,7 +112,12 @@ export class SchedulerController {
     // console.log({ schedualId }, { shifts });
     return this.ScheduleService.editeFuterSceduleForUser(schedualId, shifts);
   }
-
+  @Roles('admin')
+  @HttpCode(HttpStatus.OK)
+  @Get('submittedUsers')
+  submittedUsers() {
+    const allUsers = this.ScheduleService.getSubmmitedUsers();
+  }
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
   @Post('createSchedule')

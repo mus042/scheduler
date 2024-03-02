@@ -6,6 +6,7 @@ import {
   Text,
   Pressable,
   View,
+  ImageBackground,
 } from "react-native";
 
 import { userAuth } from "../app/context/AuthContext";
@@ -28,9 +29,12 @@ const LoginScreenOrg = () => {
   const { onLogin, onRegisterOrg } = userAuth();
   const [isValidForm, setIsValidForm] = useState(false);
 
+  
+ 
   //Context
   const theme = useTheme();
-
+  const backgroundSource = theme.dark ? require('../assets/sky2.jpeg') :require('../assets/sky3.jpeg')
+ 
   useEffect(() => {
     const isFormValid = validateForm();
     setIsValidForm(isFormValid);
@@ -113,11 +117,11 @@ const LoginScreenOrg = () => {
   const styles = StyleSheet.create({
     mainBox: {
       flex: 1,
-      // maxHeight: 650,
+      maxHeight: 600,
       minWidth: 100,
     },
     inputBox: {
-      backgroundColor: theme.colors.background,
+      backgroundColor: 'transparent',
       borderColor: theme.colors.onBackground,
       borderBottomWidth: 1,
       alignSelf: "center",
@@ -134,9 +138,17 @@ const LoginScreenOrg = () => {
         justifyContent: "center",
       }}
     >
+           <ImageBackground
+      source={backgroundSource }
+      style={{
+        flex: 1,
+        justifyContent: 'center', 
+        alignItems: 'center', 
+      }}
+    >
       <View style={styles.mainBox}>
         <View style={{ flex: 4, flexDirection: "row" }}>
-          <View style={{ flex: 1, alignSelf: "center", marginBottom: 50 }}>
+        <View style={{ flex: 1, margin: 5 }}>
             <TextInput
               style={styles.inputBox}
               label="First Name"
@@ -274,24 +286,25 @@ const LoginScreenOrg = () => {
               <View
                 style={{ alignSelf: "center", justifyContent: "space-between" }}
               >
-                <Button
-                  onPress={register}
-                  mode="elevated"
-                  disabled={!isValidForm}
-                  icon="login"
-                  style={{ borderRadius: 0 }}
-                  contentStyle={{ flexDirection: "row-reverse", width: 350 }}
-                  labelStyle={{ fontSize: 20, marginLeft: 3, padding: 2 }}
-                  textColor={theme.colors.onBackground}
-                  buttonColor={theme.colors.inversePrimary}
-                >
-                  Sign Up
-                </Button>
+                   <Button
+              onPress={register}
+              mode="elevated"
+              disabled={isValidForm}
+              icon="login"
+              style={{ borderRadius: 0 }}
+              contentStyle={{ flexDirection: "row-reverse", width: 350 }}
+              labelStyle={{ fontSize: 20, marginLeft: 3, padding: 2 }}
+              textColor={theme.colors.onBackground}
+              buttonColor={theme.colors.inversePrimary}
+            >
+              Sign Up
+            </Button>
               </View>
             </View>
           </View>
         </View>
       </View>
+      </ImageBackground>
     </SafeAreaView>
   );
 };

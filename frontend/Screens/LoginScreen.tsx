@@ -6,6 +6,7 @@ import {
   Text,
   Pressable,
   View,
+  ImageBackground,
 } from "react-native";
 
 import { userAuth } from "../app/context/AuthContext";
@@ -73,7 +74,7 @@ const LoginScreen = ({ navigation }) => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-
+  const backgroundSource = theme.dark ? require('../assets/sky2.jpeg') :require('../assets/sky3.jpeg')
   ///////////
   // styles//
   ///////////
@@ -85,11 +86,12 @@ const LoginScreen = ({ navigation }) => {
       justifyContent:'flex-end',
     },
     inputBox: {
-      backgroundColor: theme.colors.secondaryContainer,
-      borderColor: theme.colors.onBackground,
-      borderWidth: 2,
-      alignSelf: "center",
-      width: 350,
+      // backgroundColor: theme.colors.secondaryContainer,
+      // borderBottomColor: theme.colors.onBackground,
+      backgroundColor: 'transparent',
+      borderBottomWidth: 2,
+      // alignSelf: "center",
+      width: 350, 
       marginBottom: 10,
       // maxHeight: 50,
     },
@@ -100,6 +102,14 @@ const LoginScreen = ({ navigation }) => {
         backgroundColor: theme.colors.background,
         flex: 1,
         justifyContent: "flex-end",
+      }}
+    >
+         <ImageBackground
+      source={backgroundSource }
+      style={{
+        flex: 1,
+        justifyContent: 'center', 
+        alignItems: 'center', 
       }}
     >
       <View style={styles.mainBox}>
@@ -206,6 +216,7 @@ const LoginScreen = ({ navigation }) => {
           </View>
         </View>
       </View>
+      </ImageBackground>
     </SafeAreaView>
   );
 };
