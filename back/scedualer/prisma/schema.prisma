@@ -236,6 +236,7 @@ model ScheduleMold {
   restDays        ScheduleTime?   @relation("RestDays", fields: [restDaysId], references: [id])
   restDaysId      Int?            @unique
   schedules       SystemSchedule[]
+  @@map("scheduleMold")
 }
 
 

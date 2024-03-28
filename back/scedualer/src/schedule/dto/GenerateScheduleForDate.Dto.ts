@@ -25,5 +25,5 @@ export class generateScheduleForDateDto {
 
   @IsOptional()
   @IsArray()
-  usersIdList?: any;
+  selctedUsers?: any;
 }

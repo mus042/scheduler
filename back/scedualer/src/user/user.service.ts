@@ -51,6 +51,8 @@ export class UserService {
     console.log(dto.userId, { dto });
     const id = dto.userId;
     try {
+
+      
       const user = await this.prisma.user.update({
         where: {
           id: id,

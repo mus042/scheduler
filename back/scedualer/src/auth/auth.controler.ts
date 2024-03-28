@@ -17,6 +17,7 @@ import { JwtGuard } from './Guard';
 import { RoleGuard } from './role/role.guard';
 import { orgAuth } from './dto/orgAuth';
 import { userProfileDto } from './dto/userProfile.dto';
+import { GetUser } from 'src/Decorator';
 @Controller('auth')
 export class AuthControler {
   constructor(private authService: AuthService) {}
@@ -50,9 +51,10 @@ export class AuthControler {
   @UseGuards(JwtGuard, RoleGuard)
   @Roles('admin')
   @Post('addUserAsAdmin')
-  addUser(@Body() user) {
+  addUser(@GetUser('facilityId') facilityId: number,@Body() user) {
+    console.log({user})
     if (user.email !== null) {
-      return this.authService.signup(user);
+      return this.authService.signup({...user,facilityId});
     } else {
       throw new ForbiddenException('email should not be empty');
     }

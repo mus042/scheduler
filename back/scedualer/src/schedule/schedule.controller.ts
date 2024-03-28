@@ -78,8 +78,9 @@ export class SchedulerController {
   @Roles('user', 'admin')
   @HttpCode(HttpStatus.OK)
   @Get('getCurrentSchedule')
-  getCurrentSchedule() {
-    return this.ScheduleService.getCurrentSchedule();
+  getCurrentSchedule(@GetUser('facilityId') facilityId: number) {
+     console.log("get current sched ")
+    return this.ScheduleService.getCurrentSchedule(facilityId);
   }
 
   @Roles('user', 'admin')
@@ -115,15 +116,23 @@ export class SchedulerController {
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
   @Get('submittedUsers')
-  submittedUsers() {
-    const allUsers = this.ScheduleService.getSubmmitedUsers();
+  submittedUsers(@GetUser('facilityId') facilityId: number) {
+     
+    return this.ScheduleService.getSubmmitedUsersSchedule(facilityId);
   }
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
   @Post('createSchedule')
   createSchedule(@Body() scheduleDto,@GetUser('facilityId') facilityId: number) {
-    console.log("schecdcont ", { scheduleDto });
+    console.log("schecdcont ", { scheduleDto },scheduleDto.selctedUsers);
     return this.ScheduleService.createSystemSchedule({...scheduleDto,facilityId});
+  }
+  @Roles('admin')
+  @HttpCode(HttpStatus.OK)
+  @Post('setSystemSchedule')
+  setSystemSchedule(@Body() scheduleDto,@GetUser('facilityId') facilityId: number) {
+    console.log("schecdcont ", { scheduleDto },scheduleDto.selctedUsers);
+    return this.ScheduleService.setSystemSchedule({...scheduleDto,facilityId});
   }
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
