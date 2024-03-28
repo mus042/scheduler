@@ -31,7 +31,7 @@ const SystemShift = ({ item, user, handelAskReplace, }) => {
 	const MiniComp = () => {
 		const miniTime:string = ""+ shiftRole.shiftStartHour.substring(11, 13) +"-"+ shiftRole.shiftEndHour.substring(11, 13)
 		return (
-			<Pressable onPress={() => console.log("press")}>
+			// <Pressable onPress={() => console.log("press")}>
 				<View
 					style={{
 						flex: 1,
@@ -41,7 +41,7 @@ const SystemShift = ({ item, user, handelAskReplace, }) => {
 						height:95,
 						// width:75,
 						minHeight:90,
-						
+						marginLeft:5,
 						borderBottomColor:myShift?theme.colors.onBackground :theme.colors.background,
 					}}
 				>
@@ -95,7 +95,7 @@ const SystemShift = ({ item, user, handelAskReplace, }) => {
 						{/* </View> */}
 					{/* )} */}
 				</View>
-			</Pressable>
+			// </Pressable>
 		);
 	};
 	const ExpendedComp = () => {

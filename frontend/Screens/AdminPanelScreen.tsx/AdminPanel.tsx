@@ -9,7 +9,7 @@ import {
 import React, { useContext, useEffect, useState } from "react";
 import { FlatList, ScrollView, TextInput } from "react-native-gesture-handler";
 import axios, { all } from "axios";
-import { API_URL } from "../../app/context/AuthContext";
+import { API_URL, userAuth } from "../../app/context/AuthContext";
 import { user } from "../../App";
 import UserNextScheduleComp from "../DashBoardScreen/components/UserNextScheduleComp";
 import UserCurrentSchedule from "../DashBoardScreen/components/UserCurrentSchedule";
@@ -19,6 +19,9 @@ import { mainStyle } from "../../utils/mainStyles";
 import UserItem from "./UserItem";
 import UsersPanel from "./UsersPanel";
 import Userbuble from "./components/Userbuble";
+import CreateScheduleComp from "./CreateScheduleScreen/CreateScheduleComp";
+import { IconButton, MD3Colors } from "react-native-paper";
+import { useSnackbarContext } from "../SnackbarProvider";
 
 const AdminPanel = () => {
 	// TODO
@@ -38,7 +41,8 @@ const AdminPanel = () => {
 	const [userToEdit, setUserToEdit] = useState();
 	const [rolesArr, setRolesArr] = useState();
 	const [massegeBoardMsgs, setMassegeBoardMsgs] = useState(); //ToAdd
-
+	const me = userAuth().authState?.user;
+	const { addSnackBarToQueue } = useSnackbarContext();
 	useEffect(() => {
 		//get the roles and set state
 		const setAllRoles = async () => {
@@ -57,9 +61,9 @@ const AdminPanel = () => {
 
 	useEffect(() => {
 		const getCurrentSched = async () => {
-			const sched = await axios.get(`${API_URL}schedule/getCurrentSchedule `);
+			const sched = await axios.get(`${API_URL}schedule/getCurrentSchedule`);
 			const scheduleData: scheduleData = { ...sched.data };
-			console.log({ scheduleData });
+			console.log("current schedule ", { scheduleData });
 			setCurrentSchedule(scheduleData);
 			// console.log({currentSchedule});
 		};
@@ -94,6 +98,8 @@ const AdminPanel = () => {
 	const CreateNewScheduleComp = () => {
 		const [selectedUsers, setSelectedUsers] = useState<user[]>([]);
 		const [submittedUsers, setSubmittedUsers] = useState<user[]>([]);
+		const [scheduleShifts, setScheduleShifts] = useState();
+
 		useEffect(() => {
 			if (allUsers) {
 				setSelectedUsers([...allUsers]);
@@ -104,8 +110,8 @@ const AdminPanel = () => {
 			const fetchSubmittedUsers = async () => {
 				try {
 					const response = await axios.get(
-				`${API_URL}schedule/submittedUsers/`
-		);
+						`${API_URL}schedule/submittedUsers/`
+					);
 					const data = response.data;
 					// Assuming the response is an array of users
 					setSubmittedUsers(data);
@@ -135,50 +141,82 @@ const AdminPanel = () => {
 		const handelPress = () => {
 			console.log("create new schedule ");
 			const newScheudle = async () => {
-				const tmpSched = await createNewSysSchedule(startDate);
-				console.log(tmpSched);
-				setcreatedSched({ ...tmpSched.fiild2sched });
-				setEmptyShifts({ ...tmpSched.emptyShifts });
+				const tmpSched = await createNewSysSchedule(startDate, selectedUsers);
+				console.log("tmpSched", { tmpSched });
+				setcreatedSched({ ...tmpSched });
+				const combinedShifts = { ...tmpSched.assigend, ...tmpSched.unAssigend };
+				// setEmptyShifts({ ...tmpSched.emptyShifts });
+				console.log("combined assigned and un", { combinedShifts });
 				return tmpSched;
 			};
 			newScheudle();
 		};
 
 		return (
-			<View style={{ flex: 1, flexDirection: "row" }}>
-				<View style={{ flex: 1 }}>
+			<View style={{ flex: 1, flexDirection: "column" }}>
+				<View style={{ flex: 1, borderWidth: 3 }}>
 					<FlatList
 						data={allUsers}
 						keyExtractor={(user) => user.id.toString()}
 						horizontal={true}
+						contentContainerStyle={{
+							justifyContent: "flex-start",
+							borderWidth: 3,
+							flex: 1,
+							width: "100%",
+						}}
 						renderItem={({ item: user }) => (
-							<Pressable onPress={() => toggleUserSelection(user)}>
+							<Pressable
+								onPress={() => toggleUserSelection(user)}
+								style={{ margin: 5 }}
+							>
 								<Userbuble
 									user={user}
 									badgeContent={
-										selectedUsers.some((u) => u.id === user.id)
-											? "v"
+										submittedUsers.some((u) => u === user.id)
+											? "Sub"
 											: undefined
 									}
-									altText={"Me"}
+									altText={user.id === me?.id ? "Me" : undefined}
+									selected={selectedUsers.some((u) => u.id === user.id)}
+									badgeColor={undefined}
 								/>
 							</Pressable>
 						)}
 					/>
 				</View>
+				<View style={{ flex: 1 }}>
+					<Pressable style={styles.button} onPress={handelPress}>
+						<Text>Create new Schedule for next week</Text>
+					</Pressable>
+				</View>
+				<View style={{ flex: 3 }}>
+					<Text>Generated Schedule .</Text>
 
-				<Pressable style={styles.button} onPress={handelPress}>
-					<Text>Create new Schedule for next week</Text>
-				</Pressable>
+					<View style={{ flex: 5, borderWidth: 10 }}>
+						{/* <SystemNextSchedule
+					nextSchedule={createdSched}
+					onDeleteSched={onDeleteSched}
+				/> */}
+					</View>
+					<Pressable onPress={() => console.log("approve")}>
+						<Text>Approve</Text>
+					</Pressable>
+				</View>
 			</View>
 		);
 	};
 
-	const createNewSysSchedule = async (startDate: Date) => {
+	const createNewSysSchedule = async (
+		startDate: Date,
+		selectedUsers: user[]
+	) => {
 		try {
-			console.log({ startDate });
+			console.log({ startDate }, { selectedUsers });
+			const selectedUsersIds = selectedUsers.map((user) => user.id);
 			const shcedule = await axios.post(`${API_URL}schedule/createSchedule/`, {
 				scedualStart: startDate,
+				selctedUsers: selectedUsersIds,
 			});
 			return shcedule.data;
 		} catch (error) {
@@ -194,15 +232,20 @@ const AdminPanel = () => {
 		roleId,
 		userId
 	) => {
-		console.log({ email, password, firstName, lastName, userId });
+		console.log('add user',{ email, password, firstName, lastName,  });
 		try {
-			return await axios.post(`${API_URL}users/editUserAsAdmin`, {
-				userId,
+			const  res = await axios.post(`${API_URL}auth/addUserAsAdmin`, {
+				
 				email,
 				password,
 				roleId: roleId,
 				userProfile: { firstName, lastName },
 			});
+			if(res){
+				console.log("sucssus");
+				addSnackBarToQueue({ snackbarMessage: "Saved Changes " });
+				//if new user added - refresh the component, 
+			}
 		} catch (error) {
 			return { error: true, msg: (error as any).response.data.msg };
 		}
@@ -282,21 +325,35 @@ const AdminPanel = () => {
 
 	return (
 		<ScrollView style={styles.mainContainer}>
-			<View style={{ flex: 1 }}>
+			<View style={{ flexGrow: 1 }}>
 				<Text style={[mainStyle.h3, { textAlign: "center" }]}>Admin panel</Text>
 			</View>
-			<View style={{ flex: 5 }}>
+			<View style={{ flexGrow: 11 }}>
 				<SystemNextSchedule
 					nextSchedule={nextSystemSchedule}
 					onDeleteSched={onDeleteSched}
 				/>
 			</View>
-			<View style={{ flex: 3 }}>
-				<CreateNewScheduleComp />
+			<View style={{ flexGrow: 4 }}>
+				<Text>Bulltin board</Text>
+				<View>
+					<Text>message list</Text>
+				</View>
+				<View>
+					<IconButton
+						icon='dots-horizontal-circle-outline'
+						iconColor={MD3Colors.error50}
+						size={20}
+						onPress={() => console.log("Pressed")}
+					/>
+				</View>
+			</View>
+			<View style={{ flexGrow: 11 }}>
+				<CreateScheduleComp allUsers={allUsers} />
 			</View>
 
-			<View style={{ flex: 3, minHeight: 200 }}>
-				<UsersPanel users={allUsers} editUser={editUser} roles={rolesArr} />
+			<View style={{ flexGrow: 6 }}>
+				<UsersPanel users={allUsers} editUser={editUser} roles={rolesArr} addUser={addUser} />
 			</View>
 		</ScrollView>
 	);
@@ -308,22 +365,17 @@ const styles = StyleSheet.create({
 	mainContainer: {
 		maxWidth: 1200,
 		minWidth: 300,
-		// justifyContent: "center",
 		flexDirection: "column",
 	},
 	button: {
 		borderRadius: 20,
 		padding: 10,
 		elevation: 2,
-		backgroundColor: "#F194FF",
+
 		width: "30%",
 		maxWidth: 350,
 	},
 	container: {
-		flex: 1,
-		// justifyContent: "center",
-		// paddingHorizontal: 16,
-
 		borderColor: "black",
 		borderWidth: 1,
 	},

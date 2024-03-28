@@ -6,7 +6,7 @@ import {
 	StyleSheet,
 	View,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
 	ActivityIndicator,
 	Avatar,
@@ -23,12 +23,30 @@ import FindReplacmentComp from "./FindReplacmentComp";
 import SystemShift from "./SystemShift";
 import { FlatList } from "react-native-gesture-handler";
 import { shift } from "../../../App";
+import EditShiftModalView from "../../AdminPanelScreen.tsx/CreateScheduleScreen/userReplaceMenu";
+import { shiftAndOptions } from "../../AdminPanelScreen.tsx/CreateScheduleScreen/CreateScheduleComp";
+import Userbuble from "../../AdminPanelScreen.tsx/components/Userbuble";
 
-const CardContent = ({ name, shift, user, handelAskReplace }) => {
+const CardContent = ({
+	name,
+	shift,
+	user,
+	handelAskReplace,
+	allOptionUsers,
+}) => {
 	const [findReplaceVisible, setfindReplaceVisible] = useState(false);
 	const [modalVisible, setModalVisible] = useState(false);
+	const [selctedShiftRole, setSelctedShiftRole] = useState();
+	const [modalHeight, setModalHeight] = useState<"40%" | "60%" | "100%">("60%");
+
 	console.log({ shift }, "user", { user });
 	const theme = useTheme();
+
+	const changeModalHeight = "60%";
+
+	useEffect(() => {
+		console.log({ selctedShiftRole }, { allOptionUsers });
+	}, [selctedShiftRole]);
 
 	//To Add shift roles map
 	const AssigndComp = () => {
@@ -36,38 +54,30 @@ const CardContent = ({ name, shift, user, handelAskReplace }) => {
 		let miniShifts = [];
 
 		// First, filter shifts that match the userId
-		const matchingShifts = shift.filter(shiftToFilter => shiftToFilter.userId === user.id);
-		
+		const matchingShifts = shift.filter(
+			(shiftToFilter) => shiftToFilter.userId === user.id
+		);
+
 		// Add all matching shifts to miniShifts
 		miniShifts = [...matchingShifts];
-		
 
 		if (miniShifts.length < 3) {
-		  // Find shifts that don't match the userId condition
-		  const nonMatchingShifts = shift.filter(shiftToFilter => shiftToFilter.userId !== user.id);
-		
-		  // Calculate how many non-matching shifts you can add (up to two)
-		  const slotsAvailable = 3 - miniShifts.length;
-		  const shiftsToAdd = nonMatchingShifts.slice(0, slotsAvailable);
-		
-		  // Add the additional shifts to miniShifts
-		  miniShifts = [...miniShifts, ...shiftsToAdd];
+			// Find shifts that don't match the userId condition
+			const nonMatchingShifts = shift.filter(
+				(shiftToFilter) => shiftToFilter.userId !== user.id
+			);
+
+			// Calculate how many non-matching shifts you can add (up to two)
+			const slotsAvailable = 3 - miniShifts.length;
+			const shiftsToAdd = nonMatchingShifts.slice(0, slotsAvailable);
+
+			// Add the additional shifts to miniShifts
+			miniShifts = [...miniShifts, ...shiftsToAdd];
 		}
 		const allShifts = [...shift];
 		return (
 			<View style={{ flex: 1, flexDirection: "row" }}>
-				{/* {miniShifts.map((shiftRole) => {
-					return (
-						<View style={{flex:1,margin:1,}}>
-							<SystemShift
-							item={shiftRole}
-							user={user}
-							handelAskReplace={handelAskReplace}
-						/>
-						</View>
-					);
-				})} */}
-			<FlatList
+				<FlatList
 					horizontal={true}
 					data={shift}
 					contentContainerStyle={{
@@ -78,18 +88,20 @@ const CardContent = ({ name, shift, user, handelAskReplace }) => {
 						// alignSelf:'center',
 					}}
 					renderItem={(shiftRole) => (
+						<View>
 						<SystemShift
 							item={shiftRole}
 							user={user}
 							handelAskReplace={handelAskReplace}
 						/>
+						</View>
 					)}
 					keyExtractor={(item) => item.id}
 				/>
 			</View>
 		);
 	};
-	
+
 	return (
 		<View
 			style={{
@@ -100,10 +112,10 @@ const CardContent = ({ name, shift, user, handelAskReplace }) => {
 				width: 220,
 				// justifyContent: "space-between",
 				maxWidth: 230,
-				maxHeight:150,
-				height:100,
-				minHeight:90,
-				flex:1,
+				maxHeight: 150,
+				height: 100,
+				minHeight: 90,
+				flex: 1,
 			}}
 		>
 			<View
@@ -143,7 +155,7 @@ const CardContent = ({ name, shift, user, handelAskReplace }) => {
 				)}
 			</View>
 
-			<View style={{ flex: 6, }}>
+			<View style={{ flex: 6 }}>
 				<View
 					style={{
 						flex: 2,
@@ -155,7 +167,7 @@ const CardContent = ({ name, shift, user, handelAskReplace }) => {
 			</View>
 			<View style={{ flex: 1 }}>
 				<Modal
-					animationType='fade'
+					animationType='slide'
 					transparent={true}
 					visible={modalVisible}
 					onRequestClose={() => {
@@ -164,32 +176,116 @@ const CardContent = ({ name, shift, user, handelAskReplace }) => {
 					}}
 				>
 					<View style={styles.centeredView}>
-						<View style={[{ maxHeight: 500 }, styles.modalView]}>
+						<View style={[{ height: modalHeight }, styles.modalView]}>
+							<Pressable
+								style={{
+									position: "absolute",
+									top: 10,
+									backgroundColor: "black",
+									width: 40,
+									minHeight: 5,
+									maxHeight: 10,
+									alignSelf: "center",
+								}}
+								onPress={() => setModalVisible(!modalVisible)}
+							></Pressable>
 							<View
 								style={{
 									flex: 1,
-									flexDirection: "row",
+									flexDirection: "column",
 									alignContent: "flex-start",
-									maxHeight: 490,
+									// maxHeight: '100%',
+									justifyContent: "flex-start",
+									borderWidth: 10,
 									margin: 10,
 								}}
 							>
-								<FlatList
-									data={shift}
-									numColumns={3}
-									renderItem={( item ) =>
-										item && (
-											<View style={{ flex: 1,maxWidth:110, }}>
-												<SystemShift
-													item={item}
-													user={user}
-													handelAskReplace={handelAskReplace}
-												/>
-											</View>
-										)
-									}
-									keyExtractor={(item) => item.id}
-								/>
+								<View style={{ flexGrow: 1 }}>
+									<View style={{ flex: 1 }}>
+										{/* shift name and date  */}
+										<Text>{name}</Text>
+										<Text>{ shift[0].shiftStartHour.substring(0,10)} </Text>
+
+									</View>
+								</View>
+								<View style={{ flexGrow: 1, borderWidth: 2 , justifyContent:'center',borderColor:'red'}}>
+									<Text>Shift Roles :</Text>
+
+									<FlatList
+										data={shift}
+										horizontal={true}
+										renderItem={(item) => {
+											return (
+												item && (
+													<View style={{ flex: 1, maxWidth: 110,width:90 ,borderWidth:2,alignSelf:'flex-end',height:100}}>
+														<Pressable
+															onPress={() => {
+																console.log(item);
+																setSelctedShiftRole(item.item); // Update state with the shift item
+															}}
+														>
+															<SystemShift
+																item={item}
+																user={user}
+																handelAskReplace={handelAskReplace}
+															/>
+														</Pressable>
+													</View>
+												)
+											);
+										}}
+										keyExtractor={(item) => item.id}
+									/>
+								</View>
+								<View style={{ flexGrow: 2 }}>
+									<Text>shift details</Text>
+									
+								</View>
+								<View style={{ flexGrow:5,justifyContent:'center' }}>
+									{/* shift options */}
+									<View style={{ justifyContent:'center', }}>
+										{selctedShiftRole?.shiftOptions && (
+											<FlatList
+												data={selctedShiftRole.shiftOptions}
+												horizontal={true}
+												renderItem={(item) => (
+													<>
+														<View style={{flex:1 , justifyContent:'flex-start',alignItems:'flex-start',}}>
+															{/* show each shiftoption as user Buble with pref as badge  */}
+															{allOptionUsers && (
+																<View style={{ flex:1,borderWidth:2  }}>
+																	<View style={{flex:2,maxWidth: 110,width:90}}>
+																	<Userbuble
+																		user={allOptionUsers.find((userToCheck) => {
+																			console.log(userToCheck, { item });
+																			return (
+																				userToCheck.id === item.item.userId
+																			);
+																		})}
+																		badgeContent={item.item.userPreference}
+																		altText={""}
+																		selected={false}
+																		badgeColor={"red"}
+																	/>
+																	</View>
+																	<View style={{flex:1,flexDirection:'row'}}>
+																
+																	<IconButton
+																		icon='dots-horizontal-circle-outline'
+																		iconColor={MD3Colors.error50}
+																		size={20}
+																		onPress={() => console.log("Pressed")}
+																	/>
+																	</View>
+																</View>
+															)}
+														</View>
+													</>
+												)}
+											/>
+										)}
+									</View>
+								</View>
 							</View>
 							<View>
 								{name === "morning" ? (
@@ -231,18 +327,18 @@ export default CardContent;
 const styles = StyleSheet.create({
 	centeredView: {
 		flex: 1,
-		justifyContent: "center",
-
+		justifyContent: "flex-end",
 		alignItems: "center",
 		marginTop: 22,
 	},
 
 	modalView: {
-		margin: 20,
+		margin: 10,
 		backgroundColor: "white",
 		borderRadius: 20,
-		padding: 35,
-		alignItems: "center",
+		padding: 10,
+		paddingTop: 20,
+		// alignItems: "center",
 		shadowColor: "#000",
 		shadowOffset: {
 			width: 0,
@@ -251,6 +347,7 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.25,
 		shadowRadius: 4,
 		elevation: 5,
+		width: "100%",
 	},
 	button: {
 		borderRadius: 20,

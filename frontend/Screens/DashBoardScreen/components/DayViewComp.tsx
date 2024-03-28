@@ -26,33 +26,24 @@ const DayViewComp = ({
 	update,
 	viewType,
 	isEdit,
+	allUsers,
 }: {
 	shifts: shift[] | undefined | any;
 	update: any;
 	isEdit: boolean | undefined;
 	viewType: "systemSchedule" | "user" | undefined;
+	allUsers?: user[];
 }) => {
 	const [localShifts, setlocalShifts] = useState<shift[]>();
 	const [editDay, setEdit] = useState(isEdit !== undefined ? !isEdit : false);
 	const [dayName, setDayName] = useState<string>("");
-	const [morning, setMorning] = useState<shift>();
-	const [morningUser, setMorningUser] = useState<user>();
-	const [nightUser, setNightUser] = useState<user>();
-	const [noonUser, setNoonUser] = useState<user>();
-	const [night, setNight] = useState<shift>();
-	const [noon, setNoon] = useState<shift>();
 	const { authState } = userAuth();
 	const theme = useTheme();
 	useEffect(() => {
 		console.log({ shifts });
 		if (shifts) {
 			setlocalShifts(shifts.item);
-			setMorning({ ...shifts.item[0] });
-			setMorningUser({ ...shifts.item[0]?.userRef });
-			setNoon({ ...shifts.item[1] });
-			setNoonUser({ ...shifts.item[0]?.userRef });
-			setNight({ ...shifts.item[2] });
-			setNightUser({ ...shifts.item[0]?.userRef });
+
 		}
 	}, [shifts]);
 
@@ -201,11 +192,21 @@ const DayViewComp = ({
 					)}
 					{viewType === "systemSchedule" && (
 						<>
+							{allUsers && isEdit ?  
 							<ShiftView
-								shifts={localShifts}
-								viewType={"systemSchedule"}
-								dayName={dayName.split(",")[0]}
-							/>
+							shifts={localShifts}
+							viewType={"systemSchedule"}
+							dayName={dayName.split(",")[0]}
+							allOptionUsers={allUsers}
+						/>   
+						: 
+						<ShiftView
+						shifts={localShifts}
+						viewType={"systemSchedule"}
+						dayName={dayName.split(",")[0]}
+					/>   
+						
+						}
 						</>
 					)}
 					{/* {editDay && (

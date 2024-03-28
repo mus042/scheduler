@@ -84,13 +84,17 @@ export type scheduleInfo = {
 };
 export type user = {
 	id: number;
-	createdAt: Date;
-	updatedAt: Date;
+	createdAt?: Date ;
+	updatedAt?: Date;
 	userServerRole: "admin" | "user";
 	userLevel: number;
 	typeOfUser: "new";
 	email: string;
 	facilityId?: number;
+	userProfile?:{
+		firstName: string | null;
+		lastName: string | null;
+	}
 	firstName: string | null;
 	lastName: string | null;
 };
@@ -105,7 +109,7 @@ export type shift = {
 	id: number;
 	createdAt: Date;
 	updatedAt: Date;
-
+	tmpId?: number;
 	shiftTimeName: ShiftTimeName;
 	typeOfShift: "short" | "long";
 	shiftStartHour: string | Date;
@@ -117,6 +121,7 @@ export type shift = {
 	userRef: user | null | undefined;
 	roleId?: number | null;
 	shiftRole?: object | null;
+	shiftOptions?: object | null | undefined;
 };
 
 const BellIconWithBadge = ({ onPress, badgeCount }) => {

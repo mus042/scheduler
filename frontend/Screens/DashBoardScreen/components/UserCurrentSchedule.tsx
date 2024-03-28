@@ -7,6 +7,7 @@ import WeeklyView from "./WeeklyView";
 import { mainStyle } from "../../../utils/mainStyles";
 import { normalizeScheduleDates } from "../../../utils/utils";
 import { ActivityIndicator, MD2Colors } from "react-native-paper";
+import SystemNextSchedule from "../../AdminPanelScreen.tsx/SystemNextSchedule";
 
 const UserCurrentSchedule = ({
   scheudle,
@@ -22,11 +23,12 @@ const UserCurrentSchedule = ({
   useEffect(() => {
 if(scheudle){
     setScheduleData(scheudle?.data);
-    console.log(typeof scheudle.shifts , scheudle);
+    console.log(typeof scheudle.shifts , scheudle, "current schedule:: ");
       if (typeof scheudle?.shifts === "object") {
         
         const shiftsArr = Object.values(scheudle.shifts);
         setScheduleShifts(shiftsArr);
+        
       } else {
         setScheduleShifts(scheudle?.shifts);
       }
@@ -77,7 +79,9 @@ if(scheudle){
               update={null}
               type={'systemSchedule'}
             />
+            
           )}
+    
         </View>
       )}
       {!scheduleData && (

@@ -9,7 +9,7 @@ import { normalizeShiftDate } from '../../utils/utils';
 const UserItem = ({ item, setselectUser }) => {
     const [expanded, setExpanded] = React.useState(true);
     console.log({item})
-    const user=item?.item;
+    const user = item.item ? item.item : item;
   const handlePress = () => setExpanded(!expanded);
     const theme= useTheme();
     const editUser = async (
@@ -39,26 +39,26 @@ const UserItem = ({ item, setselectUser }) => {
    
    
    
-      const label = ''+ item?.item?.userProfile?.lastName?.at(0)+item?.item?.userProfile?.firstName?.at(0)
-      const onSelcetUser =(user)=>{
-        console.log({user})
-        setselectUser(user)
+      const label = ''+user?.userProfile?.lastName?.at(0)+user?.userProfile?.firstName?.at(0)
+      const onSelcetUser =(tmpUser)=>{
+        console.log({tmpUser})
+        setselectUser(tmpUser)
       }
     
   return (
     <View style={styles.container}> 
-    <Pressable style={{flex:1,flexWrap:"wrap",minHeight:40}} onPress={()=>onSelcetUser(item.item)} onLongPress={()=>{}}>
-  <View style={{flex:1,marginTop:10}}>
+    <Pressable style={{flex:1,flexWrap:"wrap",}} onPress={()=>onSelcetUser(user)} onLongPress={()=>{}}>
+  <View style={{flex:3,marginTop:5}}>
             <Avatar.Text
           label={label}
-         size={50}
+         size={40}
           />
           </View>
-      
-                <Text variant='titleMedium' style={{flexShrink:1}} >
-                {item?.item?.userProfile?.firstName.substring(0, 7)}
+          <View style={{flex:1}}>
+                <Text variant='titleMedium' >
+                {user?.userProfile?.firstName.substring(0, 7)}
                 </Text>
-  
+  </View>
     </Pressable>
 
     </View>

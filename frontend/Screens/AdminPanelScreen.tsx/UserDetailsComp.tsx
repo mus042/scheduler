@@ -5,21 +5,23 @@ import { mainStyle } from '../../utils/mainStyles';
 
 const UserDetailsComp=({user, onSubmit, isEdit,roles}) =>{
     const [email, setEmail] = useState(user?.email );
-    const [password, setPassword] = useState(!isEdit && "");
+    const [password, setPassword] = useState(!isEdit ? "":"");
     const [name, setName] = useState<string>("") 
     ;
     const [lastName, setLastName] = useState<string>("");
     const [selctedRole,setSelctedRole]= useState<number>(user && user?.roleId);
-
+    const [mode,setMode] = useState<"addNew"|"edit">("addNew") 
     console.log({user})
         const[selectedUserRole,setSelctedUserRole] = useState<any| undefined>(user?.role)
     // console.log(email, lastName);
   useEffect(() => {
       const setUserDetails = ()=>{
-        console.log(user.role,"role id :",user.role.id)
+        console.log(user,"role id :",  )
          setLastName(user.userProfile.lastName);
          setName(user.userProfile.firstName);
-         setSelctedRole(user.role.id)
+         setSelctedRole(user.role?.id)
+         setEmail(user?.email)
+
       }
       setUserDetails();
     }, [user?.userProfile])
@@ -40,11 +42,12 @@ const UserDetailsComp=({user, onSubmit, isEdit,roles}) =>{
       setLastName(text);
     };
   
+
     const handleSubmit = () => {
       const userId = user?.id;
       console.log({ userId });
       // const password = userId ;
-      onSubmit(email,user.id, name, lastName, selctedRole,);
+      onSubmit(email,password, name, lastName, selctedRole,);
 
       if (!isEdit) {
         // Reset the form
@@ -57,12 +60,13 @@ const UserDetailsComp=({user, onSubmit, isEdit,roles}) =>{
 
     return (
      <View style={styles.container}>
- 
+  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
  {
+
   roles && roles.map((role) => {
     console.log('role', { role });
     return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', margin: 10 }} key={role.id}>
+    <View  style={{ flexDirection: 'row', alignItems: 'center', margin: 10 }} key={role.id}>
         <RadioButton
           
           value="text"
@@ -73,7 +77,7 @@ const UserDetailsComp=({user, onSubmit, isEdit,roles}) =>{
       </View>
     );
   })
-}
+}</View>
        <View style={{flex:1}}>
         <Text style={mainStyle.h3}>{user?.userProfile?.firstName}</Text>
         <TextInput
@@ -82,7 +86,7 @@ const UserDetailsComp=({user, onSubmit, isEdit,roles}) =>{
           value={email}
           onChangeText={handleEmailChange}
         />
-        {!isEdit && (
+        {isEdit && (
           <TextInput
             style={styles.input}
             placeholder="Password"
@@ -93,15 +97,15 @@ const UserDetailsComp=({user, onSubmit, isEdit,roles}) =>{
         )}
         <TextInput
           placeholder="Name"
-          value={name}
+          value={name === "new user"?"":name}
           onChangeText={handleNameChange}
         />
         <TextInput
           placeholder="Last Name"
-          value={lastName}
+          value={name === "new user"?"":lastName}
           onChangeText={handleLastNameChange}
         />
-       
+ 
         <Button title="Submit" onPress={handleSubmit} />
       </View>
       </View>

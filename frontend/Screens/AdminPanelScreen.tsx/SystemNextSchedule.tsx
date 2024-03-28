@@ -46,16 +46,16 @@ const SystemNextSchedule = ({
   if (loading) {
     console.log("loading");
     return (
-      <View>
+      <View style={{flex:2,margin:3,padding:3}}>
         <ActivityIndicator animating={true} color={MD2Colors.red800} />
       </View>
     ); // Render a loading state while data is being fetched
   }
 
   return (
-    <View style={styles.container}>
+    <View style={{flex:1,flexDirection:'column'}}>
       <Text>Sytem NextScheduleComp</Text>
-      <View style={{flex:1}}>
+      <View style={{flexGrow:1}}>
               <Button compact onPress={() => onDeleteSched()} style={{backgroundColor:'red'}} >
         <Text>
           Delete This Schedule
@@ -63,7 +63,7 @@ const SystemNextSchedule = ({
         </Button>
          </View>
       {localNextSched && (
-        <View style={{flex:8}} >
+        <View style={{flexGrow:8}} >
           {nextSchedule !== null && (
             <View >
             <WeeklyView
@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
     flex:1,
+    minHeight:550
   },
   item: {
     backgroundColor: "#f9c2ff",

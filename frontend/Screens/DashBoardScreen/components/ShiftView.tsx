@@ -22,10 +22,12 @@ const ShiftView = ({
   shifts,
   viewType,
   dayName,
+  allOptionUsers,
 }: {
   shifts: shift[];
   viewType: any;
   dayName: string;
+  allOptionUsers?: user[];
 }) => {
   const [localShift, setShift] = useState<shift[]>();
   const [shiftUser, setUser] = useState<user>();
@@ -109,7 +111,7 @@ const ShiftView = ({
           <View style={{flex:1 ,}}>
         {systemShifts && Object.entries(systemShifts).map(([key, values])=>
         
-        <CardContent key={key} shift={values} name={values[0].shiftTimeName} user={user}  handelAskReplace={handelFindReplace}/>)
+        <CardContent key={key} shift={values} name={values[0].shiftTimeName} user={user} allOptionUsers={allOptionUsers}  handelAskReplace={handelFindReplace}/>)
         
         }
              </View>

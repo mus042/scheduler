@@ -83,10 +83,7 @@ const WeeklyView = ({
           if(i<shiftsData.length-1){
             console.log({dateToCheck},);
             dateToCheck = shiftsData[i].shiftStartHour?.slice(0,10);
-          // if(dateToCheck.getUTCHours() === 1){   
-          //   dateToCheck = new Date (dateToCheck.getTime() -1 );
-          //   dateToCheck.setHours(dateToCheck.getHours()); 
-          // }
+      
           console.log({dateToCheck},shiftsData[i].shiftStartHour);
           
         }
