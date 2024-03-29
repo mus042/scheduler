@@ -50,7 +50,7 @@ const CardContent = ({
 
 	//To Add shift roles map
 	const AssigndComp = () => {
-		console.log(shift);
+		
 		let miniShifts = [];
 
 		// First, filter shifts that match the userId
@@ -71,7 +71,6 @@ const CardContent = ({
 			const slotsAvailable = 3 - miniShifts.length;
 			const shiftsToAdd = nonMatchingShifts.slice(0, slotsAvailable);
 
-			// Add the additional shifts to miniShifts
 			miniShifts = [...miniShifts, ...shiftsToAdd];
 		}
 		const allShifts = [...shift];
@@ -96,7 +95,7 @@ const CardContent = ({
 						/>
 						</View>
 					)}
-					keyExtractor={(item) => item.id}
+					keyExtractor={(item) => item.id ? item.id : item.tmpId}
 				/>
 			</View>
 		);

@@ -48,14 +48,14 @@ const UserItem = ({ item, setselectUser }) => {
   return (
     <View style={styles.container}> 
     <Pressable style={{flex:1,flexWrap:"wrap",}} onPress={()=>onSelcetUser(user)} onLongPress={()=>{}}>
-  <View style={{flex:3,marginTop:5}}>
+  <View style={{flex:2,marginTop:5}}>
             <Avatar.Text
           label={label}
-         size={40}
+         size={35}
           />
           </View>
-          <View style={{flex:1}}>
-                <Text variant='titleMedium' >
+          <View style={{flex:1,alignContent:'center'}}>
+                <Text variant='titleSmall' style={{color:theme.colors.onPrimary,textAlign:'center'}}>
                 {user?.userProfile?.firstName.substring(0, 7)}
                 </Text>
   </View>
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
         minWidth:20,
         maxWidth:80,
         
-        height:100,
+        
         borderColor:'red',
     borderWidth:3,
       },

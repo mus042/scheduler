@@ -89,7 +89,11 @@ const CreateScheduleComp = ({allUsers}:{allUsers:any[]| undefined}) => {const [s
             try {
                 const tmpSched = await createNewSysSchedule(startDate,selectedUsers);
                 console.log("tmpSched",{tmpSched});
-               !tmpSched.error && setcreatedSched(tmpSched);
+                const sortedShifts = tmpSched.shifts.sort((a,b)=>{
+                    console.log({a},{b},"a,b ")
+                    return a.shift.shiftStartHour - b.shift.shiftStartHour});
+                console.log("sorted shifts", {sortedShifts})
+               !tmpSched.error && setcreatedSched({...tmpSched,shifts:sortedShifts});
                 //  const combinedShifts = {...tmpSched.assigend , ...tmpSched.unAssigend}
                 // setEmptyShifts({ ...tmpSched.emptyShifts });
                 // console.log("combined assigned and un", {combinedShifts})

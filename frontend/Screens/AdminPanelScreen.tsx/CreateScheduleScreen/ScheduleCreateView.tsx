@@ -62,6 +62,7 @@ const ScheduleCreateView = ({
 	useEffect(() => {
 		console.log({ createdSchedule });
 		const groupedShifts = groupShiftsByDayAndTime(createdSchedule);
+		console.log("groupedShifts",{groupedShifts})
 		setLocalSchedule(Object.entries(groupedShifts));
 		console.log({ groupedShifts }, Object.entries(groupedShifts)[0][1]);
 		setUpdatedSchedule(createdSchedule);
@@ -96,19 +97,20 @@ const ScheduleCreateView = ({
 					}}
 					renderItem={({ item }) => {
 						const scheduleParts = item[1]; // Object with morning, noon, and night keys
-						console.log(scheduleParts);
+						console.log({scheduleParts});
 
 						// Flatten all shifts from each part of the day into a single array
 						const shiftsArray = Object.values(scheduleParts)
 							.flat()
 							.map((entry) => {
-						
-								const shiftWithOptions = { ...entry.shift };
+								const userRef = users.find((user)=>user.id === entry.shift.userId)
+								// console.log('user Profile , '{userProfile})
+								const shiftWithOptions = { ...entry.shift,userRef };
 								shiftWithOptions.shiftOptions = entry.shiftOptions;
 
 								return shiftWithOptions;
 							});
-
+							console.log("shiftsArrays:",{shiftsArray});
 					
 						const flatShifts = { item: shiftsArray };
 

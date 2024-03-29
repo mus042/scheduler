@@ -21,6 +21,7 @@ const SystemShift = ({ item, user, handelAskReplace, }) => {
 	const [myShift,setMyShift] = useState<boolean>(item.item.userId===user.id);
 	const theme = useTheme();
 	const shiftRole = item.item?item.item:item;
+	console.log('item',{item})
 	const colorByTimeOfShift = (timeName) => {
 		return timeName === "morning"
 			? "lightcyan"
@@ -30,6 +31,7 @@ const SystemShift = ({ item, user, handelAskReplace, }) => {
 	};
 	const MiniComp = () => {
 		const miniTime:string = ""+ shiftRole.shiftStartHour.substring(11, 13) +"-"+ shiftRole.shiftEndHour.substring(11, 13)
+		const firstName =shiftRole.userRef?.userProfile.firstName?shiftRole.userRef?.userProfile.firstName:'';
 		return (
 			// <Pressable onPress={() => console.log("press")}>
 				<View
@@ -73,7 +75,7 @@ const SystemShift = ({ item, user, handelAskReplace, }) => {
 						</View>
 					<View style={{flex:1}}>
 					<Text variant='bodySmall' style={{ color: theme.colors.primary,alignSelf:'center' }}>
-							{!myShift ? shiftRole.userRef?.userProfile.firstName : "ME"}{" "}
+							{!myShift ? shiftRole.userRef?.userProfile.firstName : "ME"}
 						</Text>
 					</View>
 						
