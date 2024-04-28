@@ -22,6 +22,7 @@ import Userbuble from "./components/Userbuble";
 import CreateScheduleComp from "./CreateScheduleScreen/CreateScheduleComp";
 import { IconButton, MD3Colors } from "react-native-paper";
 import { useSnackbarContext } from "../SnackbarProvider";
+import BulletinBoardComponent from "./components/BulletinBoardComponent";
 
 const AdminPanel = () => {
 	// TODO
@@ -328,26 +329,20 @@ const AdminPanel = () => {
 			<View style={{ flexGrow: 1 }}>
 				<Text style={[mainStyle.h3, { textAlign: "center" }]}>Admin panel</Text>
 			</View>
+			<View style={{ flexGrow: 4 }}>
+				<Text>Bulltin board</Text>
+				<View>
+					<BulletinBoardComponent />
+				</View>
+			
+			</View>
 			<View style={{ flexGrow: 11 }}>
 				<SystemNextSchedule
 					nextSchedule={nextSystemSchedule}
 					onDeleteSched={onDeleteSched}
 				/>
 			</View>
-			<View style={{ flexGrow: 4 }}>
-				<Text>Bulltin board</Text>
-				<View>
-					<Text>message list</Text>
-				</View>
-				<View>
-					<IconButton
-						icon='dots-horizontal-circle-outline'
-						iconColor={MD3Colors.error50}
-						size={20}
-						onPress={() => console.log("Pressed")}
-					/>
-				</View>
-			</View>
+		
 			<View style={{ flexGrow: 11 }}>
 				<CreateScheduleComp allUsers={allUsers} />
 			</View>

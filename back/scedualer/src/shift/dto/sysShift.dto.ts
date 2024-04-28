@@ -49,6 +49,6 @@ export class SystemShiftDTO {
   scheduleId?: number;
   @IsString()
   shiftType: "user"|"system";
-  options?: any;
+  optinalUsers?: {userId:number, userPreference:string};
 
   }

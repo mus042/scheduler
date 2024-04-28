@@ -121,7 +121,7 @@ export type shift = {
 	userRef: user | null | undefined;
 	roleId?: number | null;
 	shiftRole?: object | null;
-	shiftOptions?: object | null | undefined;
+	optinalUsers?: object | null | undefined;
 };
 
 const BellIconWithBadge = ({ onPress, badgeCount }) => {

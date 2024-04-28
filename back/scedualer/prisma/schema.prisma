@@ -44,6 +44,25 @@ enum requestStatus {
   replied
   approved
 }
+//TOADD 
+// model BulletinBoardPost {
+//   id          Int      @id @default(autoincrement())
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+//   expiresAt   DateTime
+//   isArchived  Boolean  @default(false) // New field to mark posts as archived
+//   category    String
+//   title       String
+//   body        String
+//   position    Int      // New field for admin to control positioning
+//   seenBy      User[]   @relation("PostViews", references: [id])
+//   approvedBy  User[]   @relation("PostApprovals", references: [id])
+//   adminId     Int
+//   admin       User     @relation(fields: [adminId], references: [id])
+
+//   @@map("bulletinBoardPosts")
+// }
+
 model userInvaits { 
     id             Int             @id @default(autoincrement())
   email String 

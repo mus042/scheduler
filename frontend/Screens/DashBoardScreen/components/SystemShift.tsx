@@ -15,13 +15,13 @@ import {
 import { normalizeShiftTime } from "../../../utils/utils";
 import FindReplacmentComp from "./FindReplacmentComp";
 
-const SystemShift = ({ item, user, handelAskReplace, }) => {
+const SystemShift = ({ item, user, handelAskReplace }) => {
 	const [findReplaceVisible, setfindReplaceVisible] = useState(false);
 	const [expend, setExpend] = useState<boolean>(false);
-	const [myShift,setMyShift] = useState<boolean>(item.item.userId===user.id);
+	const [myShift, setMyShift] = useState<boolean>(item.item.userId === user.id);
 	const theme = useTheme();
-	const shiftRole = item.item?item.item:item;
-	console.log('item',{item})
+	const shiftRole = item.item ? item.item : item;
+	console.log("item", { item });
 	const colorByTimeOfShift = (timeName) => {
 		return timeName === "morning"
 			? "lightcyan"
@@ -30,60 +30,77 @@ const SystemShift = ({ item, user, handelAskReplace, }) => {
 			: "lightgoldenrodyellow";
 	};
 	const MiniComp = () => {
-		const miniTime:string = ""+ shiftRole.shiftStartHour.substring(11, 13) +"-"+ shiftRole.shiftEndHour.substring(11, 13)
-		const firstName =shiftRole.userRef?.userProfile.firstName?shiftRole.userRef?.userProfile.firstName:'';
+		const miniTime: string =
+			"" +
+			shiftRole.shiftStartHour.substring(11, 13) +
+			"-" +
+			shiftRole.shiftEndHour.substring(11, 13);
+		const firstName = shiftRole.userRef?.userProfile.firstName
+			? shiftRole.userRef?.userProfile.firstName
+			: "";
 		return (
 			// <Pressable onPress={() => console.log("press")}>
+			<View
+				style={{
+					flex: 1,
+					borderBottomWidth: 3,
+					borderColor: "red",
+					marginBottom: 3,
+					height: 95,
+					// width:75,
+					minHeight: 90,
+					margin: 1,
+					borderBottomColor: myShift
+						? theme.colors.onBackground
+						: theme.colors.background,
+				}}
+			>
 				<View
 					style={{
-						flex: 1,
-						borderBottomWidth:3,
-						borderColor:'red',
-						marginBottom:3,
-						height:95,
-						// width:75,
-						minHeight:90,
-						marginLeft:5,
-						borderBottomColor:myShift?theme.colors.onBackground :theme.colors.background,
+						flex: 2,
+						alignSelf: "center",
+						justifyContent: "flex-end",
+						alignContent: "center",
+						alignItems: "center",
 					}}
 				>
-					<View style={{flex:2, alignSelf: "center",justifyContent:'flex-end',alignContent:'flex-end',alignItems:'center' ,}}>
-					<View style={{flex:2}}>
-					<Text variant='bodySmall' style={{ color: theme.colors.primary,alignSelf:'center' }}>
-					{shiftRole.shiftRole.name}
+					<View style={{ flex: 2 }}>
+						<Text
+							variant='bodySmall'
+							style={{ color: theme.colors.primary, alignSelf: "center" }}
+						>
+							{shiftRole.shiftRole.name
+								? shiftRole.shiftRole.name
+								: shiftRole.shiftRole.role.name}
 						</Text>
 					</View>
-					{/* <View
-						style={{
-							flex: 1,
-							
-							maxWidth: 75,
-					
-							alignSelf:'center',
-						}}
-					>
-					
-						<Text variant='bodySmall'>
-							{shiftRole.shiftStartHour.substring(11, 16)}-{shiftRole.shiftEndHour.substring(11, 16)}
-						</Text>
-					</View> */}
-						<View style={{flex:3,}}>
-						<Badge style={{top:-7,right:-15,position:'absolute',zIndex:5,backgroundColor:colorByTimeOfShift(shiftRole.shiftTimeName),color:'black'}}>
-						{miniTime}
-					</Badge>
+
+					<View style={{ flex: 3, alignSelf: "center" }}>
+						<Badge
+							style={{
+								top: -7,
+								right: -15,
+								position: "absolute",
+								zIndex: 5,
+								backgroundColor: colorByTimeOfShift(shiftRole.shiftTimeName),
+								color: "black",
+							}}
+						>
+							{miniTime}
+						</Badge>
 						<Avatar.Icon size={45} icon='account' />
-						</View>
-					<View style={{flex:1}}>
-					<Text variant='bodySmall' style={{ color: theme.colors.primary,alignSelf:'center' }}>
+					</View>
+					<View style={{ flex: 1 }}>
+						<Text
+							variant='bodySmall'
+							style={{ color: theme.colors.primary, alignSelf: "center" }}
+						>
 							{!myShift ? shiftRole.userRef?.userProfile.firstName : "ME"}
 						</Text>
 					</View>
-						
-					</View>
+				</View>
 
-				
-
-					{/* {(user?.id === shiftRole?.userId ||
+				{/* {(user?.id === shiftRole?.userId ||
 						user?.userServerRole === "admin") && (
 						<View style={{ flex: 1, flexDirection: "column", minHeight: 5 }}>
 							{findReplaceVisible && (
@@ -94,9 +111,9 @@ const SystemShift = ({ item, user, handelAskReplace, }) => {
 									/>
 								</View>
 							)} */}
-						{/* </View> */}
-					{/* )} */}
-				</View>
+				{/* </View> */}
+				{/* )} */}
+			</View>
 			// </Pressable>
 		);
 	};
@@ -109,7 +126,7 @@ const SystemShift = ({ item, user, handelAskReplace, }) => {
 			// 			{shiftRole.userRef?.userProfile.firstName}
 			// 		</Text>
 			// 	</View>
-				
+
 			// 	<Text variant='titleMedium'>
 			// 		{shiftRole.shiftStartHour.substring(11, 16)} -{" "}
 			// 		{shiftRole.shiftEndHour.substring(11, 16)}
@@ -170,25 +187,25 @@ const SystemShift = ({ item, user, handelAskReplace, }) => {
 			// 	)}
 			// </View>
 			<View
-						style={{
-							flex: 1,
-							
-							maxWidth: 75,
-					
-							alignSelf:'center',
-						}}
-					>
-					
-						<Text variant='bodySmall'>
-							{shiftRole.shiftStartHour.substring(11, 16)}-{shiftRole.shiftEndHour.substring(11, 16)}
-						</Text>
-					</View> 
+				style={{
+					flex: 1,
+
+					maxWidth: 75,
+
+					alignSelf: "center",
+				}}
+			>
+				<Text variant='bodySmall'>
+					{shiftRole.shiftStartHour.substring(11, 16)}-
+					{shiftRole.shiftEndHour.substring(11, 16)}
+				</Text>
+			</View>
 		);
 	};
 	return (
-		<View style={{ flex: 1,  }}>
-			    {shiftRole.shiftTimeName !== 'noonCanceled' && <MiniComp />}	
-                {expend && <ExpendedComp />}
+		<View style={{ flex: 1 }}>
+			{shiftRole.shiftTimeName !== "noonCanceled" && <MiniComp />}
+			{expend && <ExpendedComp />}
 		</View>
 	);
 };

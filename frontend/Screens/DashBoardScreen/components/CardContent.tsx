@@ -36,7 +36,7 @@ const CardContent = ({
 }) => {
 	const [findReplaceVisible, setfindReplaceVisible] = useState(false);
 	const [modalVisible, setModalVisible] = useState(false);
-	const [selctedShiftRole, setSelctedShiftRole] = useState();
+	const [selctedShiftRole, setSelctedShiftRole] = useState<shiftAndOptions>();
 	const [modalHeight, setModalHeight] = useState<"40%" | "60%" | "100%">("60%");
 
 	console.log({ shift }, "user", { user });
@@ -45,27 +45,25 @@ const CardContent = ({
 	const changeModalHeight = "60%";
 
 	useEffect(() => {
-		console.log({ selctedShiftRole }, { allOptionUsers });
+		console.log('selcted shift role ',{ selctedShiftRole }, { allOptionUsers });
 	}, [selctedShiftRole]);
 
 	//To Add shift roles map
 	const AssigndComp = () => {
-		
 		let miniShifts = [];
 
-		// First, filter shifts that match the userId
-		const matchingShifts = shift.filter(
-			(shiftToFilter) => shiftToFilter.userId === user.id
-		);
-
+	
+		const matchingShifts =  user?.id ? shift.filter(
+			(shiftToFilter) => shiftToFilter.userId === user.id): []
+	
 		// Add all matching shifts to miniShifts
 		miniShifts = [...matchingShifts];
 
 		if (miniShifts.length < 3) {
 			// Find shifts that don't match the userId condition
-			const nonMatchingShifts = shift.filter(
+			const nonMatchingShifts = user?.id ? shift.filter(
 				(shiftToFilter) => shiftToFilter.userId !== user.id
-			);
+			) :[];
 
 			// Calculate how many non-matching shifts you can add (up to two)
 			const slotsAvailable = 3 - miniShifts.length;
@@ -74,7 +72,7 @@ const CardContent = ({
 			miniShifts = [...miniShifts, ...shiftsToAdd];
 		}
 		const allShifts = [...shift];
-		return (
+		if(user)return (
 			<View style={{ flex: 1, flexDirection: "row" }}>
 				<FlatList
 					horizontal={true}
@@ -88,19 +86,23 @@ const CardContent = ({
 					}}
 					renderItem={(shiftRole) => (
 						<View>
-						<SystemShift
-							item={shiftRole}
-							user={user}
-							handelAskReplace={handelAskReplace}
-						/>
+							<SystemShift
+								item={shiftRole}
+								user={user}
+								handelAskReplace={handelAskReplace}
+							/>
 						</View>
 					)}
-					keyExtractor={(item) => item.id ? item.id : item.tmpId}
+					keyExtractor={(item) => (item.id ? item.id : item.tmpId)}
 				/>
 			</View>
 		);
 	};
-
+	const replaceUser = (newUserOption) => {
+		console.log({ newUserOption }, selctedShiftRole);
+	
+		handelAskReplace(newUserOption,selctedShiftRole);
+	};
 	return (
 		<View
 			style={{
@@ -203,11 +205,17 @@ const CardContent = ({
 									<View style={{ flex: 1 }}>
 										{/* shift name and date  */}
 										<Text>{name}</Text>
-										<Text>{ shift[0].shiftStartHour.substring(0,10)} </Text>
-
+										<Text>{shift[0].shiftStartHour.substring(0, 10)} </Text>
 									</View>
 								</View>
-								<View style={{ flexGrow: 1, borderWidth: 2 , justifyContent:'center',borderColor:'red'}}>
+								<View
+									style={{
+										flexGrow: 1,
+										borderWidth: 2,
+										justifyContent: "center",
+										borderColor: "red",
+									}}
+								>
 									<Text>Shift Roles :</Text>
 
 									<FlatList
@@ -216,7 +224,16 @@ const CardContent = ({
 										renderItem={(item) => {
 											return (
 												item && (
-													<View style={{ flex: 1, maxWidth: 110,width:90 ,borderWidth:2,alignSelf:'flex-end',height:100}}>
+													<View
+														style={{
+															flex: 1,
+															borderWidth: 2,
+															alignSelf: "center",
+
+															width: 85,
+															height: 90,
+														}}
+													>
 														<Pressable
 															onPress={() => {
 																console.log(item);
@@ -233,48 +250,81 @@ const CardContent = ({
 												)
 											);
 										}}
-										keyExtractor={(item) => item.id}
+										keyExtractor={(item) => (item.id ? item.id : item.tmpId)}
 									/>
 								</View>
 								<View style={{ flexGrow: 2 }}>
 									<Text>shift details</Text>
-									
 								</View>
-								<View style={{ flexGrow:5,justifyContent:'center' }}>
+								<View style={{ flexGrow: 5, justifyContent: "center" }}>
 									{/* shift options */}
-									<View style={{ justifyContent:'center', }}>
-										{selctedShiftRole?.shiftOptions && (
+									<View style={{ justifyContent: "center" }}>
+										{selctedShiftRole?.optinalUsers && (
 											<FlatList
-												data={selctedShiftRole.shiftOptions}
+												data={selctedShiftRole.optinalUsers}
 												horizontal={true}
 												renderItem={(item) => (
 													<>
-														<View style={{flex:1 , justifyContent:'flex-start',alignItems:'flex-start',}}>
+														<View
+															style={{
+																flex: 1,
+																justifyContent: "flex-start",
+																alignItems: "flex-start",
+																height: 95,
+															}}
+														>
 															{/* show each shiftoption as user Buble with pref as badge  */}
 															{allOptionUsers && (
-																<View style={{ flex:1,borderWidth:2  }}>
-																	<View style={{flex:2,maxWidth: 110,width:90}}>
-																	<Userbuble
-																		user={allOptionUsers.find((userToCheck) => {
-																			console.log(userToCheck, { item });
-																			return (
-																				userToCheck.id === item.item.userId
-																			);
-																		})}
-																		badgeContent={item.item.userPreference}
-																		altText={""}
-																		selected={false}
-																		badgeColor={"red"}
-																	/>
+																<View
+																	style={{
+																		flex: 1,
+																		borderWidth: 2,
+																		alignContent: "center",
+																		alignItems: "center",
+																		justifyContent: "center",
+																	}}
+																>
+																	<View
+																		style={{
+																			flex: 1,
+																			// maxWidth: 110,
+																			marginTop: 2,
+																			width: 60,
+																		}}
+																	>
+																		<Pressable
+																			onPress={() => replaceUser(item.item)}
+																		>
+																			<Userbuble
+																				user={allOptionUsers.find(
+																					(userToCheck) => {
+																						console.log(userToCheck, { item });
+																						return (
+																							userToCheck.id ===
+																							item.item.userId
+																						);
+																					}
+																				)}
+																				badgeContent={item.item.userPreference}
+																				altText={""}
+																				selected={false}
+																				badgeColor={"red"}
+																			/>
+																		</Pressable>
 																	</View>
-																	<View style={{flex:1,flexDirection:'row'}}>
-																
-																	<IconButton
-																		icon='dots-horizontal-circle-outline'
-																		iconColor={MD3Colors.error50}
-																		size={20}
-																		onPress={() => console.log("Pressed")}
-																	/>
+																	<View
+																		style={{
+																			flex: 1,
+																			flexDirection: "row",
+																			justifyContent: "flex-end",
+																		}}
+																	>
+																		<IconButton
+																			icon='dots-horizontal-circle-outline'
+																			iconColor={MD3Colors.error50}
+																			size={20}
+																			onPress={() => console.log("Pressed")}
+																		/>
 																	</View>
 																</View>
 															)}

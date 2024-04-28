@@ -18,9 +18,9 @@ const EditShiftModalView = ({
 	allusers,
 }) => {
 	console.log({ shiftAndOption });
-	const shiftOptions = Array.isArray(shiftAndOption.shiftOptions)
-		? shiftAndOption.shiftOptions
-		: Object.values(shiftAndOption.shiftOptions);
+	const shiftOptions = Array.isArray(shiftAndOption.optinalUsers)
+		? shiftAndOption.optinalUsers
+		: Object.values(shiftAndOption.optinalUsers);
 	const shift = shiftAndOption.shift;
 	const onSelectUser = (selctedUser) => {
 		//update the shift with the new user and options with old user.
@@ -31,7 +31,7 @@ const EditShiftModalView = ({
 			{ selctedUser }
 		);
 
-		let newOptions = [...shiftAndOption.shiftOptions] || [];
+		let newOptions = [...shiftAndOption.optinalUsers] || [];
 		newOptions.push({
 			userId: selctedUser.userId,
 			roleId: shiftAndOption.shift.shiftRole.roleId,

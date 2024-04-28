@@ -21,9 +21,11 @@ function isShiftAndOptions(object: any): object is shiftAndOptions {
 const ScheduleCreateView = ({
 	createdSchedule,
 	users,
+	updateSchedule,
 }: {
 	createdSchedule: shiftAndOptions[];
 	users: user[];
+	updateSchedule:any;
 }) => {
 	const [localSchedule, setLocalSchedule] = useState<any[]>();
 	const [updatedSchedule, setUpdatedSchedule] = useState<any[]>();
@@ -61,16 +63,19 @@ const ScheduleCreateView = ({
 	};
 	useEffect(() => {
 		console.log({ createdSchedule });
+		if(createdSchedule?.length > 0 ){
 		const groupedShifts = groupShiftsByDayAndTime(createdSchedule);
 		console.log("groupedShifts",{groupedShifts})
 		setLocalSchedule(Object.entries(groupedShifts));
 		console.log({ groupedShifts }, Object.entries(groupedShifts)[0][1]);
 		setUpdatedSchedule(createdSchedule);
+		};
 	}, [createdSchedule]);
 	useEffect(() => {
 		localSchedule && console.log(localSchedule[0][0]);
 	}, [localSchedule]);
 
+	
 	const saveSchedule = async () => {
 		try {
 			const response = await axios.post(
@@ -96,8 +101,8 @@ const ScheduleCreateView = ({
 						justifyContent: "flex-start",
 					}}
 					renderItem={({ item }) => {
-						const scheduleParts = item[1]; // Object with morning, noon, and night keys
-						console.log({scheduleParts});
+						const scheduleParts:shiftAndOptions[] = item[1]; // Object with morning, noon, and night keys
+						console.log('parts',{scheduleParts});
 
 						// Flatten all shifts from each part of the day into a single array
 						const shiftsArray = Object.values(scheduleParts)
@@ -106,7 +111,7 @@ const ScheduleCreateView = ({
 								const userRef = users.find((user)=>user.id === entry.shift.userId)
 								// console.log('user Profile , '{userProfile})
 								const shiftWithOptions = { ...entry.shift,userRef };
-								shiftWithOptions.shiftOptions = entry.shiftOptions;
+								shiftWithOptions.optinalUsers = entry.optinalUsers;
 
 								return shiftWithOptions;
 							});
@@ -123,7 +128,7 @@ const ScheduleCreateView = ({
 											shifts={flatShifts}
 											isEdit={true}
 											viewType={"systemSchedule"}
-											update={() => {}}
+											update={updateSchedule}
                                             allUsers={users}
 										/>
 									</Pressable>

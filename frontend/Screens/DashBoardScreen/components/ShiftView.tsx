@@ -18,18 +18,21 @@ import { normalizeShiftDate, normalizeShiftTime } from "../../../utils/utils";
 import FindReplacmentComp from "./FindReplacmentComp";
 import { API_URL, userAuth } from "../../../app/context/AuthContext";
 import CardContent from "./CardContent";
+import { shiftAndOptions } from "../../AdminPanelScreen.tsx/CreateScheduleScreen/CreateScheduleComp";
 const ShiftView = ({
   shifts,
   viewType,
   dayName,
   allOptionUsers,
+  updateShift,
 }: {
   shifts: shift[];
   viewType: any;
   dayName: string;
   allOptionUsers?: user[];
+  updateShift?:any ;
 }) => {
-  const [localShift, setShift] = useState<shift[]>();
+  const [localShift, setShift] = useState<shiftAndOptions[]>();
   const [shiftUser, setUser] = useState<user>();
   const [findReplaceVisible, setfindReplaceVisible] = useState(false);
   const [systemShifts,setSystemShifts] = useState<Record<string, shift[]>>();
@@ -42,7 +45,7 @@ const ShiftView = ({
       //if system schedule - group same time shifts together by shiftTimeName
       if (viewType === 'systemSchedule') {
         const groupedShifts = shifts.reduce((acc: Record<string, shift[]>, shift: shift) => {
-          // Determine the key for grouping
+          
           const groupName = shift.shiftTimeName === 'noonCanceled' ? 'noon' : shift.shiftTimeName;
         
           // Initialize the group array if it does not exist
@@ -50,7 +53,7 @@ const ShiftView = ({
               acc[groupName] = [];
           }
         
-          // Add the shift to the appropriate group
+          // Add the shift to group
           acc[groupName].push(shift);
         
           return acc;
@@ -82,7 +85,10 @@ const ShiftView = ({
       return possibleUsers?.data;
     } else return [];
   };
-  
+  const replaceUserAsAdmin = (newUser, shift)=>{
+   //pass new data to dayview
+    updateShift(newUser, shift);
+  }
   const LeftContent = (props) => {
     const day: string = dayName.slice(0, 1).toLocaleLowerCase();
 
@@ -111,7 +117,7 @@ const ShiftView = ({
           <View style={{flex:1 ,}}>
         {systemShifts && Object.entries(systemShifts).map(([key, values])=>
         
-        <CardContent key={key} shift={values} name={values[0].shiftTimeName} user={user} allOptionUsers={allOptionUsers}  handelAskReplace={handelFindReplace}/>)
+        <CardContent key={key} shift={values} name={values[0].shiftTimeName} user={user} allOptionUsers={allOptionUsers}  handelAskReplace={replaceUserAsAdmin}/>)
         
         }
              </View>

@@ -43,7 +43,6 @@ const DayViewComp = ({
 		console.log({ shifts });
 		if (shifts) {
 			setlocalShifts(shifts.item);
-
 		}
 	}, [shifts]);
 
@@ -65,6 +64,7 @@ const DayViewComp = ({
 			setEdit(!editDay);
 		}
 	};
+
 	const updateShifts = (editedShifts: shift[]) => {
 		// console.log(editedShifts);
 		setlocalShifts(editedShifts);
@@ -72,22 +72,58 @@ const DayViewComp = ({
 	};
 	// console.log({shifts});
 
-	const handelEditShift = (shift: shift | undefined) => {
-		if (shift) {
-			if (viewType === "user") {
-				// edit prefernce for future schedule
-				if (localShifts) {
-					const index = localShifts.findIndex(
-						(localShift) => localShift.id === shift?.id
+	const handelEditShift = (newUser, shift) => {
+		// if (shift) {
+		// 	if (viewType === "user") {
+		// 		// edit prefernce for future schedule
+		// 		if (localShifts) {
+		// 			const index = localShifts.findIndex(
+		// 				(localShift) => localShift.id === shift?.id
+		// 			);
+		// 			const newShifts: shift[] = [...localShifts];
+		// 			newShifts[index] = shift;
+		// 			console.log({ shift });
+		// 			update(shift);
+		// 			//Edit shift component for user
+		// 		}
+		// 	}
+		// }
+		console.log({ shift }, { newUser }, { localShifts }, { dayName });
+		//change the shift in schedule / remove user from the shifts before and after and same day .
+		//local shift and genral schedule .
+		const newLocalShifts = localShifts?.map((shiftToUpdate) => {
+			if (shift.tmpId === shiftToUpdate.tmpId) {
+				const newShiftOption= {
+					roleId: shift.shiftRole.roleId,
+					userId: -1,
+					userPreference: "-1",
+					userShiftId: -1
+				};
+				let newShiftOptions;
+				if (Array.isArray(shiftToUpdate.optinalUsers)) {
+					newShiftOptions = shiftToUpdate.optinalUsers.filter(
+						(shiftoption) => shiftoption.userId !== newUser.userId
 					);
-					const newShifts: shift[] = [...localShifts];
-					newShifts[index] = shift;
-					console.log({ shift });
-					update(shift);
-					//Edit shift component for user
+					 newShiftOptions.push(newShiftOption)
+					console.log({ newShiftOptions });
+				} else {
+					newShiftOptions = [
+						newShiftOption,
+					];
 				}
+				return {
+					...shiftToUpdate,
+					userId: newUser.userId,
+					userPreference: newUser.userPreference,
+					optinalUsers:[...newShiftOptions],
+				};
+			} else {
+				return shiftToUpdate;
 			}
-		}
+		});
+		console.log({ newLocalShifts });
+		update(newLocalShifts)
+		setlocalShifts(newLocalShifts);
 	};
 	function FindReplacmentUser({ shift, handelFindReplace }) {
 		const [possibleUsers, setpossibleUsers] = useState<shift[]>();
@@ -192,21 +228,22 @@ const DayViewComp = ({
 					)}
 					{viewType === "systemSchedule" && (
 						<>
-							{allUsers && isEdit ?  
-							<ShiftView
-							shifts={localShifts}
-							viewType={"systemSchedule"}
-							dayName={dayName.split(",")[0]}
-							allOptionUsers={allUsers}
-						/>   
-						: 
-						<ShiftView
-						shifts={localShifts}
-						viewType={"systemSchedule"}
-						dayName={dayName.split(",")[0]}
-					/>   
-						
-						}
+							{allUsers && isEdit ? (
+								<ShiftView
+									shifts={localShifts}
+									viewType={"systemSchedule"}
+									dayName={dayName.split(",")[0]}
+									allOptionUsers={allUsers}
+									updateShift={handelEditShift}
+								/>
+							) : (
+								<ShiftView
+									shifts={localShifts}
+									viewType={"systemSchedule"}
+									dayName={dayName.split(",")[0]}
+									updateShift={handelEditShift}
+								/>
+							)}
 						</>
 					)}
 					{/* {editDay && (
@@ -229,8 +266,8 @@ export default DayViewComp;
 const styles = StyleSheet.create({
 	centeredView: {
 		width: 260,
-		minWidth:220,
-		maxWidth:360,
+		minWidth: 220,
+		maxWidth: 360,
 		flex: 4,
 		justifyContent: "center",
 		alignItems: "center",
