@@ -1313,7 +1313,7 @@ const newShiftOptions = this.updateShiftOptions(
 
         for (let i = noUserShifts.length - 1; i >= 0; i--) {
           const noUserShift = noUserShifts[i];
-          console.log('shift to change:', { noUserShift }, i);
+          console.log('shift to change:', { noUserShift }, i,);
           const res = this.changeDayIntoTwoShifts(
             noUserShift,
             assignedShifts,
@@ -1342,13 +1342,13 @@ const newShiftOptions = this.updateShiftOptions(
 
   getDayShiftsFromSchedule(shift, assignedSchedule) {
     console.log(
-      'get day shifts ',
-      {assignedSchedule}
+      'get day shifts 1345',
+      shift.shiftStartHour ,"role:",shift.shiftRole, 'assiged scheudle',{assignedSchedule}
     );
 
     const dayShifts = assignedSchedule.filter((assigedShift) => {
-      const localShift = assigedShift.shift ? assigedShift.shift : assigedShift;
-      const tmpShift = shift.shift ? shift.shift : shift;
+      const localShift = assigedShift.shift !== undefined ? assigedShift.shift : assigedShift;
+      const tmpShift = shift.shift !== undefined? shift.shift : shift;
       console.log(
         'get day shifts 1295, assigned shift ',
         localShift,
@@ -1466,11 +1466,14 @@ const newShiftOptions = this.updateShiftOptions(
     return assignedSchedule;
   }
   createNoonCanceledShift(shift) {
-    return {
+    console.log("create noon shift : ", {shift})
+    const tmpShift =  {
       ...shift,
       shiftTimeName: shiftTimeClassification.noonCanceled,
       userId: undefined,
     };
+    console.log(tmpShift);
+    return tmpShift;
   }
   changeDayIntoTwoShifts(shiftToAssign, assignedSchedule, usersShiftStats) {
     console.log('change into two shifts ', { shiftToAssign });
@@ -1478,6 +1481,7 @@ const newShiftOptions = this.updateShiftOptions(
       shiftToAssign,
       assignedSchedule,
     );
+    console.log("dayShfits got ",{dayShiftDTOs})
     let morning, noon, night;
     const mode: 'missing' | 'replace' = !shiftToAssign.shift.userId
       ? 'missing'
@@ -1486,7 +1490,7 @@ const newShiftOptions = this.updateShiftOptions(
     if (dayShiftDTOs.length === 0 || dayShiftDTOs.length < 2) return false; // Ensure we have at least two shifts to work with
     const adjustedDate = new Date(shiftToAssign.shift.shiftStartHour);
     adjustedDate.setUTCHours(18, 0, 0, 0);
-    console.log('mode', { mode });
+    console.log('mode', { mode },"day shifts : ",{dayShiftDTOs});
     switch (shiftToAssign.shift.shiftTimeName) {
       case 'night':
         if (mode === 'missing') {
@@ -1882,8 +1886,7 @@ if(newOptions)
     const assigedShifts = this.assignScheduleShifts(newScheduleAndShifts);
     //deal with unassigned shifts.
     const noUserShifts = [...assigedShifts.unAssigend];
-    let index = 0;
-
+    // let index = 0;
     for (let i = 0; i < noUserShifts.length; i++) {
       const shiftToAssign = { ...noUserShifts[i] };
       console.log(
@@ -1891,9 +1894,9 @@ if(newOptions)
         { shiftToAssign },
         shiftToAssign.optinalUsers,
       );
-      shiftToAssign.optinalUsers.forEach((element) => {
-        console.log('shift option', { element });
-      });
+      // shiftToAssign.optinalUsers.forEach((element) => {
+      //   console.log('shift option', { element });
+      // });
       if (shiftToAssign.optinalUsers && shiftToAssign.optinalUsers.length > 0) {
         const userOptionsShifts = [];
         shiftToAssign.optinalUsers.forEach((option) => {
@@ -1990,6 +1993,8 @@ if(newOptions)
       console.log(dateA, dateB, 'a,b ');
       return dateA - dateB;
     });
+    console.log("creatd sdchedule : " , {sortedShifts})
+    this.printSchedule(sortedShifts,"created scheudle ")
     return {
       shifts: [...sortedShifts],
       stats: [...assigedShifts.userShiftStats],

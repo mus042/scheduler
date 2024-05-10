@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, View } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
 	ActivityIndicator,
 	Avatar,
@@ -21,15 +21,32 @@ const SystemShift = ({ item, user, handelAskReplace }) => {
 	const [myShift, setMyShift] = useState<boolean>(item.item.userId === user.id);
 	const theme = useTheme();
 	const shiftRole = item.item ? item.item : item;
-	console.log("item", { item });
+	const [isNoonCanceled , setIsNoonCanceled] = useState<boolean>(shiftRole.shiftTimeName === 'noonCanceled');
+	const [isShiftEmpty , setIsShiftEmpty] = useState<boolean>(shiftRole.userRef?.userProfile.firstName === undefined && shiftRole.shiftTimeName !== 'noonCanceled');
+	
+	useEffect(() => {
+	  if(shiftRole.shiftTimeName === 'noonCanceled'){
+		setIsNoonCanceled(true); 
+	  }else{
+		setIsNoonCanceled(false);
+	  }
+	  console.log("shift Empty", {isShiftEmpty})
+	  setIsShiftEmpty(shiftRole.userRef?.userProfile.firstName === undefined && shiftRole.shiftTimeName !== 'noonCanceled')
+	}, [shiftRole])
+	
+	console.log("item", { shiftRole},shiftRole.shiftTimeName);
 	const colorByTimeOfShift = (timeName) => {
+		if(isShiftEmpty){
+			return theme.colors.error
+		}
 		return timeName === "morning"
 			? "lightcyan"
 			: timeName === "night"
 			? "lightgray"
 			: "lightgoldenrodyellow";
 	};
-	const MiniComp = () => {
+	const MiniComp = (canceled) => {
+		console.log("cancled ",canceled)
 		const miniTime: string =
 			"" +
 			shiftRole.shiftStartHour.substring(11, 13) +
@@ -37,7 +54,7 @@ const SystemShift = ({ item, user, handelAskReplace }) => {
 			shiftRole.shiftEndHour.substring(11, 13);
 		const firstName = shiftRole.userRef?.userProfile.firstName
 			? shiftRole.userRef?.userProfile.firstName
-			: "";
+			: isNoonCanceled? "Canceled" : "Empty!!";
 		return (
 			// <Pressable onPress={() => console.log("press")}>
 			<View
@@ -88,14 +105,14 @@ const SystemShift = ({ item, user, handelAskReplace }) => {
 						>
 							{miniTime}
 						</Badge>
-						<Avatar.Icon size={45} icon='account' />
-					</View>
+						<Avatar.Icon size={45} icon={isNoonCanceled || isShiftEmpty ? 'account-off' : 'account'} />
+				</View>
 					<View style={{ flex: 1 }}>
 						<Text
 							variant='bodySmall'
 							style={{ color: theme.colors.primary, alignSelf: "center" }}
 						>
-							{!myShift ? shiftRole.userRef?.userProfile.firstName : "ME"}
+							{!myShift ? firstName : "Me"}
 						</Text>
 					</View>
 				</View>
@@ -117,6 +134,7 @@ const SystemShift = ({ item, user, handelAskReplace }) => {
 			// </Pressable>
 		);
 	};
+
 	const ExpendedComp = () => {
 		return (
 			// <View style={{ flex: 1, minHeight: 100 }}>
@@ -204,7 +222,8 @@ const SystemShift = ({ item, user, handelAskReplace }) => {
 	};
 	return (
 		<View style={{ flex: 1 }}>
-			{shiftRole.shiftTimeName !== "noonCanceled" && <MiniComp />}
+			<MiniComp canceled={isNoonCanceled} />
+		
 			{expend && <ExpendedComp />}
 		</View>
 	);
