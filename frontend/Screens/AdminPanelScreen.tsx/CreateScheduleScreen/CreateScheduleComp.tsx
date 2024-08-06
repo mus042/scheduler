@@ -8,6 +8,7 @@ import Userbuble from "../components/Userbuble";
 import Example from "./userReplaceMenu";
 import SystemNextSchedule from "../SystemNextSchedule";
 import { useSnackbarContext } from "../../SnackbarProvider";
+import ScheduleWeekPicker from "../../DashBoardScreen/components/ScheduleWeekPicker";
 export type scheduleCreate = {
 	schedule: scheduleData;
 	assigend: shiftAndOptions[];
@@ -31,6 +32,7 @@ type createdSchedType = {
 const CreateScheduleComp = ({ allUsers }: { allUsers: any[] | undefined }) => {
 	const [selectedUsers, setSelectedUsers] = useState<user[]>([]);
 	const [submittedUsers, setSubmittedUsers] = useState<user[]>([]);
+	const [selcetedweek, setSelctedWeek] = useState();
 	const [createdScheduleStats, setcreatedScheduleStats] = useState();
 
 	const [createdScheduleShifts, setcreatedScheduleShifts] =
@@ -39,7 +41,7 @@ const CreateScheduleComp = ({ allUsers }: { allUsers: any[] | undefined }) => {
 		shifts: [],
 		stats: [],
 	});
-	const {addSnackBarToQueue} = useSnackbarContext();
+	const { addSnackBarToQueue } = useSnackbarContext();
 
 	const me = userAuth().authState?.user;
 	useEffect(() => {
@@ -50,18 +52,21 @@ const CreateScheduleComp = ({ allUsers }: { allUsers: any[] | undefined }) => {
 
 	useEffect(() => {
 		const fetchSubmittedUsers = async () => {
-			try {
-				const response = await axios.get(`${API_URL}schedule/submittedUsers/`);
-				const data = response.data;
-				// Assuming the response is an array of users
-				setSubmittedUsers(data);
-			} catch (error) {
-				console.error("Failed to fetch submitted users:", error);
+			if (selcetedweek) {
+				try {
+					const response = await axios.get(
+						`${API_URL}schedule/submittedUsers/`,
+						{ params: { startDate: selcetedweek } }
+					);
+					const data = response.data;
+					setSubmittedUsers(data);
+				} catch (error) {
+					console.error("Failed to fetch submitted users:", error);
+				}
 			}
 		};
-
 		fetchSubmittedUsers();
-	}, []);
+	}, [selcetedweek]);
 	const toggleUserSelection = (selectedUser: user) => {
 		if (selectedUsers.some((user) => user.id === selectedUser.id)) {
 			setSelectedUsers(
@@ -73,23 +78,34 @@ const CreateScheduleComp = ({ allUsers }: { allUsers: any[] | undefined }) => {
 	};
 
 	const currentDate = new Date(); //current time
-	const startDate = new Date(
-		currentDate.getTime() + (7 - currentDate.getDay()) * 24 * 60 * 60 * 1000
-	);
+	const selctedDate: Date =
+		selcetedweek !== undefined
+			? new Date(selcetedweek)
+			: new Date(
+					currentDate.getTime() +
+						(7 - currentDate.getDay()) * 24 * 60 * 60 * 1000
+			  );
+	const startDate: Date = selcetedweek
+		? selctedDate
+		: new Date(
+				currentDate.getTime() + (7 - currentDate.getDay()) * 24 * 60 * 60 * 1000
+		  );
 	const createNewSysSchedule = async (
 		startDate: Date,
 		selectedUsers: user[]
 	) => {
-		startDate.setHours(0); // start time
+		startDate.setUTCHours(0, 0, 0, 0); // Set time to start of the day in UTC
 
 		try {
-			console.log({ startDate }, { selectedUsers });
-			const selectedUsersIds = selectedUsers.map((user) => user.id);
-			const shcedule = await axios.post(`${API_URL}schedule/createSchedule/`, {
-				scedualStart: startDate,
-				selctedUsers: selectedUsersIds,
+			console.log("sched create ", { startDate }, startDate.toUTCString(), {
+				selectedUsers,
 			});
-			return shcedule.data;
+			const selectedUsersIds = selectedUsers.map((user) => user.id);
+			const schedule = await axios.post(`${API_URL}schedule/createSchedule/`, {
+				scheduleStart: startDate.toISOString(), // Send as ISO string
+				selectedUsers: selectedUsersIds,
+			});
+			return schedule.data;
 		} catch (error) {
 			return { error: true, msg: (error as any).response.data.msg };
 		}
@@ -104,26 +120,25 @@ const CreateScheduleComp = ({ allUsers }: { allUsers: any[] | undefined }) => {
 				const sortedShifts = tmpSched.shifts.sort((a, b) => {
 					const dateA = new Date(a.shift.shiftStartHour).getTime();
 					const dateB = new Date(b.shift.shiftStartHour).getTime();
-					console.log(dateA, dateB, "a,b ",{a},{b});
+					console.log(dateA, dateB, "a,b ", { a }, { b });
 					return dateA - dateB;
 				});
 				console.log("sorted shifts", { sortedShifts });
 				!tmpSched.error &&
 					setCreatedSched({ ...tmpSched, shifts: sortedShifts });
-					addSnackBarToQueue({snackbarMessage:"Created schedule 🎊" })
+				addSnackBarToQueue({ snackbarMessage: "Created schedule 🎊" });
 				return tmpSched;
 			} catch (error) {
 				console.log({ error });
-				addSnackBarToQueue({snackbarMessage:"Eror Creating schedule 😔 "})
+				addSnackBarToQueue({ snackbarMessage: "Eror Creating schedule 😔 " });
 			}
 		};
 		newScheudle();
 	};
 	const updateSchedule = (newShifts: shift[]) => {
-		console.log('newShifts ',{ newShifts });
+		console.log("newShifts ", { newShifts });
 
 		if (createdSched && createdSched.shifts) {
-		
 			const updatedShifts: shiftAndOptions[] = createdSched.shifts.map(
 				(existingShift) => {
 					// Find the new shift that matches the current shift's tmpId
@@ -138,7 +153,7 @@ const CreateScheduleComp = ({ allUsers }: { allUsers: any[] | undefined }) => {
 					const tmpShift = newShift
 						? { ...existingShift.shift, ...newShift }
 						: { ...existingShift.shift };
-						console.log({tmpShift})
+					console.log({ tmpShift });
 					const { optinalUsers, userRef, ...tmpShiftWithoutOptions } = tmpShift;
 					return { shift: tmpShiftWithoutOptions, optinalUsers: optinalUsers };
 				}
@@ -153,6 +168,11 @@ const CreateScheduleComp = ({ allUsers }: { allUsers: any[] | undefined }) => {
 	return (
 		<View style={{ flexDirection: "column", flex: 1 }}>
 			<View style={{ flexGrow: 1 }}>
+				<Pressable onPress={() => console.log("weeks")}>
+					<Text>choose week to create </Text>
+					{/* to remove past weeks  */}
+					<ScheduleWeekPicker setSelectedDate={setSelctedWeek} />
+				</Pressable>
 				<FlatList
 					data={allUsers}
 					keyExtractor={(user) => user.id.toString() + Math.random()}

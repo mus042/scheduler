@@ -54,7 +54,21 @@ const SystemShift = ({ item, user, handelAskReplace }) => {
 			shiftRole.shiftEndHour.substring(11, 13);
 		const firstName = shiftRole.userRef?.userProfile.firstName
 			? shiftRole.userRef?.userProfile.firstName
-			: isNoonCanceled? "Canceled" : "Empty!!";
+			: isNoonCanceled? "Canceled" : "Empty!";
+
+			const onPressAvatar = ()=>{
+				//Open toolbar for assigend /  mising user on shift 
+				console.log("pressed shift" , {shiftRole});
+				if(isShiftEmpty && !isNoonCanceled){
+					//open the missing 
+					console.log("missing ")
+				}else if(isNoonCanceled){
+					console.log("noon cacnceld toolbar " )
+				}else{
+					console.log("assigend shift toolbar ")
+					
+				}
+			}
 		return (
 			// <Pressable onPress={() => console.log("press")}>
 			<View
@@ -105,7 +119,9 @@ const SystemShift = ({ item, user, handelAskReplace }) => {
 						>
 							{miniTime}
 						</Badge>
-						<Avatar.Icon size={45} icon={isNoonCanceled || isShiftEmpty ? 'account-off' : 'account'} />
+						<Pressable onPress={onPressAvatar}>
+						<Avatar.Icon size={45} icon={isNoonCanceled || isShiftEmpty ? 'account-off' : 'account'} style={ isShiftEmpty ? {backgroundColor:theme.colors.error} :isNoonCanceled ?{backgroundColor: theme.colors.errorContainer}:{backgroundColor: theme.colors.primary}}/>
+						</Pressable>
 				</View>
 					<View style={{ flex: 1 }}>
 						<Text

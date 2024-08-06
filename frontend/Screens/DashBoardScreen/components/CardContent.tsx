@@ -255,6 +255,9 @@ const CardContent = ({
 								</View>
 								<View style={{ flexGrow: 2 }}>
 									<Text>shift details</Text>
+									<Text> shift start  {selctedShiftRole?.shift?.shiftStartHour.toString()}-  shift end </Text>
+									<Text> shift optional users </Text>
+									<Text> find replace </Text>
 								</View>
 								<View style={{ flexGrow: 5, justifyContent: "center" }}>
 									{/* shift options */}

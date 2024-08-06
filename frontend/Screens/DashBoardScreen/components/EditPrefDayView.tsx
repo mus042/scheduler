@@ -12,7 +12,7 @@ import {
 import { normalizeShiftTime } from "../../../utils/utils";
 
 const EditPrefDayView = ({ dayName, date, dayShifts, updateShifts }) => {
-  console.log({dayShifts});
+  console.log(dayShifts.map((shift)=> "shift:" + shift.userPreference));
   const [localPref, setLocalPref] = useState<{
     morning: string;
     noon: string;
@@ -30,6 +30,9 @@ const EditPrefDayView = ({ dayName, date, dayShifts, updateShifts }) => {
       night: dayShifts[2]?.userPreference,
     });
   }, [dayShifts]);
+  useEffect(() => {
+  console.log({localPref})
+  }, [localPref]);
 
   const LeftContent = (props) => {
     const day: string = dayName.slice(0, 1).toLocaleLowerCase();
@@ -55,7 +58,7 @@ const EditPrefDayView = ({ dayName, date, dayShifts, updateShifts }) => {
     dayShifts[0].userPreference = localPref.morning;
     dayShifts[1].userPreference = localPref.noon;
     dayShifts[2].userPreference = localPref.night;
-    console.log({ updatedShifts });
+    console.log(updatedShifts.map((shift)=> "shift:" + shift.userPreference));
     updateShifts(updatedShifts);
   };
 

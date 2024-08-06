@@ -22,6 +22,9 @@ export class generateScheduleForDateDto {
 
   @IsNumber()
   facilityId: number;
+ @IsOptional()
+  @IsNumber()
+  settingsId: number;
 
   @IsOptional()
   @IsArray()

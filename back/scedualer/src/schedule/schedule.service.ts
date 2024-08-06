@@ -102,7 +102,7 @@ export class ScheduleService {
     let dayToAdd;
     let currentDate = new Date(); //hold the date with hours in case needed.
     let hoursCorrection;
-
+    console.log(typeof day , {day})
     if (day === undefined) {
       dayToAdd = 0;
 
@@ -331,7 +331,7 @@ export class ScheduleService {
     }
   }
   async getSelctedScheduleMold(facilityId: number) {
-    console.log('selcted mold', { facilityId });
+    console.log('selcted mold for facilityId', { facilityId });
     try {
       // Check if there's already a selected entry
       const res = await this.prisma.scheduleMold.findFirst({
@@ -704,6 +704,66 @@ export class ScheduleService {
   }
 
   //This will get a ScheduleId and shiftsEditDto array and update the schedule shifts.
+  // async editeFuterSceduleForUser(
+  //   scheduleId: number,
+  //   shiftsToEdit: EditShiftByDateDto[],
+  // ) {
+  //   console.log({ shiftsToEdit });
+  //   try {
+  //     const schedule = await this.prisma.userSchedule.findUnique({
+  //       where: {
+  //         id: scheduleId,
+  //       },
+  //     });
+
+  //     const editedShifts: userShift[] = [];
+  //     const existingShifts: userShift[] =
+  //       await this.shiftSercvice.getAllUserShiftsByScheduleId(scheduleId);
+  //     //contain user changes
+
+  //     existingShifts.forEach((shift: userShift) => {
+  //       const shiftTime = new Date(shift.shiftStartHour);
+  //       console.log({ shiftTime });
+  //       // shiftTime.setUTCHours(shiftTime.getHours());
+  //       const shiftId = shift.id;
+
+  //       shiftsToEdit.forEach(async (editInfo: EditShiftByDateDto) => {
+  //         const userPref: string = editInfo.userPreference;
+  //         console.log(
+  //           { editInfo },
+  //           shiftTime.getTime(),
+  //           shift.shiftStartHour.getTime(),
+  //           shift.userPreference
+  //         );
+  //         console.log("time comperation", shiftTime.getDate() === shift.shiftStartHour.getDate() &&
+  //         shiftTime.getHours() === shift.shiftStartHour.getHours())
+  //         if (
+  //           shiftTime.getDate() === shift.shiftStartHour.getDate() &&
+  //           shiftTime.getHours() === shift.shiftStartHour.getHours()
+  //         ) {
+  //           console.log({ shift });
+  //           const editShiftDto: EditShiftDto = {
+  //             shiftId: shiftId,
+  //             userPreference: userPref,
+  //             shiftType: 'user',
+  //           };
+  //           console.log({ editShiftDto });
+
+  //           const edited: userShift = await this.shiftSercvice.editUserShift(
+  //             {...editShiftDto},
+  //           );
+  //           // console.log('edited shift scheduleService 208', { edited });
+  //           editedShifts.push({ ...edited });
+  //         }
+  //       });
+  //     });
+  //     // console.log({ editedShifts });
+  //     return [...editedShifts];
+  //   } catch (error) {
+  //     console.log({ error });
+  //     throw new ForbiddenException(error.message);
+  //   }
+  // }
   async editeFuterSceduleForUser(
     scheduleId: number,
     shiftsToEdit: EditShiftByDateDto[],
@@ -715,66 +775,47 @@ export class ScheduleService {
           id: scheduleId,
         },
       });
-
-      const editedShifts: userShift[] = [];
-      const existingShifts: userShift[] =
-        await this.shiftSercvice.getAllUserShiftsByScheduleId(scheduleId);
-      //contain user changes
-      console.log(
-        'edit shift',
-        { shiftsToEdit },
-        { existingShifts },
-        scheduleId,
-        shiftsToEdit[0],
-      );
-
+  
+      const existingShifts: userShift[] = await this.shiftSercvice.getAllUserShiftsByScheduleId(scheduleId);
+      const shiftMap = new Map<string, userShift>();
+  
       existingShifts.forEach((shift: userShift) => {
-        const shiftTime = new Date(shift.shiftStartHour);
-        console.log({ shiftTime });
-        // shiftTime.setUTCHours(shiftTime.getHours());
-        const shiftId = shift.id;
-
-        shiftsToEdit.forEach(async (editInfo: EditShiftByDateDto) => {
-          const userPref: string = editInfo.userPreference;
-          console.log(
-            { editInfo },
-            shiftTime.getTime(),
-            shift.shiftStartHour.getTime(),
-            shiftTime.getDate(),
-            shift.shiftStartHour.getDate(),
-            shiftTime.getHours(),
-            shift.shiftStartHour.getHours(),
-          );
-          if (
-            shiftTime.getDate() === shift.shiftStartHour.getDate() &&
-            shiftTime.getHours() === shift.shiftStartHour.getHours()
-          ) {
-            console.log({ shift });
-            const editShiftDto: EditShiftDto = {
-              shiftId: shiftId,
-              userPreference: userPref,
-              shiftType: 'user',
-            };
-            // console.log({ editShiftDto });
-
-            const edited: userShift = await this.shiftSercvice.editUserShift(
-              editShiftDto,
-            );
-            // console.log('edited shift scheduleService 208', { edited });
-            editedShifts.push({ ...edited });
-          }
-        });
+        const shiftTimeKey = `${shift.shiftStartHour.getDate()}-${shift.shiftStartHour.getHours()}`;
+        shiftMap.set(shiftTimeKey, shift);
       });
-      // console.log({ editedShifts });
-      return [...editedShifts];
+  
+      const editedShifts: userShift[] = await Promise.all(shiftsToEdit.map(async (editInfo: EditShiftByDateDto) => {
+        const editTime = new Date(editInfo.shiftStartHour);
+        const editTimeKey = `${editTime.getDate()}-${editTime.getHours()}`;
+        const existingShift = shiftMap.get(editTimeKey);
+  
+        if (existingShift) {
+          const editShiftDto: EditShiftDto = {
+            shiftId: existingShift.id,
+            userPreference: editInfo.userPreference,
+            shiftType: 'user',
+          };
+          console.log({ editShiftDto });
+  
+          const edited = await this.shiftSercvice.editUserShift(editShiftDto);
+          return edited;
+        }
+        return null;
+      }));
+  
+      return editedShifts.filter((shift): shift is userShift => shift !== null);
     } catch (error) {
       console.log({ error });
       throw new ForbiddenException(error.message);
     }
   }
-  async getSubmmitedUsersSchedule(facilityId: number) {
-    const dateToGet: Date = this.getNextDayDate(undefined);
-
+  
+  async getSubmmitedUsersSchedule(facilityId: number, startDate :string | undefined) {
+    const userSelctedDate = new Date(startDate);
+userSelctedDate.setUTCHours(6,0,0,0)
+    console.log({startDate},{userSelctedDate});
+    const dateToGet: Date = userSelctedDate? userSelctedDate: this.getNextDayDate(undefined);
+    
     const allUsersShifts = this.getAllUsersForSchedule(
       dateToGet,
       undefined,
@@ -1215,13 +1256,13 @@ export class ScheduleService {
         const shiftWithLeast = this.findShiftWithLeastOptions(
           Object.values(shifts),
         );
-        console.log(
-          'shift to assign ,userShiftStats:',
-          userShiftStats,
-          { shiftsToAssign },
-          { shiftWithLeast },
-          Object.keys(shifts).length,
-        );
+        // console.log(
+        //   'shift to assign ,userShiftStats:',
+        //   userShiftStats,
+        //   { shiftsToAssign },
+        //   { shiftWithLeast },
+        //   Object.keys(shifts).length,
+        // );
         //find best match , return shift with user 
         const assignedShift = this. assignShift(
           shiftWithLeast,
@@ -1230,8 +1271,8 @@ export class ScheduleService {
           userShiftStats,
         );
 
-        console.log('assigned 1238', { assignedShift });
-
+        console.log('assigned 1238',  assignedShift.shiftStartHour , assignedShift.userId );
+        //case no user to assign
         if (!assignedShift) {
           noUserShifts.push({ ...shiftWithLeast });
           console.log('no possible users ::1136˚ , shift:', { shiftWithLeast });
@@ -1246,7 +1287,7 @@ export class ScheduleService {
           );
         } else {
           assignedShifts.push({ ...assignedShift });
-          console.log('possiblwe', assignedShift);
+          // console.log('possiblwe', assignedShift);
           delete shiftsToAssign[key][
             assignedShift.shift.shiftStartHour.toISOString()
           ];
@@ -1270,14 +1311,14 @@ export class ScheduleService {
           //Shift Stats
           this.updateStats(currentUserStats, assignedShift.shift, 1);
         }
-        console.log("get day shifts to update ",assignedShift,assignedShifts);
+        // console.log("get day shifts to update ",assignedShift,assignedShifts);
         if(assignedShift){
         const role = assignedShift.shift.shiftRole || assignedShift.shiftRole;
         const schedShfitsValues = Object.values(assignedShifts)
-       console.log("sched values ", {schedShfitsValues})
+      //  console.log("sched values ", {schedShfitsValues})
         //update shifts map shift option 
         const dayShifts = this.getDayShiftsFromSchedule(assignedShift.shift,assignedShifts)
-        console.log('day shifts for assigned sched  shift ', { dayShifts });
+        // console.log('day shifts for assigned sched  shift ', { dayShifts });
         //update shift options for day shifts
         dayShifts &&
           dayShifts.forEach((shiftToUpdate) => {
@@ -1308,6 +1349,7 @@ const newShiftOptions = this.updateShiftOptions(
     const longShiftsEnabeld = true;
 
     if (noUserShifts.length > 0) {
+    console.log(" case no user shifts ...")
       if (longShiftsEnabeld) {
         console.log({ noUserShifts }, 'no user shifts :');
 
@@ -1641,7 +1683,6 @@ const newShiftOptions = this.updateShiftOptions(
         break;
     }
     //update shift stats ->
-
     const updatedSched = this.updateAssignedSchedule(
       assignedSchedule,
       [morning, noon, night],
@@ -1675,9 +1716,9 @@ const newShiftOptions = this.updateShiftOptions(
   getNextShiftKeyInMap(currentShiftKey, shiftsMap) {
     //return the key of the next shift in the schedule .
 
-    console.log({ shiftsMap });
+    // console.log({ shiftsMap });
     const entries = Object.entries(shiftsMap); // Convert to entries array
-    console.log({ entries }, currentShiftKey);
+    // console.log({ entries }, currentShiftKey);
     for (let i = 0; i < entries.length; i++) {
       if (entries[i][0] === currentShiftKey && i + 1 < entries.length) {
         // Return the key of the next shift if the current key matches and there is a next shift
@@ -1687,7 +1728,25 @@ const newShiftOptions = this.updateShiftOptions(
     }
     return null; // Return null if no next shift is found
   }
+  getAvailableWeeks(dayOfWeek: number): string[] {
+    const today = new Date();
+    const sixMonthsAgo = new Date(today);
+    const sixMonthsLater = new Date(today);
+    sixMonthsAgo.setMonth(today.getMonth() - 1);
+    sixMonthsLater.setMonth(today.getMonth() + 6);
 
+    const availableWeeks = [];
+    let currentDate = new Date(sixMonthsAgo);
+
+    while (currentDate <= sixMonthsLater) {
+      if (currentDate.getDay() === dayOfWeek) {
+        availableWeeks.push(currentDate.toISOString().split('T')[0]);
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return availableWeeks;
+  }
   assignShift(shiftAndOptions, assignedShifts, shiftsMap, userShiftStats) {
     console.log('assign shift start', { userShiftStats });
     //check all options and pick the best option
@@ -1768,11 +1827,12 @@ const newShiftOptions = this.updateShiftOptions(
     console.log(
       'next shift Key = ',
       nextShiftKey,
-      { shiftsMap },
-      shiftsMap[nextShiftKey],
+      shiftsMap[nextShiftKey].optinalUsers,
+      shiftsMap[nextShiftKey].optinalUsers[0].userId ===
+        possibleShifts[selectedInedx].userId
     );
     if (
-      nextShiftKey &&
+      nextShiftKey && 
       shiftsMap[nextShiftKey].optinalUsers.length === 1 &&
       shiftsMap[nextShiftKey].optinalUsers[0].userId ===
         possibleShifts[selectedInedx].userId
@@ -1782,19 +1842,17 @@ const newShiftOptions = this.updateShiftOptions(
     assignedShift.userId = possibleShifts[selectedInedx].userId;
     assignedShift.userPreference = possibleShifts[selectedInedx].userPreference;
     //remove user from options of same day and next 8 hours
-    console.log(shiftsMap, { assignedShift });
-    // const dayShifts = this.getDayShiftsFromSchedule(
-    //   assignedShift,
-    //   Object.values(shiftsMap),
-    // );
-
-    nextShiftKey &&
-      this.updateShiftOptions(
-        shiftsMap[nextShiftKey],
-        possibleShifts[selectedInedx],
-        'remove',
-      );
-    console.log({ assignedShift }, shiftsMap[nextShiftKey]);
+  // Remove user from options of the same day and next 8 hours
+  console.log("shifts map ",shiftsMap[nextShiftKey].optinalUsers)
+if (nextShiftKey) {
+  shiftsMap[nextShiftKey].optinalUsers = this.updateShiftOptions(
+    shiftsMap[nextShiftKey],
+    possibleShifts[selectedInedx],
+    'remove',
+  );  
+}
+console.log("next shift : ",shiftsMap[nextShiftKey].optinalUsers)
+    console.log('after assigen', assignedShift.userId ,'next shift:', shiftsMap[nextShiftKey]);
     newShift.shift = assignedShift;
 
     newShift.optinalUsers = [
@@ -1831,31 +1889,68 @@ if(newOptions)
       return []
     }
   }
+  async getSettingsById (settingsId) {
+    try{
+    const mold = await this.prisma.scheduleMold.findUnique({
+      where:{
+      id:settingsId,
+    },
+    include: {
+      scheduleTime: true,
+      shiftsTemplate: {
+        include: {
+          userPrefs: {
+            include: {
+              role: { select: { name: true, id: true } },
+            },
+          },
+        },
+      },
+    },
+  }
+  );
+  return mold;
+}
+catch {
+  throw new error('settings not found');
+}
+
+
+  }
   /**
    * @description Create the a system schedule for the date provided.
    * @param {generateScheduleForDateDto} dto
    * @memberof ScheduleService
    */
   async createSystemSchedule(dto: generateScheduleForDateDto) {
-    // console.log('Create sys schedule service 903', dto);
+    console.log('Create sys schedule service 903', {dto});
     //create map to contain the userStatistics
     const selectedUsers = dto.selctedUsers;
     //Get current mold
-    const currentMold = await this.getSelctedScheduleMold(dto.facilityId);
+   
+    const currentMold =!dto.settingsId ? await this.getSelctedScheduleMold(dto.facilityId):
+    await this.getSettingsById(dto.settingsId); //get selcted settings if settings id not selcted;
+    
     if (currentMold === false) {
       throw new ForbiddenException('907 sched service currentmold ');
     }
+    
     //Normalize the dates .
-    const normelizedStartDate = this.getNextDayDate({
-      D: currentMold.scheduleTime.startDay,
-      H: currentMold.scheduleTime.startHour,
-      M: currentMold.scheduleTime.startMinutes,
-    });
+    // const normelizedStartDate = this.getNextDayDate({
+    //   D: currentMold.scheduleTime.startDay,
+    //   H: currentMold.scheduleTime.startHour,
+    //   M: currentMold.scheduleTime.startMinutes,
+    // });
+    const normelizedStartDate = new Date(dto.scedualStart);
+    normelizedStartDate.setUTCHours(currentMold.scheduleTime.startHour);
+    normelizedStartDate.setUTCMinutes(currentMold.scheduleTime.startMinutes);
+    
     const normelizedendDate = this.getNextDayDate({
       D: currentMold.scheduleTime.endDay,
       H: currentMold.scheduleTime.endHour,
       M: currentMold.scheduleTime.endMinutes,
     });
+    
     //Generate schedule to have schdule id for next steps.
     const newSchedule: SystemSchedule = await this.createEmptySystemSchedule(
       normelizedStartDate,
@@ -1969,31 +2064,15 @@ if(newOptions)
       assigedShifts.assigend.push(element);
     });
     //Create the shifts  .
-    // const createRes = await this.createScheduleShifts(assigedShifts.assigend);
-
-    // this.shiftStats.createUsersStatsForScheduleShift(assigedShifts.userShiftStats,newSchedule.id);
-    // console.log({ createRes });
-    // const shifts = assigedShifts.assigend.map((shift) => {
-    //   console.log("shift to create", {shift});
-    //   const tmp = {
-    //     ...shift,
-    //     shiftRoleId: shift.shiftRole.roleId,
-    //     shiftName: shift.shiftTimeName + ' ' + shift.shiftRole.role.name,
-
-    //   };
-    //   // delete tmp.shiftRole;
-    //   delete tmp.shiftType;
-    //   delete tmp.tmpId;
-    //   return tmp;
-    // });
+  
 
     const sortedShifts = assigedShifts.assigend.sort((a, b) => {
       const dateA = new Date(a.shift.shiftStartHour).getTime();
       const dateB = new Date(b.shift.shiftStartHour).getTime();
-      console.log(dateA, dateB, 'a,b ');
+      // console.log(dateA, dateB, 'a,b ');
       return dateA - dateB;
     });
-    console.log("creatd sdchedule : " , {sortedShifts})
+    // console.log("creatd sdchedule : " , {sortedShifts})
     this.printSchedule(sortedShifts,"created scheudle ")
     return {
       shifts: [...sortedShifts],
@@ -2011,7 +2090,7 @@ if(newOptions)
           return null;
         }
 
-        console.log({ item });
+        // console.log({ item });
         const tmpShift: SystemShiftDTO = {
           ...item.shift,
         };
@@ -2020,7 +2099,7 @@ if(newOptions)
       })
       .filter((shift) => shift !== null); // Filter out any nulls from invalid data
 
-    console.log({ shifts });
+    // console.log({ shifts });
 
     // Assuming createScheduleShifts method exists and can process the shifts array
     const createRes = await this.createScheduleShifts(shifts);

@@ -8,4 +8,5 @@ export class EditShiftByDateDto {
 
   @IsString()
   userPreference: string;
+  shiftStartHour: string | number | Date;
 }
