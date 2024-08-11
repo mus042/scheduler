@@ -25,5 +25,5 @@ export class scheduleDto {
   scedualDue?: Date;
 
   @IsNumber()
-  facilityId: number
+  facilityId: number;
 }

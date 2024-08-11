@@ -46,7 +46,7 @@ const SystemShift = ({ item, user, handelAskReplace }) => {
 			: "lightgoldenrodyellow";
 	};
 	const MiniComp = (canceled) => {
-		console.log("cancled ",canceled)
+		console.log("cancled ",canceled , {item},{user})
 		const miniTime: string =
 			"" +
 			shiftRole.shiftStartHour.substring(11, 13) +

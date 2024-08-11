@@ -102,9 +102,10 @@ const CreateScheduleComp = ({ allUsers }: { allUsers: any[] | undefined }) => {
 			});
 			const selectedUsersIds = selectedUsers.map((user) => user.id);
 			const schedule = await axios.post(`${API_URL}schedule/createSchedule/`, {
-				scheduleStart: startDate.toISOString(), // Send as ISO string
+				scheduleStart: startDate, // Send as ISO string
 				selectedUsers: selectedUsersIds,
 			});
+			console.log({schedule})
 			return schedule.data;
 		} catch (error) {
 			return { error: true, msg: (error as any).response.data.msg };
@@ -117,24 +118,35 @@ const CreateScheduleComp = ({ allUsers }: { allUsers: any[] | undefined }) => {
 			try {
 				const tmpSched = await createNewSysSchedule(startDate, selectedUsers);
 				console.log("tmpSched", { tmpSched });
-				const sortedShifts = tmpSched.shifts.sort((a, b) => {
-					const dateA = new Date(a.shift.shiftStartHour).getTime();
-					const dateB = new Date(b.shift.shiftStartHour).getTime();
-					console.log(dateA, dateB, "a,b ", { a }, { b });
-					return dateA - dateB;
-				});
-				console.log("sorted shifts", { sortedShifts });
-				!tmpSched.error &&
+	
+				// Ensure tmpSched and tmpSched.shifts exist and are arrays
+				if (!tmpSched.error && Array.isArray(tmpSched.shifts)) {
+					const sortedShifts = tmpSched.shifts.sort((a, b) => {
+						const dateA = a && a.shiftStartHour 
+							? new Date(a.shiftStartHour).getTime() 
+							: 0;
+						const dateB = b && b.shiftStartHour 
+							? new Date(b.shiftStartHour).getTime() 
+							: 0;
+						console.log(dateA, dateB, "a,b ", { a }, { b });
+						return dateA - dateB;
+					});
+					console.log("sorted shifts", { sortedShifts });
+	
 					setCreatedSched({ ...tmpSched, shifts: sortedShifts });
-				addSnackBarToQueue({ snackbarMessage: "Created schedule 🎊" });
-				return tmpSched;
+					addSnackBarToQueue({ snackbarMessage: "Created schedule 🎊" });
+					return tmpSched;
+				} else {
+					throw new Error("Invalid schedule data");
+				}
 			} catch (error) {
 				console.log({ error });
-				addSnackBarToQueue({ snackbarMessage: "Eror Creating schedule 😔 " });
+				addSnackBarToQueue({ snackbarMessage: "Error Creating schedule 😔 " });
 			}
 		};
 		newScheudle();
 	};
+	
 	const updateSchedule = (newShifts: shift[]) => {
 		console.log("newShifts ", { newShifts });
 

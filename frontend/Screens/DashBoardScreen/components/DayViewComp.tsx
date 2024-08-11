@@ -53,6 +53,7 @@ const DayViewComp = ({
 			// console.log(morning,noon,night,nightUser);
 
 			const shiftDate: Date = new Date(localShifts[0]?.shiftStartHour);
+			console.log({shiftDate})
 			const options = { weekday: "long" };
 			setDayName(shiftDate.toLocaleString("en-us", options));
 		}

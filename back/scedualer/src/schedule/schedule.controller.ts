@@ -14,6 +14,7 @@ import {
   Param,
   Delete,
   Query,
+  HttpException,
 } from '@nestjs/common';
 
 import { ScheduleService } from './schedule.service';
@@ -149,8 +150,10 @@ export class SchedulerController {
     @Body() scheduleDto,
     @GetUser('facilityId') facilityId: number,
   ) {
-    console.log('schecdcont ', { scheduleDto }, scheduleDto.selctedUsers);
+    const startDate = new Date(scheduleDto.scheduleStart);
+    console.log(startDate);
     return this.ScheduleService.createSystemSchedule({
+      scheduleStart: startDate,
       ...scheduleDto,
       facilityId,
     });
@@ -158,21 +161,35 @@ export class SchedulerController {
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
   @Post('setSystemSchedule')
+  @Post('setSystemSchedule')
+  @HttpCode(HttpStatus.OK)
+  @Roles('admin')
   setSystemSchedule(
-    @Body() scheduleDto,
+    @Body() scheduleDto: any,
     @GetUser('facilityId') facilityId: number,
   ) {
-    console.log('schecdcont ', { scheduleDto }, scheduleDto.selectedUsers);
-
-    // Convert scheduleStart to Date object if it's in ISO string format
-    const scheduleStart = new Date(scheduleDto.scheduleStart);
-
-    return this.ScheduleService.setSystemSchedule({
-      ...scheduleDto,
-      scheduleStart,
+    console.log('Received scheduleDto:', scheduleDto);
+  
+    if (!scheduleDto || !scheduleDto.scheduleStart) {
+      console.log('Missing scheduleStart in request body');
+      throw new HttpException('Missing scheduleStart in request body', 400);
+    }
+  
+    const startDate = new Date(scheduleDto.scheduleStart);
+    console.log('Parsed startDate:', startDate);
+  
+    if (isNaN(startDate.getTime())) {
+      console.log('Invalid start date:', scheduleDto.scheduleStart);
+      throw new HttpException('Invalid start date', 400);
+    }
+  
+    return this.ScheduleService.createSystemSchedule({
+      scheduleStart: startDate,
+      selectedUsers: scheduleDto.selectedUsers,
       facilityId,
     });
   }
+  
 
   @Roles('admin')
   @HttpCode(HttpStatus.OK)

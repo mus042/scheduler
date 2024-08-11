@@ -25,7 +25,7 @@ const ScheduleCreateView = ({
 }: {
 	createdSchedule: shiftAndOptions[];
 	users: user[];
-	updateSchedule:any;
+	updateSchedule: any;
 }) => {
 	const [localSchedule, setLocalSchedule] = useState<any[]>();
 	const [updatedSchedule, setUpdatedSchedule] = useState<any[]>();
@@ -63,19 +63,18 @@ const ScheduleCreateView = ({
 	};
 	useEffect(() => {
 		console.log({ createdSchedule });
-		if(createdSchedule?.length > 0 ){
-		const groupedShifts = groupShiftsByDayAndTime(createdSchedule);
-		console.log("groupedShifts",{groupedShifts})
-		setLocalSchedule(Object.entries(groupedShifts));
-		console.log({ groupedShifts }, Object.entries(groupedShifts)[0][1]);
-		setUpdatedSchedule(createdSchedule);
-		};
+		if (createdSchedule?.length > 0) {
+			const groupedShifts = groupShiftsByDayAndTime(createdSchedule);
+			console.log("groupedShifts", { groupedShifts });
+			setLocalSchedule(Object.entries(groupedShifts));
+			console.log({ groupedShifts }, Object.entries(groupedShifts)[0][1]);
+			setUpdatedSchedule(createdSchedule);
+		}
 	}, [createdSchedule]);
 	useEffect(() => {
 		localSchedule && console.log(localSchedule[0][0]);
 	}, [localSchedule]);
 
-	
 	const saveSchedule = async () => {
 		try {
 			const response = await axios.post(
@@ -101,35 +100,61 @@ const ScheduleCreateView = ({
 						justifyContent: "flex-start",
 					}}
 					renderItem={({ item }) => {
-						const scheduleParts:shiftAndOptions[] = item[1]; // Object with morning, noon, and night keys
-						console.log('parts',{scheduleParts});
+						const scheduleParts: shiftAndOptions[] = item[1]; // Object with morning, noon, and night keys
+						console.log("parts", { scheduleParts });
 
 						// Flatten all shifts from each part of the day into a single array
 						const shiftsArray = Object.values(scheduleParts)
 							.flat()
 							.map((entry) => {
-								const userRef = users.find((user)=>user.id === entry.shift.userId)
-								// console.log('user Profile , '{userProfile})
-								const shiftWithOptions = { ...entry.shift,userRef };
-								shiftWithOptions.optinalUsers = entry.optinalUsers;
+								if (!entry) {
+									console.error("Invalid entry:", { entry });
+									return null; // Skip invalid entries
+								}
 
-								return shiftWithOptions;
-							});
-							console.log("shiftsArrays:",{shiftsArray});
-					
+								// Ensure entry has a shift property, and if not, wrap entry in a shift property
+								const normalizedEntry = entry.shift
+									? entry
+									: { shift: entry, optinalUsers: entry.optinalUsers || [] };
+
+								// Check if shift is an array (which shouldn't be the case)
+								if (Array.isArray(normalizedEntry.shift)) {
+									console.error(
+										"Unexpected array in shift property:",
+										normalizedEntry.shift
+									);
+									return null; // Skip invalid entries
+								}
+
+								const userRef = users.find(
+									(user) => user.id === normalizedEntry.shift.userId
+								);
+
+								// Flatten the structure to { ...shift, ...optinalUsers, userRef }
+								const flattenedEntry = {
+									...normalizedEntry.shift,
+									...normalizedEntry.optinalUsers,
+									userRef,
+								};
+
+								console.log("Flattened Entry:", flattenedEntry); // Log to verify structure
+								return flattenedEntry;
+							})
+							.filter((shift) => shift !== null); // Remove null entries from the array
+
+						console.log("shiftsArrays:", { shiftsArray });
+
 						const flatShifts = { item: shiftsArray };
-
 						return (
 							<View style={{ flex: 1 }}>
 								<View>
-									<Pressable style={{ margin: 5, }}>
-										{/* <SysDayView shifts={item[1]} dayName={item[0]} users={users} /> */}
+									<Pressable style={{ margin: 5 }}>
 										<DayViewComp
 											shifts={flatShifts}
 											isEdit={true}
 											viewType={"systemSchedule"}
 											update={updateSchedule}
-                                            allUsers={users}
+											allUsers={users}
 										/>
 									</Pressable>
 								</View>

@@ -8,12 +8,12 @@ import {
   IsString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import {  user } from '@prisma/client';
+import { user } from '@prisma/client';
 
 export class generateScheduleForDateDto {
   @Type(() => Date)
   @IsDate()
-  scedualStart: Date;
+  scheduleStart: Date;
 
   @IsOptional()
   @Type(() => Date)
@@ -22,11 +22,12 @@ export class generateScheduleForDateDto {
 
   @IsNumber()
   facilityId: number;
- @IsOptional()
+
+  @IsOptional()
   @IsNumber()
-  settingsId: number;
+  settingsId?: number; // Ensure this is marked as optional
 
   @IsOptional()
   @IsArray()
-  selctedUsers?: any;
+  selectedUsers: number[]; // Ensure proper type
 }
